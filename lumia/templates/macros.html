@@ -1,0 +1,42 @@
+{% macro icon(name, cls='') -%}
+<svg class="icon {{ cls }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'grid' %}<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+{% elif name == 'orders' %}<path d="m3 7 9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7M12 11v10M7 5l10 4"/>
+{% elif name == 'users' %}<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-3-5"/>
+{% elif name == 'wallet' %}<path d="M20 8H5a2 2 0 0 1 0-4h13v4M3 6v13a2 2 0 0 0 2 2h15V8M16 12h5v5h-5z"/>
+{% elif name == 'settings' %}<path d="m9 3-.6 3-2 .9-2.6-1.5-2 3.5L4 11v2l-2.2 2.1 2 3.5 2.6-1.5 2 .9.6 3h4l.6-3 2-.9 2.6 1.5 2-3.5L18 13v-2l2.2-2.1-2-3.5-2.6 1.5-2-.9L13 3z"/><circle cx="11" cy="12" r="3"/>
+{% elif name == 'arrow' %}<path d="M5 12h14M14 7l5 5-5 5"/>
+{% elif name == 'up' %}<path d="M6 16 17 5M6 5h11v11"/>
+{% elif name == 'plus' %}<path d="M12 5v14M5 12h14"/>
+{% elif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/>
+{% elif name == 'bell' %}<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+{% elif name == 'help' %}<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .6-1.5 1-1.5 2M12 17h.01"/>
+{% elif name == 'spark' %}<path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3zM20 3v4M18 5h4"/>
+{% elif name == 'star' %}<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>
+{% elif name == 'messages' %}<path d="M21 11a8 8 0 0 1-8 8H8l-5 3V9a7 7 0 0 1 7-7h3a8 8 0 0 1 8 9Z"/><path d="M7 8h9M7 12h6"/>
+{% elif name == 'box' %}<path d="m12 3 9 5-9 5-9-5zM3 8v10l9 5 9-5V8M12 13v10M7 5.8l10 5.5"/>
+{% elif name == 'layers' %}<path d="m12 3 10 5-10 5L2 8zM2 12l10 5 10-5M2 16l10 5 10-5"/>
+{% elif name == 'columns' %}<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="12" rx="1.5"/><path d="M18 4h3v15h-3"/>
+{% elif name == 'list' %}<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+{% elif name == 'download' %}<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>
+{% elif name == 'lock' %}<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>
+{% elif name == 'close' %}<path d="m6 6 12 12M18 6 6 18"/>
+{% elif name == 'check' %}<path d="m5 12 4 4L19 6"/>
+{% elif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+{% elif name == 'shield' %}<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/>
+{% elif name == 'logout' %}<path d="M9 4H4v16h5M9 12h12M17 8l4 4-4 4"/>
+{% elif name == 'search' %}<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>
+{% elif name == 'discord' %}<path d="M8 5 5 6c-2 4-3 7-3 11l5 3 1-2M16 5l3 1c2 4 3 7 3 11l-5 3-1-2M6 16c4 2 8 2 12 0"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/>
+{% else %}<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>{% endif %}</svg>
+{%- endmacro %}
+
+{% macro badge(stage, stages) %}<span class="badge {{ stage }}"><span class="badge-dot"></span>{{ stages[stage] }}</span>{% endmacro %}
+
+{% macro avatar(name, url=None, cls='') %}{% if url %}<img class="avatar {{ cls }}" src="{{ url }}" alt="" width="38" height="38" loading="lazy" referrerpolicy="no-referrer">{% else %}<span class="avatar {{ cls }}" aria-hidden="true">{{ name[:1]|upper }}</span>{% endif %}{% endmacro %}
+{% macro csrf(user) %}<input type="hidden" name="csrf" value="{{ user.csrf }}">{% endmacro %}
+{% macro order_table(items, stages, query='', filter='', show_customer=True, demo=False) %}
+<div class="project-list">
+{% for o in items if (not query or query.lower() in o.title.lower() or query in o.customer|string or query in o.id|string) and (not filter or o.stage == filter) %}
+<a class="project-row" href="/orders/{{ o.id }}{% if demo and not show_customer %}?view=client{% endif %}"><div><strong class="project-name">{{ o.title }}</strong><div class="project-meta"><span>LM-{{ '%04d'|format(o.id) }}</span>{% if show_customer %}<span>{{ o.customer_name }}</span>{% endif %}{{ badge(o.stage,{'bozza':'In valutazione'}) if o.intake and o.stage=='bozza' else badge(o.stage,stages) }}</div></div><div class="project-finance">{% if o.intake and not o.intake.quote %}<strong>Da definire</strong><small>{{ 'Richiesta chiusa' if o.stage=='annullato' else 'In valutazione' }}</small>{% else %}<strong class="{% if not o.due_cents %}good{% endif %}">{{ o.due_cents|money }}</strong><small>{{ 'Saldato' if not o.due_cents else 'Da saldare' }}</small>{% endif %}</div>{{ icon('arrow') }}</a>
+{% else %}<div class="empty-state">{{ icon('orders') }}<h3>Nessun progetto</h3><p>I tuoi ordini e preventivi appariranno qui.</p></div>{% endfor %}</div>
+{% endmacro %}

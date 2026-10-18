@@ -1,0 +1,43 @@
+LUMIA MANAGER — FUNZIONI CONSEGNATE E BOT DA MANTENERE
+
+Scopo finale scelto dall'utente: funzioni utili a uno studio che sviluppa server FiveM, Minecraft, script, plugin e gamemode, con dashboard per ordini e pagamenti. Shiba e SP Bulk esclusi.
+
+TICKETS V2 → TICKET LUMIA
+Inclusi: pannello con categorie, moduli preliminari, canali privati, incarico staff, sviluppatori aggiunti individualmente, fasi e cronologia delle modifiche, richiesta e conferma di chiusura, trascrizioni complete disponibili su Discord, recupero delle operazioni interrotte e cancellazione manuale del canale dopo sette giorni con verifica dell'archivio.
+Limiti: allegati conservati come riferimenti URL, non scaricati come archivio permanente; link soggetti a scadenza. Nessuna migrazione automatica dei vecchi ticket. Conservazione degli archivi gestita dall'operatore, senza cancellazioni automatiche basate su retention_days.
+Transizione: lascia i vecchi ticket al bot precedente fino alla chiusura; usa Lumia per le nuove richieste dopo il collaudo.
+
+DYNO → MODERAZIONE E COMMUNITY LUMIA
+Inclusi: avvertimenti, storico, timeout e rimozione, espulsioni, ban, pulizia messaggi, controlli di gerarchia e permessi, automod configurabile per frequenza messaggi, menzioni e domini bloccati; benvenuto, uscite, ruoli selezionabili, FAQ e suggerimenti.
+Non inclusi perché fuori dalle esigenze operative selezionate: economia, giochi, Dyno Battles, XP/livelli, starboard, feed social, libreria completa di comandi personalizzati e dashboard Dyno. Non vengono importati dati o valute proprietarie.
+Transizione: disabilita i moduli Dyno duplicati solo dopo test. Se usate una funzione qui esclusa, mantieni quel modulo/bot finché non viene aggiunta un'alternativa.
+
+APOLLO → EVENTI LUMIA
+Inclusi: creazione, annullamento, elenco, pannelli persistenti, risposte partecipo/forse/non partecipo, capienza, promemoria nel canale per i partecipanti opt-in, ricorrenze giornaliere e settimanali, recupero dopo riavvio e gestione del fuso Europe/Rome.
+Non inclusi: Google Calendar, ricorrenze mensili complesse, lista d'attesa automatica e tutte le personalizzazioni premium di Apollo.
+Transizione: sostituibile per riunioni, presentazioni e test organizzati con queste funzioni. Mantieni Apollo solo se usate le integrazioni mancanti.
+
+INVITE TRACKER → INVITI LUMIA
+Inclusi: confronto degli utilizzi, attribuzione prudente, conteggi degli inviti osservati, uscite e rientri, riconciliazione delle presenze note dopo un fermo, riepilogo /inviti.
+Limiti: attribuzioni ambigue vengono indicate come sconosciute. Nessuno storico precedente inventato; niente ricompense per invitare utenti o incentivo allo spam.
+Non inclusi: intera dashboard analitica di Invite Tracker, campagne avanzate e importazione automatica dello storico proprietario.
+
+SERVERSTATS → GESTITO DAL BOT SERVERSTATS GIÀ PRESENTE
+Lumia non registra /statistiche, non crea il contatore membri e non aggiorna i canali statistici. /server canali disattiva il vecchio riferimento Lumia e rimuove soltanto il vecchio canale vocale vuoto con proprietà verificata. Vedi CANALI-DISCORD.md.
+
+SECURITY → PROTEZIONI LUMIA + COLLAUDO PRIMA DELLA SOSTITUZIONE
+Inclusi: allerta anti-raid su picco ingressi con almeno il 60% di account recenti, sospensione temporanea dell'assegnazione Member, automod, registro incidenti, monitoraggio di undici tipi di azione audit incluse escalation di privilegi e creazioni/cancellazioni ripetute. Attore ricavato dall'evento audit esatto, con deduplicazione persistente. Modalità observe iniziale; in enforce tenta la rimozione dei ruoli pericolosi modificabili alla soglia.
+Limiti: nessun CAPTCHA avanzato, protezione proprietaria completa, ripristino integrale del server o dei messaggi eliminati. Le azioni sotto soglia possono già aver provocato un danno. Proprietario e utenti sopra il bot restano fuori dalla sua capacità di intervento. Il blocco Member anti-raid funziona anche con audit in observe, come descritto in OPERATIONS.txt.
+Consiglio concreto: mantieni Security per CAPTCHA e protezioni avanzate durante il collaudo. Evita due sistemi che sanzionano lo stesso evento; configura soglie, gerarchia ed eccezioni prima dell'attivazione.
+
+DASHBOARD E COMMESSE — FUNZIONI NUOVE PER LUMIA
+Inclusi: accesso Discord OAuth2, verifica attuale dei membri/ruoli, sessioni protette e CSRF, clienti, elenco e ricerca ordini, preventivi, accettazione del cliente, stati, dettagli del progetto, milestone, scadenze, registro pagamenti in EUR, audit e collegamento al ticket. Ogni cliente vede solo i propri ordini; Management gestisce le finanze.
+Bot e web condividono l'archivio. Comandi /ordine disponibili anche da Discord.
+Stripe: integrazione Checkout opzionale con importo deciso dal server e webhook verificato; richiede account/chiavi vostri, dominio HTTPS e collaudo in test. Non è attivato nella demo.
+Il registro manuale non addebita denaro e non emette fatture. Rimborsi reali, contestazioni, fiscalità e riconciliazione richiedono gli strumenti e le procedure aziendali appropriate. Vedi DASHBOARD.txt per la gestione dei movimenti da riconciliare e delle correzioni.
+
+ALTRI MATERIALI
+Allestimento aggiuntivo e confermato dal proprietario, testi italiani pronti da pubblicare, configurazione senza segreti, dipendenze fissate, Docker/Caddy, backup e istruzioni.
+
+STATO DEL COLLAUDO
+I test automatici locali e la verifica del layout non sostituiscono i test con Discord e Stripe reali. Consulta VERIFICHE.txt per l'esito effettivo. Nessun bot precedente è stato rimosso e nessun server remoto è stato modificato durante la preparazione.

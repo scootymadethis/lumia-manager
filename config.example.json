@@ -1,0 +1,27 @@
+{
+  "guild_id": 0,
+  "owner_ids": [],
+  "roles": {
+    "member": 0
+  },
+  "channels": {},
+  "categories": {},
+  "timezone": "Europe/Rome",
+  "retention_days": 90,
+  "automod": {
+    "enabled": false,
+    "spam_count": 7,
+    "spam_seconds": 8,
+    "blocked_domains": [],
+    "ignore_channels": []
+  },
+  "security": {
+    "mode": "observe",
+    "join_limit": 10,
+    "join_window": 60,
+    "young_days": 7,
+    "audit_limit": 4,
+    "audit_window": 60,
+    "whitelist_users": []
+  }
+}

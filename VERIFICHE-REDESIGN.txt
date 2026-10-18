@@ -1,0 +1,68 @@
+LUMIA — VERIFICHE DEL REDESIGN
+17 ottobre 2026
+
+ESITO LOCALE
+151 test Python superati, senza connessione a Discord o Stripe reali.
+Python 3.12, database SQLite temporanei e client HTTP simulati.
+Avviso non bloccante di deprecazione Starlette/httpx nel runner dei test.
+
+Copertura rilevante:
+- OAuth Discord, sessioni, origine/CSRF, accessi revocati e isolamento clienti.
+- Host pubblico separato: nessun ordine, accesso OAuth o cookie del manager
+  servito dal dominio della landing.
+- Piani a tranche, somma degli importi, attribuzione di incassi precedenti,
+  storni, milestone esterne rifiutate e FIFO dei pagamenti.
+- Due Checkout distinti completati con webhook firmati simulati, duplicati,
+  metadati/importi non coerenti, sessioni vecchie e collisioni con incassi manuali.
+- Migrazione additiva delle vecchie tabelle, senza perdere sessioni esistenti.
+- Soglia Checkout di 0,50 euro; residui inferiori conservati senza arrotondamenti.
+- DM e accettazione delle regole, ruoli assegnabili, anti-raid, destinatario
+  errato, appartenenza attuale, verifica corretta/errata e pause persistenti.
+- Registrazione dei comandi, log con avatar e link al progetto; aggiornamento
+  degli embed limitato ai messaggi di questo bot, controlli esistenti conservati.
+
+BROWSER
+Chrome installato, modalità headless con Playwright.
+32 viste: landing, manager, cliente, dettaglio, editor tranche, nuovo ordine,
+pagamenti e login, a larghezze 1440, 768, 390 e 320 pixel.
+Nessun overflow orizzontale, nessun errore JavaScript nelle viste controllate,
+input di almeno 16 px, navigazione cliente priva di strumenti Management,
+aggiunta/rimozione e rinumerazione delle tranche verificate.
+
+Animazioni verificate anche con emulazione touch a 390x844:
+- SVG forniti caricati; forma e file originali conservati.
+- Rotazione delle card al puntatore e rientro a riposo.
+- Glow mobile disabilitato sul touch; nessuna falsa rotazione al tap.
+- Tre fasi della sequenza allo scroll, avanti e indietro, posizione sticky
+  nativa e nessun overflow ai passaggi controllati.
+- Cambio a movimento ridotto: capitoli visibili e sequenza statica.
+- Contenuti accessibili senza JavaScript e con viewport basso/orizzontale.
+- Nessun errore CSP nel controllo delle animazioni.
+Screenshot desktop/mobile ispezionati; nessun video o contenuto remoto richiesto.
+
+INSTALLER
+Sintassi Bash verificata per install.sh e backup-docker.sh.
+Installer reale eseguito sotto Git Bash con Docker simulato in sei scenari:
+successo, build fallita, backup non valido, controllo avvio fallito, payload
+alterato e manifest che tenta di sostituire .env. Tutti superati.
+Controllati conservazione dei segreti, aggiornamento dei soli tre URL pubblici,
+configurazioni protette intatte, backup SQLite/ZIP, ripristino sorgenti e immagine
+nei fallimenti previsti. La verifica non equivale a un avvio con Docker reale.
+
+Archivio sorgenti con manifest SHA-256 per ogni file. Esclusi .env, config.json,
+server_texts.json, compose.yaml, Caddyfile, dati, backup e ambiente virtuale.
+L’installer crea una copia privata dell’ambiente prima della modifica degli URL.
+Il database non viene ripristinato automaticamente per non perdere incassi.
+
+DA COLLAUDARE NELL’AMBIENTE REALE
+Docker non è disponibile su questo PC: build e avvio effettivi richiedono la VPS.
+Verificare tunnel/Host/DNS, OAuth, webhook e un piano Stripe in sandbox.
+Provare un ingresso Discord con un account distinto, DM, Member, verifica,
+permessi e ripartenza. Nessun messaggio è stato inviato al server reale.
+Safari, tastiera, safe area e fluidità su telefoni fisici non sono stati provati;
+l’emulazione touch non sostituisce il test su iPhone/Android.
+L’invito discord.gg/lumiadevelopment è il segnaposto richiesto e va attivato.
+
+La sequenza allo scroll è una dimostrazione del percorso di lavoro,
+esplicitamente indicata come anteprima. Nessuna metrica o testimonianza fittizia.
+Istruzioni operative e fonti: AGGIORNAMENTO-REDESIGN.md.

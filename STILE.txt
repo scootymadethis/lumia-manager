@@ -1,0 +1,33 @@
+LUMIA DEVELOPMENT — STILE WEB E DISCORD
+17 ottobre 2026
+
+WEB
+Nero profondo, tipografia di sistema, superfici leggere, gerarchie leggibili.
+Landing e manager condividono colori e componenti. I tre loghi di piattaforma
+provengono dagli SVG forniti dall’utente e sono conservati in static/logos.
+La landing aggiunge rotazioni, luce al puntatore e una sequenza legata allo
+scroll. Le interazioni finanziarie del manager restano stabili.
+Le preferenze per movimento e trasparenza vengono rispettate.
+
+DISCORD
+Canali leggibili: 📢・annunci, 🎫・apri-ticket, 🛡・mod-log.
+Le categorie usano caratteri normali; i ruoli mantengono gli ID e il suffisso ®.
+Schede con palette sobria, campi dedicati, avatar quando disponibile e menzioni
+al posto dei numeri utente. Le menzioni nei log non inviano notifiche.
+Gli ordini hanno un collegamento all’area clienti; l’accesso continua a essere
+verificato dal manager per ogni utente e ruolo.
+
+AGGIORNA I MESSAGGI
+/server anteprima
+/server stile
+/server testi
+/pannelli
+/ticket pannello
+/server embed
+/server diagnostica
+
+/server embed aggiorna gli ultimi 20 messaggi per canale configurato o ticket
+registrato. Modifica solo embed scritti da questo bot e mantiene i controlli
+già presenti. Lo storico non viene cancellato.
+I testi personalizzati restano in server_texts.json.
+Istruzioni complete: AGGIORNAMENTO-REDESIGN.md.

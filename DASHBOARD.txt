@@ -1,0 +1,153 @@
+AGGIORNAMENTO REDESIGN — 17 ottobre 2026
+La landing vive su lumiadevelopment.it; il manager su manager.lumiadevelopment.it.
+Sono disponibili piani a tranche con Checkout separati: leggi
+AGGIORNAMENTO-REDESIGN.md per aggiornare senza sostituire configurazione o dati.
+Le istruzioni seguenti descrivono anche l’installazione di base.
+
+LUMIA DEVELOPMENT — DASHBOARD
+
+La dashboard è inclusa nel progetto e condivide gli ordini con il bot Discord.
+Le pagine disponibili sono Panoramica, Ordini e preventivi, dettaglio ordine,
+Clienti, Pagamenti e Impostazioni. La ricerca e i filtri funzionano sul server.
+La grafica usa i loghi Lumia forniti, senza font o servizi grafici esterni.
+
+ATTIVAZIONE SUL TUO SERVER
+
+Segui prima README.txt per installare e configurare il bot. Nel file di ambiente:
+  WEB_ENABLED=true
+  WEB_HOST=127.0.0.1
+  WEB_PORT=8080
+  LUMIA_PUBLIC_URL=https://manager.tuo-dominio.it
+  DISCORD_CLIENT_ID=ID_APPLICAZIONE_DISCORD
+  DISCORD_CLIENT_SECRET=SEGRETO_OAUTH_DISCORD
+
+Nel Developer Portal della stessa applicazione Discord, sezione OAuth2,
+registra esattamente questo redirect:
+  https://manager.tuo-dominio.it/auth/callback
+
+L'accesso richiede gli scope identify e guilds.members.read. Il bot deve essere
+connesso al server configurato. La dashboard verifica l'appartenenza attuale a
+quel server tramite Discord a ogni richiesta autenticata; se non può verificarla,
+l'accesso viene negato. Non ci sono password locali o account amministratore demo
+nella dashboard reale.
+
+Usa HTTPS davanti al servizio locale e conserva l'header Host pubblico esatto.
+L'origine dei moduli deve coincidere con LUMIA_PUBLIC_URL; domini alternativi,
+www aggiunti e porte diverse non vengono accettati. Il backend resta su loopback.
+Esegui una sola istanza del bot e della sua dashboard sullo stesso database.
+Le istruzioni del servizio sono in README.txt; compose.yaml e Caddyfile nella
+cartella principale configurano il reverse proxy HTTPS per Docker.
+
+PERMESSI
+
+I clienti vedono soltanto gli ordini del proprio ID Discord. Possono accettare un
+preventivo indirizzato a loro e, se Stripe è configurato, pagare il saldo di un
+ordine confermato. L'accettazione viene registrata nella cronologia e non vale
+come pagamento.
+
+Management può creare ordini, cambiare stato, aggiungere o completare milestone,
+consultare tutti i clienti e registrare incassi manuali. La stessa politica del
+bot considera Management anche il proprietario del server e gli ID esplicitamente
+fidati in owner_ids; devono comunque essere membri attuali del server.
+I ruoli Supporto, Moderatore e Developer non concedono da soli accesso ai conti.
+
+Gli ordini iniziano in Bozza. Gli stati disponibili sono:
+  bozza, preventivo, confermato, in_corso, in_revisione, completato, annullato
+Il numero ticket facoltativo deve appartenere al cliente indicato.
+Il cliente può aprire il ticket Discord collegato dall'ordine.
+
+PAGAMENTI MANUALI
+
+Il modulo Registra un pagamento registra un incasso già ricevuto: non addebita
+carte, non trasferisce denaro e non emette rimborsi. Inserisci un riferimento
+univoco e riconoscibile, ad esempio il CRO o il numero della ricevuta.
+Lo stesso riferimento manuale non può essere riutilizzato per un altro ordine.
+Un invio duplicato con gli stessi dati non aggiunge un secondo incasso.
+Gli importi sono EUR con massimo due decimali, da 0,01 a 1.000.000,00 EUR.
+Un pagamento superiore al saldo residuo viene rifiutato.
+
+Il registro degli incassi e la cronologia sono immutabili. Per correggere un
+incasso manuale errato, apri l'ordine: nella tabella Pagamenti, Management può
+scegliere Storna registrazione e inserire una motivazione obbligatoria. Lo storno
+aggiunge una rettifica separata, conserva l'originale e ripristina il residuo una
+sola volta. Puoi poi registrare l'importo corretto con un nuovo riferimento.
+Non esegue un rimborso e non è disponibile per i pagamenti Stripe.
+
+Per rimborsi o contestazioni reali, conserva il riferimento e riconcilia con il
+provider e la tua contabilità. Questo progetto non sostituisce il software fiscale e non
+genera fatture o ricevute fiscali. I totali mostrano gli incassi contabilizzati,
+corretti dagli storni manuali; non ricavi netti, imposte o rimborsi Stripe.
+
+STRIPE FACOLTATIVO
+
+Configura entrambe le variabili per abilitare il pulsante di pagamento:
+  STRIPE_SECRET_KEY=CHIAVE_PRIVATA_STRIPE
+  STRIPE_WEBHOOK_SECRET=SEGRETO_ENDPOINT_WEBHOOK
+
+Nel tuo account Stripe registra un endpoint HTTPS con eventi snapshot:
+  https://manager.tuo-dominio.it/webhooks/stripe
+Eventi gestiti:
+  checkout.session.completed
+  checkout.session.async_payment_succeeded
+  charge.refunded
+  refund.created
+  refund.updated
+  charge.dispute.created
+
+Il checkout ospitato da Stripe accetta carte e usa il saldo calcolato sul server.
+Non riceve un importo deciso dal browser. L'app conserva l'identificativo del
+tentativo prima della chiamata esterna: un timeout e un riavvio riutilizzano la
+stessa chiave di idempotenza e gli stessi parametri durante la finestra di un'ora.
+Una sessione precedente con importo diverso blocca nuovi tentativi fino alla sua
+scadenza: verifica sempre Stripe prima di registrare incassi paralleli manuali.
+
+Il ritorno dalla pagina Stripe non segna l'ordine come pagato. Soltanto un webhook
+con firma HMAC valida sul corpo originale, timestamp entro cinque minuti, sessione
+conosciuta, importo EUR corrispondente e metadata order_id coerente aggiunge credito.
+Gli eventi e i pagamenti ripetuti vengono deduplicati nel database.
+
+Se arriva un incasso oltre il residuo (per esempio dopo un incasso manuale), il
+registro non viene aumentato: l'evento compare come Da riconciliare. Verifica gli
+incassi effettivi nel provider e gestisci l'eventuale restituzione da Stripe.
+Gli eventi di rimborso e contestazione vengono segnalati nella Panoramica e nella
+pagina Pagamenti a Management. Non cancellano gli incassi storici e non avviano
+rimborsi automatici. Gli avvisi restano nel registro degli eventi: non esiste un
+flusso di liquidazione o riconciliazione fiscale automatica.
+
+Prima di usare denaro reale, completa sul tuo server una prova con le chiavi test
+Stripe, checkout, webhook, duplicazione evento e riconciliazione. Le prove incluse
+nel progetto simulano il confine dei servizi esterni; non convalidano il tuo account
+Stripe, il dominio pubblico o le credenziali Discord.
+
+SESSIONI E DATI
+
+Le sessioni durano otto ore. Cookie HttpOnly, Secure e SameSite=Lax contengono solo
+token casuali; il database conserva l'hash del token e l'identità, senza il token
+OAuth Discord. Lo stato OAuth è monouso e scade dopo dieci minuti. Ogni modifica
+tramite modulo richiede il token CSRF e l'origine esatta. Il webhook usa invece
+la firma del provider. Nessuna chiave privata viene mostrata nell'interfaccia.
+
+Il database condiviso include ordini, milestone, incassi, cronologia, sessioni,
+tentativi di checkout ed eventi Stripe. Proteggi e includi questo database nei
+backup del bot; limita l'accesso al file di ambiente e ai backup stessi.
+Gli audit finanziari vengono anche inviati al canale privato staff_orders quando
+Discord è disponibile; la cronologia locale resta la fonte persistente.
+
+ANTEPRIMA LOCALE
+
+  python bot.py --preview
+
+Apri http://127.0.0.1:8080 secondo README.txt. Non serve un token Discord.
+La demo costruisce un database separato in memoria con clienti e ordini inventati.
+Le modifiche sono disabilitate. Non legge il database o le credenziali reali.
+Non esporre l'anteprima come servizio di produzione.
+
+Per una preview autonoma su porta diversa:
+  imposta LUMIA_DEMO_URL=http://127.0.0.1:8765
+  python -m uvicorn lumia.web:create_demo_app --factory --host 127.0.0.1 --port 8765
+
+DOCUMENTAZIONE DEI SERVIZI
+
+Discord OAuth2: https://docs.discord.com/developers/topics/oauth2
+Stripe Checkout: https://docs.stripe.com/api/checkout/sessions/create
+Stripe webhook e firme: https://docs.stripe.com/webhooks

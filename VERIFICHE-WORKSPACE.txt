@@ -1,0 +1,47 @@
+LUMIA WORKSPACE — 17 ottobre 2026
+
+163 test Python superati. Inclusi tutti i test precedenti per Discord, OAuth,
+CSRF, ruoli, incassi e tranche. Nuovi controlli su conversazioni e note interne,
+consegne/revisioni, esportazioni, stato del tutorial e cliente alternativo.
+
+Verificati in particolare:
+- Note interne escluse dalle pagine e dal centro attività dei clienti.
+- Nessun accesso ai progetti di un altro cliente tramite URL o POST diretto.
+- Testi escapati, limiti di dimensione e frequenza per i messaggi.
+- Pubblicazione consegne riservata a Management, link HTTPS senza credenziali.
+- Solo il cliente assegnato può revisionare la consegna; risposta unica per
+  versione, richieste di modifica motivate e consegna legata al progetto corretto.
+- Nessun incasso o cambio di stato finanziario generato dall’approvazione.
+- CSV limitati ai dati autorizzati, celle formula neutralizzate, importi esatti.
+- Tutorial separato per account e ruolo, salvataggi protetti da CSRF/origine.
+- Selezione e ID cliente alternativi ambigui rifiutati prima di creare l’ordine.
+
+Chrome/Playwright: controllate 32 viste a larghezze 1440, 768, 390 e 320.
+Nessun overflow orizzontale del documento; input da almeno 16 px e controlli
+Management assenti dalle viste cliente. Verificato anche l’editor a tranche.
+
+Controllo funzionale del workspace su desktop e touch emulato, per entrambi
+i ruoli: tutorial iniziale, tutti i waypoint della home entro il viewport,
+focus nel dialog, uscita con Esc, ripresa e completamento persistente,
+ricerca Ctrl K con frecce, preferiti, board/elenco e preferenza dopo reload,
+agenda, attività, consegne e note interne. Nessun errore JavaScript o CSP.
+
+Landing: verificati caricamento SVG originali, tilt e rientro delle card,
+rete che si apre durante lo scroll, capitoli della sequenza di progetto,
+avanti e indietro, assenza di overflow, cambi a movimento ridotto, assenza di
+JavaScript e schermi bassi. Screenshot desktop/mobile ispezionati.
+
+Installer Bash: verifica di sintassi e simulazione Docker in sei scenari
+(successo, build fallita, backup non valido, avvio fallito, file alterato,
+manifest che prova a sostituire .env). Configurazioni protette conservate;
+il ripristino non sovrascrive automaticamente il database.
+Manifest SHA-256 e integrità ZIP verificati; nessun dato, credenziale o
+configurazione di produzione incluso. I loghi SVG coincidono con gli originali.
+
+Limiti del collaudo: Docker reale non disponibile su questo PC. Non sono stati
+eseguiti deploy sulla VPS, accessi Discord reali, incassi Stripe o modifiche al
+tunnel. I test usano dati temporanei e servizi simulati. Safari e telefoni
+fisici richiedono una prova sul dispositivo; touch emulato non è equivalente.
+Il runner emette un avviso non bloccante di deprecazione Starlette/httpx.
+
+Uso e aggiornamento: AGGIORNAMENTO-WORKSPACE.md.

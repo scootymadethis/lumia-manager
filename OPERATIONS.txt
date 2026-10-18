@@ -1,0 +1,172 @@
+LUMIA DEVELOPMENT — EVENTI, COMMUNITY E MODERAZIONE
+
+Questi moduli sono pensati per uno studio che realizza progetti FiveM,
+Minecraft e lavori personalizzati. Non includono economia, livelli o giochi.
+
+AVVIO E PERMESSI
+
+Le estensioni sono lumia.events, lumia.moderation e lumia.community; ciascuna
+espone async setup(bot). Usano esclusivamente il server guild_id configurato.
+Prima prepara canali e ruoli con /server allestimento.
+
+Attiva Server Members Intent per ingressi, uscite, ruoli e contatori.
+Message Content Intent serve all'automod sui domini e al contenuto messaggi.
+Gli eventi audit richiedono l'intent moderation e Visualizza registro attività.
+Servono inoltre i permessi specifici per ogni operazione: non occorre
+Amministratore. Il ruolo del bot deve stare sopra i membri e i ruoli che dovrà
+moderare. Il bot verifica sia i permessi Discord dello staff sia la gerarchia.
+
+Inviti: Gestisci server per leggere l'elenco; un vanity URL richiede anche la
+lettura dei relativi utilizzi. Se i dati non sono disponibili, il risultato è
+sconosciuto. Canali eventi/suggerimenti: Visualizza, Invia messaggi, Incorpora
+link e Leggi cronologia; Aggiungi reazioni è facoltativo. Le statistiche server
+sono gestite da ServerStats. Nessun messaggio promozionale viene inviato in privato.
+
+EVENTI E RSVP (FUNZIONI UTILI DI APOLLO)
+
+/evento_crea titolo quando descrizione capienza ricorrenza
+  Solo Management. Data: AAAA-MM-GG HH:MM nel timezone del file di
+  configurazione (predefinito Europe/Rome). Le date inesistenti o ambigue al
+  cambio dell'ora sono rifiutate. Capienza: 0 senza limite, altrimenti 1–500.
+  Ricorrenza: singola, giornaliera o settimanale.
+/eventi
+  Elenca fino a 15 eventi attivi con data e identificativo.
+/evento_annulla evento
+  Solo Management. Chiude il pannello e interrompe i promemoria.
+/evento_ripubblica evento
+  Ripristina un pannello eliminato, conservando evento e risposte.
+
+I pulsanti Partecipo / Forse / Non partecipo restano utilizzabili dopo un
+riavvio. La capienza è verificata atomicamente: due iscrizioni simultanee non
+possono occupare lo stesso ultimo posto. Passare a Non partecipo libera il
+posto; non esiste una promozione automatica dalla lista Forse.
+
+Il controllo ogni 30 secondi invia un promemoria nei 30 minuti precedenti e
+uno all'inizio, nel canale pubblico dell'evento. Sono menzionati soltanto i
+membri che hanno scelto Partecipo o Forse e sono ancora nel server. Nessuna
+menzione everyone o di ruolo è consentita. I lotti già consegnati e gli avvisi
+già completati sono salvati per limitare duplicazioni dopo il riavvio.
+
+Quindici minuti dopo l'inizio un evento singolo viene segnato concluso.
+Una ricorrenza passa alla prossima data futura e AZZERA tutte le risposte:
+ogni partecipante deve confermare la nuova data. L'ora locale è mantenuta
+attraverso il cambio dell'ora; un'ora inesistente della ricorrenza viene
+spostata al primo minuto valido. Le date perse durante un arresto non vengono
+annunciate in ritardo. Non sono presenti sincronizzazione Google Calendar,
+sale vocali automatiche o integrazione con eventi nativi Discord.
+
+MODERAZIONE (FUNZIONI UTILI DI DYNO)
+
+/avvisa membro motivo
+/storico membro
+/timeout membro minuti motivo
+/rimuovi_timeout membro motivo
+/espelli membro motivo
+/banna membro motivo
+/pulisci numero motivo
+
+I comandi richiedono il ruolo configurato Moderator/Management e i permessi
+Discord reali: Modera membri, Espelli, Banna o Gestisci messaggi secondo
+l'azione. Proprietario, bot stesso e ruoli uguali/superiori sono protetti.
+Gli amministratori non ricevono timeout. Il massimo è 28 giorni. Il ban non
+cancella la cronologia; la pulizia cancella fino a 100 messaggi nel canale
+corrente. Tutti gli interventi riusciti hanno motivazione, attore, data e caso
+persistente; /storico mostra gli ultimi 8. Gli avvertimenti sono registrazioni
+interne e non inviano messaggi privati.
+
+L'automod è DISATTIVATO per impostazione iniziale. Con automod.enabled=true:
+- spam_count messaggi nello spam_seconds configurato, per singolo autore;
+- mention_limit menzioni distinte di utenti/ruoli, oppure everyone;
+- domini blocked_domains, con sottodomini ma senza falsi suffissi simili.
+Ignora bot, webhook, Management/Moderator, ignore_channels (anche thread dei
+canali esclusi) e ignore_roles. Cerca di eliminare il messaggio; opzionalmente
+timeout_minutes > 0 applica un timeout se consentito dalla gerarchia.
+Predefiniti aggiuntivi: mention_limit=8, timeout_minutes=0, ignore_roles=[].
+Non sostituisce un filtro completo di contenuti, malware o allegati.
+
+SICUREZZA E ANTI-RAID
+
+/sicurezza
+  Mostra modalità audit, soglia e fine della pausa ingressi.
+/sicurezza modalita
+  Solo Management con Gestisci server. La scelta persiste nel database.
+
+observe è la modalità iniziale e riguarda gli AUDIT: registra e segnala,
+senza rimuovere ruoli. enforce prova a rimuovere dall'attore confermato i ruoli
+modificabili che concedono Amministratore, Gestisci server/ruoli/canali/webhook,
+Banna, Espelli, Modera membri o Gestisci messaggi, dopo audit_limit azioni
+entro audit_window secondi. Non interviene sul proprietario, sugli utenti in
+whitelist_users, sul bot stesso o su membri con ruolo uguale/superiore al bot.
+I ruoli gestiti da integrazioni e @everyone non vengono modificati.
+
+Sono osservati gli ID ESATTI degli eventi audit Discord, con attore, azione e
+destinatario. Non si attribuisce mai un'azione cercando l'ultima riga audit.
+L'assenza di un attore confermato non produce una sanzione. Gli ID già elaborati
+sono deduplicati anche dopo il riavvio. Gli incidenti rimangono nel database;
+la cache tecnica di deduplicazione viene ridotta dopo 24 ore.
+
+Copertura: creazione/eliminazione canali e ruoli; espulsioni e ban; aggiunta
+bot; creazione/eliminazione webhook; aggiunta di permessi pericolosi a un ruolo;
+assegnazione di ruoli pericolosi a un membro. Gli ultimi due controlli leggono
+i diff reali: modifiche innocue, rimozioni di permessi e ruoli dalle proprietà
+non disponibili non contribuiscono alla soglia. Il contatore è per attore,
+non una garanzia di riconoscere qualsiasi attacco.
+
+La protezione ingressi opera ANCHE IN observe: richiede almeno join_limit
+ingressi in join_window secondi E almeno il 60% di account più giovani di
+young_days giorni. In quel caso blocca la verifica che assegna Member per
+raid_seconds (predefinito 300). L'ora di fine persiste come security/raid_until
+e il blocco scade automaticamente; un nuovo picco può estenderlo. Non vengono
+eseguiti ban di massa, rimozioni di Member già esistenti o cambi ai permessi
+dei canali. Una crescita di membri con account maturi non basta a bloccare
+l'accesso. Gli utenti possono riprovare la verifica dopo la scadenza.
+
+LIMITI: un audit può arrivare dopo il danno; gli eventi persi durante un fermo
+non vengono ricostruiti. Nessun recupero completo del server, ripristino
+automatico di canali/ruoli cancellati, antialt, analisi account compromessi,
+CAPTCHA complesso, allowlist applicazioni o protezione totale dai webhook.
+Mantieni Security per le protezioni avanzate che usi finché questa copertura
+non è validata sul server di prova. Prima di attivare enforce, verifica soglie,
+whitelist e gerarchia con account di test e osserva i log. Evita due sistemi
+di punizione automatica attivi sugli stessi eventi.
+
+COMMUNITY, INVITI E CONTATORI
+
+Benvenuto pubblico con collegamenti ai pannelli di accesso e ticket. Ingressi
+e uscite sono registrati nel server_log. community.leave_messages=false può
+disattivare il messaggio pubblico di uscita.
+
+/inviti [membro]
+  Ingressi attribuiti, presenze e uscite tracciati da questo bot. Nessun import
+  retroattivo delle classifiche di InviteTracker. L'attribuzione richiede una
+  baseline valida, gli stessi codici prima/dopo e un UNICO incremento di uno.
+  Batch, codici nuovi/eliminati (anche monouso), vanity senza dati o errori di
+  lettura rimangono sconosciuti. Il diff è serializzato per evitare accuse
+  arbitrarie durante ingressi simultanei. Dopo un riavvio si acquisisce una
+  nuova baseline e, soltanto con cache membri completa, si correggono le
+  uscite note avvenute durante il fermo. Gli ingressi persi restano sconosciuti.
+/server canali
+  Management: applica i nomi in small caps ai canali Lumia e ticket esistenti,
+  senza ricrearli. Il canale staff_orders diventa commissioni; ID, messaggi e
+  permessi restano invariati. Disattiva il vecchio contatore membri Lumia.
+  Le statistiche e i contatori server sono affidati a ServerStats.
+  Vedi CANALI-DISCORD.md per la rimozione prudente dei contatori precedenti.
+/suggerisci proposta
+  Proposta pubblica, con reazioni facoltative, ogni 10 minuti per persona.
+/suggerimento_stato proposta stato motivazione
+  Management aggiorna la decisione visibile sul messaggio della proposta.
+
+TEST E COLLAUDO
+
+I test automatici non richiedono token e usano il database reale locale per
+capienza concorrente, riavvii, ricorrenze, gerarchie, permessi, diff audit,
+attribuzione prudente inviti, pausa anti-raid e contatori. Non dimostrano una
+connessione reale a Discord o consegne reali dei messaggi.
+
+Sul server di prova: crea un evento con un solo posto, verifica i tre pulsanti,
+riavvia il bot e riprova; testa una data ricorrente e le menzioni limitate.
+Controlla che un moderatore senza permessi Discord o con ruolo insufficiente
+sia respinto. Genera eventi audit noti in observe, verifica gli ID e solo dopo
+valuta enforce. Prova inviti singoli, simultanei e monouso. Verifica che Member
+resti bloccato durante una pausa e torni assegnabile alla scadenza. Non
+disinstallare i bot esistenti prima di aver completato questo collaudo.

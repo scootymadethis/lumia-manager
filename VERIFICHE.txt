@@ -1,0 +1,102 @@
+RAPPORTO STORICO — versione precedente al redesign.
+Per i controlli della versione attuale leggi VERIFICHE-REDESIGN.txt.
+
+LUMIA MANAGER — RAPPORTO DI VERIFICA
+15 ottobre 2026
+
+CONSEGNA LOCALE
+Progetto e materiali finali in Desktop/Lumia Development/outputs.
+Preparati sorgenti, configurazioni di esempio, testi, loghi, istruzioni,
+contenitori e anteprima. Nessuna credenziale di produzione è inclusa.
+Nessuna modifica è stata applicata al server Discord o all'hosting remoto.
+
+CONTROLLI SUPERATI SULLA COPIA NELLA CARTELLA RICHIESTA
+- Suite completa: 98 test, zero errori e zero fallimenti.
+  Comando: python -m unittest discover -s tests -q
+- Compatibilità delle dipendenze installate: pip check, nessun requisito rotto.
+- Analisi sintattica di tutti i moduli, dell'avvio e dello script di backup.
+- Script di backup eseguito su un archivio temporaneo: database e trascrizioni
+  inclusi, file .env escluso; database ripristinato e contenuto verificato.
+- Configurazione di esempio validata dopo l'inserimento di un ID server di test.
+- Nove percorsi della demo rispondono correttamente, inclusi ordini, dettaglio,
+  pagamenti, clienti, impostazioni, accesso e risorse statiche.
+- Caricamento di tutte le estensioni e serializzazione dei comandi Discord
+  verificati senza connessione o registrazione effettiva tramite API.
+- Anteprima avviata con il comando documentato bot.py --preview.
+- Verifica visiva di panoramica, dettaglio ordine e pagamenti.
+- Layout desktop 1280 px e telefono 390 px controllati. Dopo la correzione,
+  la pagina mobile non supera la larghezza visibile; le tabelle hanno il proprio
+  contenitore scorrevole.
+
+CASI SIGNIFICATIVI COPERTI DAI TEST
+Isolamento ticket, separazione dei ruoli, rifiuto di ruoli autoassegnabili con
+privilegi staff, quote e richieste concorrenti, claim atomico, creazione e
+chiusura interrotte, fallimento della trascrizione, archivi completi e verificati,
+rimozione dell'accesso sviluppatore, comandi negati e ordine dei ruoli anche
+prima dell'aggiornamento della cache Discord.
+Capienza eventi, riavvii, ricorrenze e cambio ora; gerarchie di moderazione,
+diff audit esatti, inviti incerti, picchi legittimi e pause anti-raid.
+Isolamento clienti web, appartenenza attuale, sessioni/OAuth/CSRF, collegamento
+ordine-ticket, importi in centesimi, storni manuali, tentativi Checkout ripetuti,
+firme webhook, notifiche duplicate e rifiuto di pagamenti incoerenti.
+
+REVISIONE INDIPENDENTE
+Eseguita sul progetto. Corrette le osservazioni materiali: ruoli pubblici
+assegnabili, collegamento ordine-ticket, tentativi Stripe persistenti, porta
+dell'anteprima, storni amministrativi e ritardo della cache dei ruoli.
+Nessun problema Critical o Important rimasto aperto nel codice esaminato.
+
+LIMITI MINORI DOCUMENTATI, NON BLOCCANTI PER IL COLLAUDO
+- Dietro il proxy Caddy il limite di 20 avvii OAuth ogni 10 minuti può essere
+  condiviso fra i visitatori. Le sessioni già aperte continuano a funzionare.
+  Per traffico elevato va configurato il riconoscimento dei soli proxy fidati.
+- In caso di cache membri Discord incompleta al momento di un promemoria,
+  alcuni partecipanti potrebbero non ricevere la menzione. Il collaudo deve
+  verificare il caricamento dei membri e le notifiche dopo un riavvio.
+- La libreria dei test web segnala una deprecazione Starlette/httpx. È un
+  avviso esterno alla logica del progetto; i test terminano correttamente.
+
+NON ANCORA ATTESTATO
+Connessione reale Discord, ruoli/canali effettivi, OAuth sul dominio finale,
+invio reale dei messaggi e dei promemoria, pagamenti/rimborsi reali, webhook
+Stripe in rete, certificato HTTPS e avvio Docker sul vostro hosting.
+Servono le vostre credenziali locali, il dominio e il server di prova.
+
+COLLAUDO PRIMA DELL'ATTIVAZIONE
+1. Avvio nel server di prova e diagnostica permessi.
+2. Due clienti distinti: ticket e ordini reciprocamente invisibili.
+3. Developer assegnato a un solo ticket, poi accesso revocato.
+4. Riavvio e controllo dei pulsanti già pubblicati e dei promemoria.
+5. Chiusura, recupero trascrizione e prova di ripristino del backup.
+6. Management e cliente accedono via OAuth con permessi corretti; rimuovere
+   temporaneamente il ruolo staff deve negare subito le funzioni finanziarie.
+7. Stripe in modalità test: saldo, webhook, ritentativo, duplicato e notifica
+   di evento da riconciliare. Nessun incasso di produzione durante il collaudo.
+8. Security e bot precedenti rimossi/disattivati per singolo modulo solo dopo
+   verifica delle funzioni effettivamente utilizzate.
+AGGIORNAMENTO 16/10/2026 — ACCESSO ALL'ALLESTIMENTO
+Il proprietario del server e gli account configurati in owner_ids possono usare
+/server allestimento nel server configurato. La conferma richiede lo stesso
+account e controlla nuovamente l'autorizzazione; una conferma si usa una volta.
+Suite locale: 105 test superati, inclusi 7 controlli aggiunti sull'accesso.
+La modifica va attivata riavviando il bot. Nessuna verifica dal vivo su Discord.
+
+AGGIORNAMENTO 16/10/2026 — STILE DISCORD
+Nomi small caps dopo ・, schede condivise per pannelli, ticket, eventi, ordini
+e benvenuti. Log in embed con campi, gravità e timestamp; menzioni silenziose.
+/server stile aggiorna solo le risorse create e registrate dal bot, evitando
+di cambiare permessi o destinazioni esterne. /server anteprima è privato.
+Suite locale: 107 test superati. Verificati invio embed, assenza di notifiche
+e aggiornamento idempotente limitato ai canali registrati dal bot.
+I vecchi log non sono riscritti; occorre riavviare il bot e aggiornare i pannelli.
+
+AGGIORNAMENTO 16/10/2026 — RUOLI ESISTENTI
+Suffisso ® sui ruoli Lumia. I ruoli configurati vengono rinominati sul posto.
+roles.member punta al ruolo esistente selezionato dall'utente; non viene mai
+creato un ruolo membro sostitutivo se quello configurato manca.
+Il passaggio dal vecchio membro Lumia al ruolo selezionato aggiorna solo gli
+accessi alle risorse pubbliche registrate, preservando gli altri overwrite.
+Suite locale: 110 test superati, inclusi riuso senza creazione, arresto per
+ruolo membro mancante e migrazione idempotente isolata dai canali privati.
+Modifiche Discord da applicare dopo il riavvio con /server allestimento.
+

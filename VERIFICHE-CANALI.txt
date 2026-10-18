@@ -1,0 +1,26 @@
+Rilascio canali Discord — 18 ottobre 2026
+
+203 test Python unitari e di integrazione.
+Rinomina in small caps con Q richiesta, emoji e numeri mantenuti.
+Commissioni usa la stessa chiave staff_orders e gli stessi ID.
+Canali configurati e registrati, categorie, lounge e ticket aperti/chiusi.
+Nessuna ricreazione durante /server canali; nomi ripetibili e permessi invariati.
+Descrizioni personalizzate conservate dal comando /server canali.
+Creazione e aggiornamento periodico dei contatori Lumia rimossi.
+Comando /statistiche assente dalla sincronizzazione delle estensioni.
+Manutenzione dei metadati di sicurezza ancora attiva senza accesso ai contatori.
+Contatori ServerStats esclusi dalla rinomina e dalla cancellazione.
+Vecchio contatore Lumia eliminabile solo con proprietà verificata, nome atteso
+e nessun membro connesso. Canali riutilizzati per altro scopo non eliminati.
+Configurazione precedente compatibile e contatore disattivabile senza reset.
+Caricamento reale delle estensioni Discord nel test runner, senza login/API.
+
+Installer verificato nei sei scenari del simulatore Docker: avvio normale,
+build fallita, backup invalido, controlli HTTP falliti, file alterato e tentativo
+di sovrascrivere un file protetto. Script Bash e backup SQLite reali.
+
+Nessun deployment o accesso al server Discord dell'utente effettuato da qui.
+Docker non disponibile sul computer di verifica: la build reale e il comando
+sul server Discord devono essere eseguiti dalla VPS come descritto nella guida.
+Le schermate e i test del sito del rilascio precedente restano validi: questo
+aggiornamento modifica il bot Discord e la relativa documentazione.

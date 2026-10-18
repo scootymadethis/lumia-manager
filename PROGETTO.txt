@@ -1,0 +1,64 @@
+LUMIA MANAGER — STRUTTURA DEL PROGETTO CONSEGNATO
+
+Scopo: gestire il percorso di un progetto di sviluppo, dal contatto Discord al
+preventivo, all'ordine, alle scadenze e alla consegna. Le funzionalità scelte
+servono a Lumia Development; giochi, economia e servizi proprietari dei bot
+precedenti sono esclusi. Il dettaglio è in COPERTURA.txt.
+
+COMPONENTI
+bot.py: avvio del client Discord e, se abilitata, della dashboard nello stesso
+processo. Il bot è limitato al server configurato.
+lumia/core.py: database SQLite e regole condivise, quote ticket, persistenza,
+gestione degli orari e finestre di frequenza.
+lumia/config.py: convalida ID, ruoli distinti, soglie e impostazioni.
+lumia/common.py: permessi applicativi, ruoli pubblici sicuri, risposte private.
+lumia/presentation.py: nomi small caps, schede Discord e log con stile condiviso.
+lumia/setup_server.py: allestimento aggiuntivo confermato dal proprietario o da un account esplicitamente autorizzato in owner_ids.
+lumia/onboarding.py: regole, interessi, notifiche e FAQ.
+lumia/tickets.py: canali privati, incarichi, sviluppatori, fasi e trascrizioni.
+lumia/orders.py: ordini, milestone, registro pagamenti e storni manuali.
+lumia/order_commands.py: gestione delle commissioni anche da Discord.
+lumia/web.py: accesso Discord, dashboard e collegamento Stripe opzionale.
+lumia/moderation.py: moderazione, automod, audit e protezione anti-raid.
+lumia/community.py: benvenuto, inviti, manutenzione e suggerimenti.
+lumia/events.py: eventi, risposte, capienza, promemoria e ricorrenze.
+lumia/templates e lumia/static: interfaccia italiana e identità visiva.
+tests: prove automatiche locali su dati temporanei e confini delle API.
+
+FLUSSO OPERATIVO
+Ticket → raccolta requisiti → preventivo → conferma del cliente → ordine e
+milestone → sviluppo nel ticket assegnato → test → consegna → archivio.
+Un ticket ricevuto non è un ordine confermato; una consegna non è un incasso.
+Ordini e ticket hanno identificativi separati e un collegamento verificato.
+
+ACCESSI
+Cliente: propri ordini e proprio ticket.
+Support: ticket ordinari, mai segnalazioni riservate per il solo ruolo Support.
+Developer: ticket ai quali viene aggiunto individualmente.
+Management: ordini, finanze e gestione autorizzata dei ticket.
+Proprietario del server e owner_ids esplicitamente configurati: considerati
+responsabili autorizzati. Gli amministratori Discord possono superare i
+vincoli dei canali, come previsto da Discord.
+
+DATI E DEPLOY
+Un solo processo e un solo database; non distribuire repliche sullo stesso
+archivio. SQLite è adatto al singolo studio e al volume iniziale previsto.
+Credenziali solo nell'ambiente locale; configurazione e dati persistenti sul
+vostro server. Dashboard dietro HTTPS, login OAuth e controlli di appartenenza
+attuale al server a ogni richiesta. Modifiche protette da origine e CSRF.
+Incassi Stripe confermati dal webhook firmato; il ritorno dal checkout non
+modifica il saldo. Tentativi e notifiche ripetuti sono gestiti idempotentemente.
+Il registro conserva l'originale di ogni pagamento; gli errori manuali vengono
+stornati con motivazione. Rimborsi reali richiedono il provider e riconciliazione.
+
+SCELTE E LIMITI
+Nessuna migrazione automatica dello storico degli altri bot, nessuna promessa
+di recuperare messaggi cancellati, nessun CAPTCHA avanzato o fatturazione
+fiscale integrata. Sicurezza parte in osservazione; attivare il contenimento
+solo dopo collaudo e mantenere le protezioni esterne necessarie.
+La conservazione dei registri va definita e applicata dall'operatore, inclusi
+backup e trascrizioni. retention_days non esegue cancellazioni automatiche.
+
+README.txt, DASHBOARD.txt, TICKETS.txt e OPERATIONS.txt descrivono i passaggi
+pratici. VERIFICHE.txt distingue i controlli eseguiti da quelli ancora da
+effettuare con gli accessi reali.

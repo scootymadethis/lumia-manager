@@ -1,0 +1,113 @@
+LUMIA DEVELOPMENT — TICKET E TRASCRIZIONI
+
+Avvio e accesso
+Completa /server allestimento e il pannello di accesso. Per aprire ticket serve
+il ruolo Member oppure un ruolo Support/Management. Sono consentiti al massimo
+due ticket attivi per autore e una nuova apertura ogni 60 secondi. Anche le
+aperture e chiusure in elaborazione contano nel limite.
+
+Il pannello propone FiveM, Minecraft, Script, Progetto personalizzato,
+Assistenza, Partnership e Segnalazione riservata. I moduli hanno al massimo
+cinque campi. Budget e scadenze sono richieste indicative: il bot non presenta
+stime o promesse come preventivi approvati. I testi completi restano nel ticket
+e nell'archivio, anche se l'anteprima iniziale è abbreviata.
+
+Visibilità
+- Ticket ordinari: autore, Support, Management, proprietario del server,
+  owner_ids configurati e bot. Member, Customer e Developer non ricevono
+  accesso ai ticket altrui tramite il loro ruolo.
+- Partnership e segnalazioni: autore, Management, proprietario del server,
+  owner_ids e bot. Support non può leggere, assegnarsi o chiudere questi ticket.
+  Non si possono aggiungere sviluppatori ai ticket riservati.
+- Gli amministratori Discord possono sempre superare i permessi dei canali.
+  Non assegnare Administrator a normali membri o sviluppatori.
+- Gli accessi sono impostati esplicitamente sul canale; non sincronizzare i
+  ticket con i permessi delle categorie e non modificarne il topic identificativo.
+- Ogni pulsante, menu, modulo e comando controlla il server configurato e le
+  autorizzazioni correnti. I controlli principali riprendono a funzionare dopo
+  un riavvio; un modulo o una conferma già aperti vanno richiesti nuovamente.
+
+Comandi
+/ticket pannello [canale]
+  Management: pubblica il menu nel canale scelto o in ticket_panel.
+/ticket prendi
+  Support/Management autorizzati: presa in carico atomica, un solo vincitore.
+/ticket assegna staff
+  Management: cambia assegnatario. Nei ticket riservati, solo Management.
+/ticket stato fase
+  Staff autorizzato: nuovo, in attesa, preventivo, approvato, in lavorazione,
+  revisione, consegnato o sospeso. Lo storico conserva autore, data e passaggio.
+/ticket aggiungi-sviluppatore sviluppatore
+/ticket rimuovi-sviluppatore sviluppatore
+  Staff autorizzato: concede/revoca accesso a una singola persona con il ruolo
+  Developer configurato. La revoca non elimina eventuali accessi indipendenti
+  tramite Support o Management. Non viene mai autorizzato l'intero ruolo Developer.
+/ticket trascrizione
+  Nel ticket: consegna privatamente una copia a una persona già autorizzata.
+  Se il file supera il limite Discord, conferma l'esistenza dell'archivio senza
+  mostrare percorsi del server. La Management può fornire una copia con un mezzo
+  riservato dopo aver verificato il destinatario.
+/ticket chiudi [motivo]
+  Lo staff riceve una conferma privata valida 3 minuti. L'autore può inviare una
+  richiesta di chiusura; solo lo staff autorizzato può confermarla. Gli sviluppatori
+  aggiunti individualmente non ottengono poteri di chiusura tramite quell'accesso.
+/ticket recupera
+  Management: riprova creazioni/chiusure interrotte e aggiornamenti accessi sospesi.
+/ticket elimina-canale conferma
+  Nel ticket chiuso, Management: solo dopo almeno 7 giorni e un archivio finale
+  integro. Scrivi esattamente ELIMINA #123, sostituendo 123 con il numero ticket.
+  Senza conferma, archivio verificato o identificativo corretto non elimina nulla.
+
+Chiusura e conservazione
+La chiusura blocca prima i messaggi, quindi legge l'intera cronologia disponibile
+su Discord senza limite di pagine. Crea un file UTF-8 con modulo originale,
+autore, date, testo completo, riferimenti alle risposte, embed e riferimenti agli
+allegati. Scrive prima un file temporaneo, lo sincronizza e lo sostituisce in modo
+atomico. Registra dimensione e impronta SHA-256 prima di confermare la chiusura.
+Se cronologia, disco o permessi falliscono, il ticket non viene eliminato; il bot
+prova a riaprirlo. Se anche il ripristino fallisce, resta in elaborazione per
+consentire un recupero sicuro. Una chiusura interrotta viene riaperta al riavvio:
+lo staff deve ripeterla, ottenendo una nuova trascrizione completa.
+
+La copia finale non viene pubblicata automaticamente nel canale transcripts o
+in altri canali. Resta nella sottocartella transcripts della directory dati del
+bot. Proteggi quella directory e i backup con permessi riservati alla Management.
+Le copie richieste prima della chiusura hanno suffisso -snapshot e non valgono
+come archivio finale per l'eliminazione del canale.
+
+I riferimenti agli allegati non sono copie dei file: gli indirizzi Discord possono
+scadere. I messaggi già cancellati prima della trascrizione non sono recuperabili.
+Gli amministratori possono ancora modificare canali e messaggi: evita modifiche
+manuali durante la chiusura e conserva separatamente gli allegati da archiviare.
+
+I canali chiusi restano consultabili almeno 7 giorni. La cancellazione del canale
+è manuale e richiede il comando sopra; un errore di archivio impedisce l'azione.
+Non c'è cancellazione automatica delle trascrizioni per età in questo modulo.
+retention_days è un valore di politica predisposto in configurazione: non attiva
+alcuna cancellazione automatica dei dati. Per gli archivi e gli altri registri
+la Management deve definire e applicare una politica manuale, incluse le
+copie snapshot e i backup. Il pannello informa gli utenti di questa conservazione
+manuale prima dell'apertura. Non trattare il valore 90 come una scadenza automatica
+delle trascrizioni. Dopo la rimozione del canale le copie locali restano alla
+Management; il comando nel canale eliminato non è più disponibile.
+
+Ripristino e limiti operativi
+Le richieste in creazione sono recuperate tramite il topic esatto lumia-ticket:N.
+Un canale esistente viene riagganciato; se non ne esiste alcuno, la prenotazione
+diventa failed e libera il limite attivo. Più canali con lo stesso identificativo
+richiedono un controllo manuale. Le operazioni non agiscono su canali che non
+corrispondono sia alla registrazione locale sia al topic identificativo.
+Un errore di creazione mantiene la prenotazione finché un riavvio o /ticket
+recupera verifica se Discord ha comunque creato il canale dopo un timeout.
+
+Eseguire una sola istanza del bot sullo stesso archivio dati. La prenotazione e
+la presa in carico sono atomiche nel database; le operazioni Discord sono protette
+da blocchi per ticket all'interno del processo. Non condividere token nei ticket.
+
+Verifica prima dell'uso reale
+Il pacchetto include test locali per privacy, concorrenza e guasti di archivio.
+Non sono stati usati token Discord reali. In un server di prova verifica permessi
+del bot, ruolo Member, ruolo Support, Management, Developer, ticket riservati,
+riavvio con vecchi pulsanti e download di una trascrizione. Il bot necessita di
+View Channels, Send Messages, Read Message History, Attach Files, Embed Links e
+Manage Channels; il progetto configura anche gli intenti necessari alla cronologia.

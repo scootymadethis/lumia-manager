@@ -1,0 +1,69 @@
+AGGIORNAMENTO REDESIGN — 17 ottobre 2026
+Per installazione e comandi aggiornati leggi AGGIORNAMENTO-REDESIGN.md.
+Prima di assegnare Member, Accetto le regole apre ora una semplice somma,
+se la verifica è attiva. /verifica disattiva [durata] la sospende,
+/verifica attiva la riattiva. Regolamento, anti-raid e controlli ruoli restano attivi.
+Il rapporto corrente è VERIFICHE-REDESIGN.txt.
+
+LUMIA DEVELOPMENT — ACCESSO IN PRIVATO
+16 ottobre 2026
+
+FLUSSO
+All'ingresso di un utente nel server configurato, il bot invia benvenuto e
+regolamento in privato. Non pubblica un messaggio personale in benvenuto o
+regolamento e non assegna Member prima dell'accettazione.
+
+Il pulsante Accetto le regole nei DM verifica l'appartenenza attuale al server,
+la pausa anti-raid e i permessi del ruolo. Assegna soltanto il ruolo Member
+configurato e registra l'accettazione solo dopo il successo dell'assegnazione.
+Invia quindi un menu privato per FiveM, Minecraft, Novità e Release. Le scelte
+aggiungono o rimuovono soltanto i relativi ruoli facoltativi, verificati sul server.
+I ruoli staff e Customer non fanno parte di questo menu.
+
+Il registro persistente lega ogni pannello privato al suo destinatario e al server.
+I pulsanti continuano a funzionare dopo un riavvio. Se l'utente lascia il server,
+i vecchi pulsanti non possono assegnargli ruoli. Prima di ogni modifica il bot
+recupera da Discord l'appartenenza e i ruoli attuali, anche nei DM.
+
+DM CHIUSI E RIPROVA
+Se Discord impedisce l'invio, il bot avvisa il registro staff. Non aggira la privacy
+dell'utente e non pubblica il benvenuto nei canali. L'utente abilita i messaggi
+diretti dal server nelle impostazioni privacy e usa /inizia nel server Lumia.
+Il comando risponde privatamente e invia nuovamente il percorso nei DM.
+Chi ha già Member riceve anche il menu delle preferenze.
+Dopo una consegna riuscita, una nuova richiesta deve attendere 60 secondi.
+Gli account bot non ricevono questo percorso.
+
+TESTI E PANNELLI
+I testi completi restano personalizzabili nelle voci welcome e rules del file
+server_texts.json. I regolamenti lunghi vengono divisi in più messaggi, con il
+pulsante di accettazione sull'ultima parte. I collegamenti puntano al server.
+/server testi aggiorna i canali benvenuto e regolamento con istruzioni generiche
+per l'accesso privato; gli altri testi continuano a essere pubblicati come prima.
+/pannelli aggiorna i pannelli esistenti di regolamento e ruoli con il pulsante
+Ricevi benvenuto e regole in privato. I vecchi pulsanti ancora presenti restano
+compatibili; per aggiornare quelli registrati dal bot usa /pannelli.
+Gli annunci di uscita dal server seguono ancora l'impostazione leave_messages.
+
+INSTALLAZIONE DELL'AGGIORNAMENTO
+L'archivio lumia-aggiornamento-dm.zip contiene solo questi file:
+  lumia/onboarding.py
+  lumia/community.py
+  lumia/setup_server.py
+  tests/test_onboarding.py
+  ONBOARDING-DM.txt
+Non contiene .env, config.json, database, volumi o server_texts.json.
+
+Copia l'archivio sulla VPS. Dalla cartella ~/lumia-manager salva una copia dei
+tre moduli attuali prima dell'estrazione e ricostruisci l'app con Docker Compose.
+Dopo il riavvio usa /server testi e /pannelli dal server Discord per aggiornare
+i messaggi pubblici già registrati. Non occorre ripetere /server allestimento.
+Il ruolo Member deve restare sicuro, assegnabile e sotto il ruolo del bot;
+il bot deve avere Gestisci ruoli e Server Members Intent abilitato.
+
+VERIFICHE LOCALI
+Suite completa: 125 test superati. Inclusi ingresso senza messaggi pubblici,
+accettazione nei DM, ruoli facoltativi, destinatario errato, utente uscito,
+controlli dopo riavvio, DM bloccati, anti-raid, gerarchia e permessi non sicuri.
+I test simulano Discord: la consegna reale dei DM sulla VPS deve essere provata
+con un account utente distinto. Non condividere le credenziali dell'account.

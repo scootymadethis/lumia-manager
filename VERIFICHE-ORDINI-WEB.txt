@@ -1,0 +1,37 @@
+Verifiche locali del rilascio ordini web — 17 ottobre 2026
+
+189 test Python unitari e di integrazione superati.
+Coprono anche autorizzazioni e revoca ruoli, isolamento clienti, CSRF/Origin,
+OAuth a stato monouso, Stripe e contabilità immutabile, milestone, tranche,
+richieste idempotenti, rollback atomico, limite persistente per account,
+brief Unicode ai limiti consentiti, escaping, preventivi e accettazione,
+fallback AI, schema e dati inviati al modello, configurazione .env conservativa.
+
+Chrome: 32 controlli pagina/viewport del redesign, quattro contesti workspace
+(due ruoli su desktop e touch), guida con waypoint, tastiera e persistenza.
+Motion: SVG originali, mouse/touch, scene sticky, riduzione movimento, no-JS.
+Wizard: desktop 1440, tablet 768, mobile 390 e 320 px; campi, validazione,
+ripresa bozza, modifica riepilogo, doppio invio e riduzione movimento.
+
+Flusso browser HTTPS con database in memoria e servizi esterni simulati:
+bozza anonima -> ritorno OAuth con cookie Secure -> stesso passaggio ->
+adattatore AI -> richiesta reale -> manager -> messaggio -> preventivo staff
+-> accettazione cliente senza appartenenza al server.
+
+Installer: sei scenari con simulatore Docker, script Bash reale, backup ZIP
+e SQLite reali. Avvio normale, build fallita, backup non valido, health check
+fallito, payload alterato, tentativo di sostituire file protetto.
+
+Limiti: Docker non disponibile in questo ambiente Windows; non eseguiti build
+Docker reali, installazione Ubuntu, benchmark Ollama sulla CPU dell'utente,
+OAuth con le credenziali reali, pagamenti live o modifiche al server Discord.
+Le viste mobile sono emulate: Safari, tastiera e safe area richiedono prova
+su telefono fisico. L'avviso Starlette/httpx del test runner è non bloccante.
+
+Nessuna credenziale reale o database utente è incluso nel pacchetto.
+
+Correzione v2: riprodotto il crash del pannello con LUMIA_PUBLIC_URL impostata.
+Verificati layout Discord con e senza URL pubblico, controlli persistenti e
+caricamento di tutte e otto le estensioni del bot con dominio configurato.
+Hotfix diretto verificato sui sorgenti della prima release, con backup e
+seconda esecuzione senza ulteriori modifiche.
