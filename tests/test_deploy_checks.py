@@ -39,6 +39,10 @@ class DeploymentGitTests(unittest.TestCase):
         (self.root/'compose.yaml').write_text('different');updated=self.commit()
         with self.assertRaisesRegex(ValueError,'configurazioni operative'):guard(self.original,updated)
 
+    def test_server_texts_changes_are_allowed(self):
+        (self.root/'server_texts.json').write_text('{"welcome":"Aggiornato"}');updated=self.commit()
+        guard(self.original,updated)
+
     def test_secrets_and_sqlite_in_commit_are_blocked(self):
         for name in ('.env','.env.before-ai-123','config.json','data/db.sqlite'):
             self.git('reset','--hard',self.original)
