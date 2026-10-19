@@ -17,10 +17,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/static/lumia-logo-discord.png">
   <link rel="stylesheet" href="/static/design.css?v=6">
-  <link rel="stylesheet" href="/static/landing.css?v=6">
+  <link rel="stylesheet" href="/static/landing.css?v=7">
   <link rel="stylesheet" href="/static/cinematic.css?v=6">
   <script src="/static/ui.js?v=6" defer></script>
-  <script src="/static/landing.js?v=6" defer></script>
+  <script src="/static/landing.js?v=8" defer></script>
 </head>
 <body class="landing">
   <a class="skip-link" href="#main">Vai al contenuto</a>
@@ -43,6 +43,7 @@
         <a class="button primary" href="/ordina">Inizia il tuo progetto {{ icon('arrow') }}</a>
         <a class="text-link" href="#servizi">Esplora {{ icon('arrow') }}</a>
       </div>
+      <a class="returning-client" href="{{ manager_url }}/login"><span>{{ icon('orders') }}</span><span><strong>Hai già un ordine in corso?</strong><span>Vai all’area clienti {{ icon('arrow') }}</span></span></a>
       <div class="hero-object" aria-hidden="true">
         <div class="hero-lens"></div><div class="hero-horizon"></div>
         <div class="object-orbit"></div><div class="object-orbit orbit-outer"></div>
@@ -98,7 +99,7 @@
           <div class="journey-copy">
             <article class="journey-chapter" data-chapter="0"><span class="chapter-index">01 / L’idea</span><h3>Prima capiamo.<br> Poi costruiamo.</h3><p>Ci racconti il progetto. Definiamo funzionalità, prezzo e tappe prima di iniziare.</p></article>
             <article class="journey-chapter" data-chapter="1"><span class="chapter-index">02 / Lo sviluppo</span><h3>Lo vedi<br> prendere forma.</h3><p>Segui le milestone dall’area clienti e provi le consegne. Il prossimo passo resta chiaro.</p></article>
-            <article class="journey-chapter" data-chapter="2"><span class="chapter-index">03 / La consegna</span><h3>Pronto per<br> la tua community.</h3><p>Verifichiamo il lavoro concordato. Quando previsto, completi i pagamenti per tranche con Stripe.</p></article>
+            <article class="journey-chapter" data-chapter="2"><span class="chapter-index">03 / La consegna</span><h3>Pronto per<br> la tua community.</h3><p>Verifichiamo il lavoro concordato. Quando previsto, completi i pagamenti per tranche con PayPal.</p></article>
           </div>
           <div class="journey-perspective">
             <div class="journey-display" data-journey-display>
@@ -128,18 +129,18 @@
       </div>
     </section>
 
-    <section class="principles-section wrap reveal"><p class="section-label">Senza perdere il filo.</p><div class="principles-grid"><h2>Tu pensi al server.<br>Il progetto resta chiaro.</h2><div><p>Preventivo, avanzamento e pagamenti nello stesso posto. Dal primo brief alla consegna, direttamente sul sito. Discord resta a disposizione quando ti serve.</p><a class="text-link" href="{{ manager_url }}/login">Scopri l’area clienti {{ icon('up') }}</a></div></div></section>
+    <section class="principles-section wrap reveal"><p class="section-label">Senza perdere il filo.</p><div class="principles-grid"><h2>Tu pensi al server.<br>Il progetto resta chiaro.</h2><div><p>Preventivo, avanzamento e pagamenti nello stesso posto. Dal primo brief alla consegna, direttamente sul sito. Discord è il nostro canale di assistenza.</p><a class="text-link" href="{{ manager_url }}/login">Scopri l’area clienti {{ icon('up') }}</a></div></div></section>
 
     <section class="faq-section wrap" id="domande"><div class="section-intro reveal"><p class="section-label">Prima di partire.</p><h2>Parliamoci chiaro.</h2></div><div class="faq-list reveal">
       <details><summary>Posso chiedere una singola funzione?</summary><p>Sì. Raccontaci lo script, il plugin o l’integrazione che ti serve: valutiamo anche interventi mirati.</p></details>
       <details><summary>Ho già un server. Potete lavorarci?</summary><p>Valutiamo il progetto e la compatibilità delle risorse prima di preparare il preventivo.</p></details>
       <details><summary>Devo entrare su Discord per ordinare?</summary><p>No. Compili la richiesta sul sito e usi il tuo account Discord solo per accedere al workspace. Preventivo, messaggi, consegne e pagamenti restano nel manager.</p></details>
       <details><summary>Quanto costa?</summary><p>Dipende da funzionalità e ambito del lavoro. Il prezzo viene concordato nel preventivo prima di iniziare.</p></details>
-      <details><summary>Posso pagare per fasi?</summary><p>Quando previsto dal preventivo, dividiamo il progetto in tranche collegate a date o milestone. Confermi ogni pagamento con Stripe Checkout.</p></details>
+      <details><summary>Posso pagare per fasi?</summary><p>Quando previsto dal preventivo, dividiamo il progetto in tranche collegate a date o milestone. Confermi ogni pagamento con PayPal.</p></details>
       <details><summary>Hosting e assistenza sono inclusi?</summary><p>Servizi aggiuntivi, revisioni e assistenza vengono specificati nel preventivo.</p></details>
     </div></section>
 
-    <section class="closing-section wrap reveal"><div class="ambient closing-ambient" aria-hidden="true"><span></span><span></span></div><p class="section-label">Da qui si comincia.</p><h2>La prossima idea<br>potrebbe essere la tua.</h2><a class="button primary" href="/ordina">Raccontaci la tua idea {{ icon('arrow') }}</a><p class="closing-note">Una richiesta guidata. Nessun pagamento adesso.</p><a class="text-link" href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Preferisci parlarne su Discord? {{ icon('up') }}</a></section>
+    <section class="closing-section wrap reveal"><div class="ambient closing-ambient" aria-hidden="true"><span></span><span></span></div><p class="section-label">Da qui si comincia.</p><h2>La prossima idea<br>potrebbe essere la tua.</h2><a class="button primary" href="/ordina">Raccontaci la tua idea {{ icon('arrow') }}</a><p class="closing-note">Una richiesta guidata. Nessun pagamento adesso.</p><a class="text-link" href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Ti serve assistenza? Apri Discord {{ icon('up') }}</a></section>
   </main>
   <footer class="site-footer wrap"><a class="brand" href="/"><img src="/static/lumia-logo-discord.png" alt="" width="30" height="30">Lumia</a><span>Development, su misura.</span><div><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Discord {{ icon('up') }}</a><a href="{{ manager_url }}/login">Area clienti {{ icon('up') }}</a></div></footer>
 </body>

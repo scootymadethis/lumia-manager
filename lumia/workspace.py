@@ -38,6 +38,7 @@ class Workspace:
             cursor=self.store.db.execute('''INSERT INTO project_messages
                 (order_id,author,author_name,staff,body,internal,created) VALUES(?,?,?,?,?,?,?)''',
                 (number,author,name,int(staff),body,int(internal),time.time()))
+            self.store.db.execute('UPDATE orders SET updated=? WHERE id=?',(time.time(),number))
             return cursor.lastrowid
 
     def messages(self,number,*,staff=False):

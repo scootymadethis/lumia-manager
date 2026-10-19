@@ -39,6 +39,7 @@ FORM_FIELDS = {
     'partner': ('Team o organizzazione', 'Proposta di collaborazione', 'Contatto e riferimenti'),
     'report': ('Oggetto della segnalazione', 'Descrivi i fatti', 'Prove e riferimenti'),
 }
+SUPPORT_KINDS = frozenset({'support', 'partner', 'report'})
 STAGES = ('nuovo', 'in_attesa', 'preventivo', 'approvato', 'in_lavorazione', 'revisione', 'consegnato', 'sospeso')
 NO_MENTIONS = discord.AllowedMentions.none()
 
@@ -93,12 +94,12 @@ def build_overwrites(guild, cfg, ticket, *, closed=False):
 
 
 def panel_embed():
-    return card('Parliamo del tuo progetto.',
-        'Inizia dal sito: ti guidiamo nella richiesta e segui tutto dalla tua area clienti. '
-        'Preferisci Discord o cerchi assistenza? Scegli un servizio per aprire un ticket privato.',section='Lumia / Progetti e assistenza',
-        fields=[('Sviluppo','FiveM · Minecraft · Script · Su misura',False),
-                ('Hai già un progetto?','Scegli Assistenza. Partnership e Segnalazioni sono riservate a Management.',False)],
-        footer='Massimo 2 ticket attivi · 60 secondi tra le aperture')
+    return card('Come possiamo aiutarti?',
+        'Discord è dedicato all’assistenza. Richieste, preventivi, ordini e pagamenti PayPal si gestiscono sul sito.',
+        section='Lumia / Assistenza',
+        fields=[('Hai un ordine?', 'Indica il codice LM del progetto nel ticket: ritrovi dettagli e aggiornamenti nell’area clienti.', False),
+                ('Vuoi iniziare un progetto?', 'Usa «Inizia dal sito» per inviare la richiesta guidata.', False)],
+        footer='Ticket privati · Massimo 2 attivi · 60 secondi tra le aperture')
 
 
 class TicketView(discord.ui.View):
@@ -118,14 +119,16 @@ class KindSelect(discord.ui.Select):
     def __init__(self, cog):
         self.cog = cog
         super().__init__(
-            custom_id='lumia:tickets:select:v1', placeholder='Scegli un servizio…',
+            custom_id='lumia:tickets:select:v1', placeholder='Scegli il tipo di assistenza…',
             min_values=1, max_values=1, row=0,
             options=[discord.SelectOption(label=label, value=kind, description=description)
-                     for kind, (label, description) in KINDS.items()])
+                     for kind, (label, description) in KINDS.items() if kind in SUPPORT_KINDS])
 
     async def callback(self, interaction):
         self.cog.check_guild(interaction)
         self.cog.check_creator(interaction.user)
+        if self.values[0] not in SUPPORT_KINDS:
+            return await respond(interaction, 'Le nuove richieste si inviano dal sito. Usa /ordina per aprirlo.')
         await interaction.response.send_modal(TicketModal(self.cog, self.values[0], interaction.user.id))
 
 
@@ -195,6 +198,31 @@ class CloseConfirm(TicketView):
         await interaction.response.edit_message(content='Chiusura annullata.', view=None)
 
 
+class DeleteTicketModal(discord.ui.Modal):
+    def __init__(self, cog, number, requester):
+        super().__init__(title=f'Elimina canale ticket #{number}'[:45], timeout=180)
+        self.cog, self.number, self.requester = cog, number, requester
+        self.confirmation = discord.ui.TextInput(
+            label=f'Scrivi ELIMINA #{number}'[:45],
+            placeholder='Cancella il canale e i messaggi. Archivio conservato.',
+            required=True, max_length=50)
+        self.add_item(self.confirmation)
+
+    async def on_submit(self, interaction):
+        self.cog.check_guild(interaction)
+        if interaction.user.id != self.requester:
+            raise app_commands.CheckFailure('Questa conferma appartiene a un altro utente.')
+        ticket = self.cog.for_interaction(interaction, staff=True)
+        if ticket['id'] != self.number:
+            raise ValueError('Questa conferma appartiene a un altro ticket.')
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.cog.delete_closed(self.number, interaction.user, self.confirmation.value)
+        await respond(interaction, 'Canale ticket eliminato. La trascrizione verificata è conservata nell’archivio locale.')
+
+    async def on_error(self, interaction, error):
+        await self.cog.report_error(interaction, error)
+
+
 class TicketControls(TicketView):
     @discord.ui.button(label='Prendi in carico', style=discord.ButtonStyle.primary,
                        custom_id='lumia:tickets:claim:v1')
@@ -217,6 +245,13 @@ class TicketControls(TicketView):
         self.cog.check_guild(interaction)
         ticket = self.cog.for_interaction(interaction)
         await self.cog.request_close(interaction, ticket, 'Chiusura richiesta dai controlli del ticket')
+
+    @discord.ui.button(label='Elimina ticket', style=discord.ButtonStyle.danger,
+                       custom_id='lumia:tickets:delete:v1')
+    async def delete(self, interaction, button):
+        ticket = self.cog.for_interaction(interaction, staff=True)
+        self.cog.deletable_ticket(ticket['id'], interaction.user)
+        await interaction.response.send_modal(DeleteTicketModal(self.cog, ticket['id'], interaction.user.id))
 
 
 class Tickets(commands.Cog):
@@ -299,6 +334,8 @@ class Tickets(commands.Cog):
         if guild.id != self.bot.cfg['guild_id'] or getattr(author, 'guild', None) != guild:
             raise app_commands.CheckFailure('Server non autorizzato.')
         self.check_creator(author)
+        if kind not in SUPPORT_KINDS:
+            raise ValueError('Le nuove richieste si inviano dal sito. Su Discord puoi aprire un ticket di assistenza.')
         if kind not in KINDS or not fields or len(fields) > 5:
             raise ValueError('Tipologia o modulo ticket non valido.')
         if any(not isinstance(k, str) or not isinstance(v, str) or len(k) > 100 or len(v) > 2000
@@ -326,7 +363,7 @@ class Tickets(commands.Cog):
         author=channel.guild.get_member(ticket['owner']) if hasattr(channel.guild,'get_member') else None
         embed = card(title=f'🎫  Ticket #{ticket["id"]:04d} · {KINDS[ticket["kind"]][0]}',
                               text=f'Richiesta di <@{ticket["owner"]}>\n\n'
-                              'Il team risponderà qui. Requisiti, preventivi e accordi vanno confermati nello stesso ticket.',
+                              'Il team risponderà qui per l’assistenza. Richieste, preventivi, ordini e pagamenti si gestiscono sul sito.',
                               section='Lumia / Assistenza',subject=author)
         for label, value in ticket['fields'].items():
             summary = value if len(value) <= 950 else value[:850] + '… Testo completo nei messaggi seguenti.'
@@ -335,7 +372,8 @@ class Tickets(commands.Cog):
             embed.set_footer(text='Riservato: autore e Management. Gli amministratori Discord possono accedere.')
         else:
             embed.set_footer(text='Autore, Support, Management ed eventuali sviluppatori aggiunti individualmente.')
-        await channel.send(embed=embed, view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+        message = await channel.send(embed=embed, view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+        self.bot.store.put('ticket_controls', ticket['id'], {'message': message.id, 'channel': channel.id})
         for label, value in ticket['fields'].items():
             if len(value) > 950:
                 for offset in range(0, len(value), 1800):
@@ -524,19 +562,60 @@ class Tickets(commands.Cog):
                 with discord.File(path, filename=path.name) as attachment:
                     await respond(interaction, f'Trascrizione del ticket **#{ticket["id"]}**.', file=attachment)
 
-    async def delete_closed(self, number, actor, confirmation):
+    def deletable_ticket(self, number, actor):
         if not is_management(actor, self.bot.cfg):
             raise app_commands.CheckFailure('Solo la Management può eliminare un canale archiviato.')
+        ticket = self.checked_ticket(number, actor, staff=True)
+        if self.bot.store.get('ticket_deleted_channels', number):
+            raise ValueError('Il canale di questo ticket è già stato eliminato.')
+        if ticket['state'] != 'closed' or not ticket['closed'] or time.time() - ticket['closed'] < 7 * 86400:
+            raise ValueError('Puoi eliminare il canale solo 7 giorni dopo la chiusura confermata. Usa prima Chiudi / richiedi chiusura.')
+        self.verified_archive(ticket)
+        self.ticket_channel(ticket)
+        return ticket
+
+    async def delete_closed(self, number, actor, confirmation):
         async with self.locks[number]:
-            ticket = self.checked_ticket(number, actor, staff=True)
-            if ticket['state'] != 'closed' or not ticket['closed'] or time.time() - ticket['closed'] < 7 * 86400:
-                raise ValueError('Puoi eliminare il canale solo 7 giorni dopo la chiusura confermata.')
+            ticket = self.deletable_ticket(number, actor)
             if confirmation != f'ELIMINA #{number}':
                 raise ValueError(f'Per confermare scrivi esattamente ELIMINA #{number}.')
-            self.verified_archive(ticket)
             channel = self.ticket_channel(ticket)
             await channel.delete(reason=f'Lumia ticket #{number}: archivio finale verificato, conferma Management')
             self.bot.store.put('ticket_deleted_channels', number, {'by': actor.id, 'at': time.time(), 'channel': channel.id})
+
+    async def publish_controls(self, number, actor):
+        async with self.locks[number]:
+            if not is_management(actor, self.bot.cfg):
+                raise app_commands.CheckFailure('Solo la Management può aggiornare i controlli.')
+            ticket = self.checked_ticket(number, actor, staff=True)
+            if ticket['state'] not in ('open', 'closed'):
+                raise ValueError('Il ticket è in elaborazione. Riprova tra poco.')
+            channel = self.ticket_channel(ticket)
+            saved = self.bot.store.get('ticket_controls', number, {})
+            if saved.get('channel') == channel.id and saved.get('message'):
+                try:
+                    message = await channel.fetch_message(saved['message'])
+                    await message.edit(view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+                    return
+                except discord.NotFound:
+                    pass
+            # Old installations did not save the intro message ID. Reuse its
+            # existing controls instead of creating a second panel.
+            bot_user = getattr(self.bot, 'user', None)
+            if bot_user:
+                expected = {f'lumia:tickets:{action}:v1' for action in ('claim', 'transcript', 'close')}
+                async for message in channel.history(limit=None, oldest_first=True):
+                    ids = {getattr(item, 'custom_id', None) for row in getattr(message, 'components', [])
+                           for item in getattr(row, 'children', [])}
+                    if message.author.id == bot_user.id and expected <= ids:
+                        await message.edit(view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+                        self.bot.store.put('ticket_controls', number, {'message': message.id, 'channel': channel.id})
+                        return
+            message = await channel.send(embed=card('Controlli del ticket',
+                'Assistenza e trascrizione. Eliminazione riservata a Management, con conferma, '
+                'archivio verificato e almeno 7 giorni dalla chiusura.'),
+                view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+            self.bot.store.put('ticket_controls', number, {'message': message.id, 'channel': channel.id})
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -662,6 +741,15 @@ class Tickets(commands.Cog):
         await interaction.response.defer(ephemeral=True, thinking=True)
         await self.delete_closed(ticket['id'], interaction.user, conferma)
         await respond(interaction, 'Canale eliminato dopo verifica dell’archivio finale. La trascrizione locale è conservata.')
+
+    @ticket.command(name='controlli', description='Management: aggiorna i pulsanti anche nei ticket già esistenti')
+    async def controls_command(self, interaction: discord.Interaction):
+        ticket = self.for_interaction(interaction, staff=True)
+        if not is_management(interaction.user, self.bot.cfg):
+            raise app_commands.CheckFailure('Solo la Management può aggiornare i controlli.')
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.publish_controls(ticket['id'], interaction.user)
+        await respond(interaction, 'Controlli aggiornati, incluso il pulsante Elimina ticket.')
 
     @ticket.command(name='recupera', description='Management: riprova le creazioni e chiusure interrotte')
     async def recover_command(self, interaction: discord.Interaction):

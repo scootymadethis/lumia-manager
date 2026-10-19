@@ -1,0 +1,95 @@
+{% set project_url = '/orders/' ~ tutorial_order.id ~ suffix if tutorial_order else '/orders' ~ suffix %}
+<section class="page-heading tutorial-heading"><div><p class="eyebrow">Lumia / Area clienti</p><h1>Un passo alla volta.</h1><p>Dal primo accesso alla consegna: scopri come usare il tuo spazio con Lumia.</p></div><a class="text-link" href="/{{ suffix }}">Torna alla Home {{ icon('arrow') }}</a></section>
+<div class="customer-tutorial" data-customer-tutorial>
+  <aside class="tutorial-index" aria-label="Indice del tutorial">
+    <p class="eyebrow">Il percorso</p>
+    <nav aria-label="Capitoli del tutorial"><ol>
+      {% for id,label in [('account','Il tuo account'),('request','La richiesta'),('quote','Il preventivo'),('payment','Pagamenti e tranche'),('tracking','Segui il progetto'),('conversation','Parla con il team'),('delivery','Consegne e revisioni'),('support','Assistenza e account')] %}
+      <li><a href="#tutorial-{{ id }}" data-tutorial-jump="{{ loop.index0 }}"><span>{{ '%02d'|format(loop.index) }}</span>{{ label }}</a></li>
+      {% endfor %}
+    </ol></nav>
+    <p class="tutorial-note">Leggi al tuo ritmo. Con i comandi attivi, riprendi dall’ultimo capitolo su questo browser.</p>
+  </aside>
+  <div class="tutorial-content">
+    <div class="tutorial-progress" data-tutorial-controls hidden><div><span data-tutorial-position>Capitolo 1 di 8</span><button type="button" class="text-link" data-tutorial-restart>Ricomincia</button></div><progress max="8" value="1" aria-label="Avanzamento del tutorial" data-tutorial-progress></progress></div>
+    <div class="tutorial-complete notice" data-tutorial-complete hidden role="status"><div>{{ icon('check') }} <strong>Tutorial completato.</strong><p>Puoi rileggere ogni capitolo dall’indice o tornare ai tuoi progetti.</p></div><a class="text-link" href="/orders{{ suffix }}">Vai ai progetti {{ icon('arrow') }}</a></div>
+
+    <section class="panel tutorial-chapter" id="tutorial-account" data-tutorial-chapter="0" aria-labelledby="tutorial-title-account">
+      <div class="tutorial-chapter-top">{{ icon('users') }}<span>01 / Il tuo spazio</span></div>
+      <h2 id="tutorial-title-account" tabindex="-1">Il tuo account, i tuoi progetti.</h2>
+      <p>Accedi all’area clienti con il tuo <strong>Account Discord</strong>. Usa sempre lo stesso account: richieste e progetti sono collegati a quell’identità.</p>
+      <ol class="tutorial-steps"><li><strong>Home</strong> ti mostra il riepilogo e «Tocca a te», con le azioni che richiedono una risposta.</li><li><strong>Progetti</strong> raccoglie le tue richieste e i lavori già avviati. Apri una scheda per vedere tutti i dettagli.</li><li>Dal tuo avatar, in alto, apri il <strong>Menu account</strong>: trovi pagamenti, assistenza, questo tutorial e l’uscita dall’account.</li></ol>
+      <div class="tutorial-tip">Non trovi un ordine? Controlla di aver usato l’account Discord corretto e contatta il team indicando il codice LM dell’ordine, se lo conosci.</div>
+      <a class="button secondary" href="/{{ suffix }}">Apri la Home {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-request" data-tutorial-chapter="1" aria-labelledby="tutorial-title-request">
+      <div class="tutorial-chapter-top">{{ icon('plus') }}<span>02 / Dall’idea alla richiesta</span></div>
+      <h2 id="tutorial-title-request" tabindex="-1">Raccontaci cosa vuoi creare.</h2>
+      <p><strong>Nuova richiesta</strong> apre il percorso guidato per FiveM, Minecraft, Discord e gli altri servizi disponibili. Le domande sono facoltative: racconta ciò che sai, scegli <strong>Altro</strong> se non trovi la tua risposta oppure usa <strong>Salta per ora</strong>. Budget e tempi possono essere concordati con il team.</p>
+      <ol class="tutorial-steps"><li>Puoi preparare la richiesta prima di accedere. Per inviarla devi collegare il tuo account Discord, rileggere il riepilogo e confermare la richiesta di valutazione con la casella finale.</li><li>Anche le domande di approfondimento sono facoltative. I suggerimenti, quando disponibili, aiutano a chiarire l’idea: puoi continuare anche se il servizio non risponde.</li><li>Dopo l’invio trovi la richiesta nei <strong>Progetti</strong>, inizialmente in valutazione. Il team verifica fattibilità, prezzo e tempi.</li></ol>
+      <div class="tutorial-tip"><strong>Hai già un ordine?</strong> Aprilo da Progetti: non serve inviare un’altra richiesta per seguirlo o chiedere un aggiornamento. L’invio di una richiesta non equivale all’accettazione di un preventivo.</div>
+      <a class="button secondary" href="/start{{ suffix }}">Apri una nuova richiesta {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-quote" data-tutorial-chapter="2" aria-labelledby="tutorial-title-quote">
+      <div class="tutorial-chapter-top">{{ icon('orders') }}<span>03 / Prima di iniziare</span></div>
+      <h2 id="tutorial-title-quote" tabindex="-1">Leggi e conferma il preventivo.</h2>
+      <p>Quando la proposta è pronta, apri il progetto da <strong>Progetti</strong> o dalla voce «Preventivo da confermare» nella Home.</p>
+      <ol class="tutorial-steps"><li>Leggi il lavoro compreso, il prezzo, i tempi e le condizioni. La richiesta originale rimane consultabile, se inviata dal sito.</li><li>Controlla il <strong>Piano di pagamento</strong>: può prevedere un pagamento unico oppure più tranche, cioè parti del totale.</li><li>Se hai dubbi, scrivi nella Conversazione prima di procedere. Quando è tutto chiaro, usa <strong>Accetta preventivo</strong> nel progetto.</li></ol>
+      <div class="tutorial-tip">Accettare conferma la proposta e il piano indicati. La lettura di questo tutorial e l’apertura delle pagine non accettano il preventivo e non avviano un pagamento.</div>
+      <a class="button secondary" href="{{ project_url }}">Apri {{ 'il tuo progetto' if tutorial_order else 'i progetti' }} {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-payment" data-tutorial-chapter="3" aria-labelledby="tutorial-title-payment">
+      <div class="tutorial-chapter-top">{{ icon('wallet') }}<span>04 / Un importo chiaro</span></div>
+      <h2 id="tutorial-title-payment" tabindex="-1">Paga con PayPal, una fase alla volta.</h2>
+      <p>Nel progetto trovi totale, ricevuto e residuo. Il riquadro del pagamento mostra l’importo attualmente disponibile e il pulsante <strong>Paga con PayPal</strong>, quando il servizio è attivo.</p>
+      <ol class="tutorial-steps"><li>Prima conferma il preventivo. Se il piano prevede più tranche, si pagano in ordine: le successive possono attendere una data, una tappa completata o la richiesta del team.</li><li>Controlla titolo e importo della tranche. Il pulsante apre PayPal, dove confermi personalmente il pagamento.</li><li>Dopo il ritorno al sito, attendi la conferma di PayPal. Se il pagamento risulta in attesa, controlla gli aggiornamenti prima di riprovare; per dubbi scrivi al team.</li><li>Nel <strong>Piano di pagamento</strong> vedi le parti pagate, da pagare o in attesa. In <strong>Pagamenti</strong> trovi i movimenti registrati e puoi esportarli.</li></ol>
+      <div class="tutorial-tip">Una tranche «In attesa» non richiede ancora un pagamento. Se PayPal non è disponibile o l’importo non ti è chiaro, chiedi assistenza dalla conversazione del progetto.</div>
+      <a class="button secondary" href="/payments{{ suffix }}">Vedi i pagamenti {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-tracking" data-tutorial-chapter="4" aria-labelledby="tutorial-title-tracking">
+      <div class="tutorial-chapter-top">{{ icon('calendar') }}<span>05 / Il lavoro prende forma</span></div>
+      <h2 id="tutorial-title-tracking" tabindex="-1">Segui lo stato e le prossime tappe.</h2>
+      <p>La scheda del progetto raccoglie stato, dettagli, <strong>Milestone</strong>, consegne e pagamenti. Le milestone sono le tappe concordate: il team ne aggiorna l’avanzamento.</p>
+      <ol class="tutorial-steps"><li>In <strong>Progetti</strong> puoi cercare per nome o codice LM, filtrare per stato e scegliere la vista a colonne o a elenco.</li><li>Usa la stella per salvare un preferito su questo browser. La ricerca in alto, anche con Ctrl K o ⌘ K, ti porta alle pagine e ai progetti.</li><li><strong>Agenda</strong> raccoglie le milestone e le tranche con una data. Apri una voce per tornare al progetto; una data trascorsa viene segnalata.</li><li>La Home riassume cosa richiede la tua attenzione. Se compare «Ci sono aggiornamenti», termina e invia ciò che stai scrivendo prima di aggiornare la pagina.</li></ol>
+      <div class="tutorial-tip">Una data o uno stato da chiarire? Chiedi nella conversazione. Troverai la risposta nello stesso progetto.</div>
+      <a class="button secondary" href="/agenda{{ suffix }}">Apri l’agenda {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-conversation" data-tutorial-chapter="5" aria-labelledby="tutorial-title-conversation">
+      <div class="tutorial-chapter-top">{{ icon('messages') }}<span>06 / Restiamo in contatto</span></div>
+      <h2 id="tutorial-title-conversation" tabindex="-1">Parla con il team nel progetto.</h2>
+      <p>La <strong>Conversazione</strong> conserva domande, chiarimenti e aggiornamenti insieme al lavoro a cui si riferiscono.</p>
+      <ol class="tutorial-steps"><li>Apri il progetto, raggiungi Conversazione, scrivi il messaggio e invialo. Descrivi con precisione il dubbio o il problema.</li><li>In <strong>Attività</strong> ritrovi messaggi, consegne e risposte. Apri una voce per tornare al punto giusto.</li><li>Dopo averle controllate puoi segnare le attività come lette. Il numero nella navigazione ti aiuta a riconoscere le novità.</li></ol>
+      <div class="tutorial-tip">Per una modifica, indica cosa ti aspettavi, cosa succede e come riprodurlo. Se riguarda una consegna, cita anche il nome della versione.</div>
+      <a class="button secondary" href="{{ project_url }}{{ '#conversation' if tutorial_order else '' }}">Apri {{ 'la conversazione' if tutorial_order else 'i progetti' }} {{ icon('arrow') }}</a>
+      <a class="text-link" href="/activity{{ suffix }}">Vai alle attività {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-delivery" data-tutorial-chapter="6" aria-labelledby="tutorial-title-delivery">
+      <div class="tutorial-chapter-top">{{ icon('box') }}<span>07 / Prova la versione</span></div>
+      <h2 id="tutorial-title-delivery" tabindex="-1">Controlla la consegna e lascia un riscontro.</h2>
+      <p>Quando il team pubblica una versione, la trovi in <strong>Consegne</strong> nel progetto. Ogni consegna contiene un titolo, le istruzioni e un collegamento per aprirla o provarla.</p>
+      <ol class="tutorial-steps"><li>Apri il collegamento e segui le istruzioni. Verifica le funzioni concordate prima di rispondere.</li><li>Se è tutto corretto, usa <strong>Approva</strong> sulla consegna.</li><li>Se serve una revisione, scegli <strong>Richiedi modifiche</strong> e descrivi chiaramente gli interventi necessari. La risposta resta nel progetto.</li></ol>
+      <div class="tutorial-tip">Una risposta già inviata non si cambia con una seconda approvazione: per aggiungere dettagli usa la conversazione. Approvare una consegna non esegue automaticamente un pagamento.</div>
+      <a class="button secondary" href="{{ project_url }}{{ '#deliveries' if tutorial_order else '' }}">Apri {{ 'le consegne' if tutorial_order else 'i progetti' }} {{ icon('arrow') }}</a>
+    </section>
+
+    <section class="panel tutorial-chapter" id="tutorial-support" data-tutorial-chapter="7" aria-labelledby="tutorial-title-support">
+      <div class="tutorial-chapter-top">{{ icon('help') }}<span>08 / Quando serve una mano</span></div>
+      <h2 id="tutorial-title-support" tabindex="-1">Assistenza e prossimi passi.</h2>
+      <p><strong>Supporto Discord</strong> ti porta al server Lumia. Per l’assistenza privata su un ordine, puoi aprire una richiesta dalla sezione <strong>Assistenza Discord</strong> del progetto.</p>
+      <ol class="tutorial-steps"><li>Entra nel server e completa la verifica richiesta. Usa lo stesso account Discord dell’area clienti.</li><li>Nel progetto descrivi il problema e usa <strong>Crea ticket di assistenza</strong>. Il codice LM viene collegato alla richiesta; se esiste già un ticket, trovi il pulsante per aprirlo.</li><li>Ordini, preventivi, consegne e pagamenti restano consultabili nel sito. Per i normali aggiornamenti puoi sempre scrivere nella conversazione.</li><li>Su un dispositivo condiviso, apri il tuo avatar e scegli <strong>Esci dall’account</strong> quando hai finito.</li></ol>
+      <div class="tutorial-tip">Questo tutorial resta nella navigazione, nella Home e nel menu account. «Guida a questa pagina» offre anche un breve giro della pagina che stai visitando.</div>
+      <a class="button secondary" href="{{ project_url }}{{ '#support' if tutorial_order else '' }}">Vai all’assistenza del progetto {{ icon('arrow') }}</a>
+      <a class="text-link" href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Supporto Discord {{ icon('up') }}</a>
+    </section>
+
+    <div class="tutorial-navigation" data-tutorial-controls hidden><button type="button" class="button ghost" data-tutorial-back>← Indietro</button><button type="button" class="button primary" data-tutorial-next>Avanti →</button></div>
+    <p class="tutorial-save-status" role="status" aria-live="polite" data-tutorial-status></p>
+    <noscript><p class="tutorial-note">Puoi leggere tutti i capitoli in questa pagina e usare l’indice per spostarti. Attiva JavaScript per usare Avanti, Indietro e salvare il punto di lettura.</p></noscript>
+  </div>
+</div>

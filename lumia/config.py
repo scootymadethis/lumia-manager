@@ -2,9 +2,9 @@ import copy
 import json
 from pathlib import Path
 
-ROLE_KEYS = ('management','support','moderator','developer','member','customer','fivem','minecraft','news','release')
+ROLE_KEYS = ('management','support','moderator','developer','member','unverified','customer','fivem','minecraft','news','release')
 # member_counter is retained only to identify/detach counters in older installations.
-CHANNEL_KEYS = ('welcome','rules','announcements','services','portfolio','faq','role_panel','ticket_panel','transcripts','mod_log','server_log','staff_orders','events','suggestions','member_counter')
+CHANNEL_KEYS = ('welcome','rules','verification','announcements','services','portfolio','faq','role_panel','ticket_panel','transcripts','mod_log','server_log','staff_orders','events','suggestions','general','member_counter')
 
 
 def snowflake(value):
@@ -27,7 +27,7 @@ def validate_config(raw):
     if not isinstance(cfg.get('owner_ids',[]),list):
         raise ValueError('owner_ids deve essere un elenco di ID.')
     cfg['owner_ids'] = [snowflake(n) for n in cfg.get('owner_ids',[])]
-    for name, keys in (('roles',ROLE_KEYS),('channels',CHANNEL_KEYS),('categories',('tickets','private_tickets','staff'))):
+    for name, keys in (('roles',ROLE_KEYS),('channels',CHANNEL_KEYS),('categories',('start','info','community','tickets','private_tickets','staff'))):
         if not isinstance(cfg.get(name,{}),dict):
             raise ValueError(f'{name} deve essere un oggetto JSON.')
         cfg[name] = {key:snowflake(cfg.get(name,{}).get(key,0)) for key in keys}

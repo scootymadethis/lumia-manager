@@ -39,7 +39,6 @@
   let activeCard = null;
   let pointerSeen = false;
   let pointer = {x: 0, y: 0};
-  let cursor = null;
   let tilt = {x: 0, y: 0, vx: 0, vy: 0};
   let targetTilt = {x: 0, y: 0};
   let shinePoint = {x: 0, y: 0};
@@ -138,12 +137,6 @@
     last = now;
     if (scrollDirty) { renderScroll(); scrollDirty = false; }
     let unsettled = false;
-    if (canPoint() && cursor && pointerSeen) {
-      [cursor.x, cursor.vx] = spring(cursor.x, cursor.vx, pointer.x, dt);
-      [cursor.y, cursor.vy] = spring(cursor.y, cursor.vy, pointer.y, dt);
-      aura.firstElementChild.style.transform = `translate3d(${(cursor.x - 290).toFixed(2)}px,${(cursor.y - 290).toFixed(2)}px,0) scale(${(1 + Math.min(Math.abs(cursor.vx), 500) / 5000).toFixed(3)},${(1 + Math.min(Math.abs(cursor.vy), 500) / 5000).toFixed(3)})`;
-      unsettled = Math.abs(cursor.x - pointer.x) + Math.abs(cursor.y - pointer.y) + Math.abs(cursor.vx) + Math.abs(cursor.vy) > .2;
-    }
     if (activeCard && canPoint()) {
       [tilt.x, tilt.vx] = spring(tilt.x, tilt.vx, targetTilt.x, dt);
       [tilt.y, tilt.vy] = spring(tilt.y, tilt.vy, targetTilt.y, dt);
@@ -163,7 +156,8 @@
   document.addEventListener('pointermove', event => {
     if (!canPoint() || event.pointerType === 'touch') return;
     pointer = {x: event.clientX, y: event.clientY};
-    if (!cursor) cursor = {...pointer, vx: 0, vy: 0};
+    // Pointer coordinates are applied directly: no interpolation or spring lag.
+    aura.firstElementChild.style.transform = `translate3d(${pointer.x - 290}px,${pointer.y - 290}px,0)`;
     pointerSeen = true;
     aura.classList.add('is-visible');
     if (activeCard && cardBounds && activeCard.matches(':hover')) {
@@ -207,9 +201,8 @@
   const preferenceChange = () => {
     if (!canPoint()) {
       aura.classList.remove('is-visible');
-      aura.style.transform = '';
+      aura.firstElementChild.style.transform = '';
       pointerSeen = false;
-      cursor = null;
       cards.forEach(card => card.style.transform = '');
       activeCard = null;
     }

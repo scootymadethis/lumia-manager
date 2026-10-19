@@ -9,15 +9,15 @@ from .common import respond,require,is_management,embed
 from .presentation import card,channel_name,small_caps,text_card,log_card,COLORS,with_avatar,message_subject,dashboard_view
 
 ROLE_DEFS=(
- ('member','Member',0xCBD5E1),('fivem','FiveM',0x64748B),('minecraft','Minecraft',0x64748B),
+ ('unverified','Da verificare',0x94A3B8),('member','Member',0xCBD5E1),('fivem','FiveM',0x64748B),('minecraft','Minecraft',0x64748B),
  ('news','News Ping',0x64748B),('release','Release Ping',0x64748B),('customer','Customer',0xA78BFA),
  ('developer','Developer',0x93C5FD),('support','Support',0x34D399),('moderator','Moderator',0xF59E0B),('management','Management',0x38BDF8))
 ROLE_DEFS=tuple((key,label+' ®',color) for key,label,color in ROLE_DEFS)
-CAT_NAMES={'start':'INIZIA DA QUI','info':'LUMIA DEVELOPMENT','community':'COMMUNITY','tickets':'TICKET APERTI','private_tickets':'TICKET RISERVATI','staff':'STAFF E GESTIONE'}
+CAT_NAMES={'start':'INIZIA DA QUI','info':'LUMIA DEVELOPMENT','community':'COMMUNITY','tickets':'ASSISTENZA APERTA','private_tickets':'ASSISTENZA RISERVATA','staff':'STAFF E GESTIONE'}
 CHANNEL_DEFS=(
- ('welcome','👋・benvenuto','start'),('rules','📜・regolamento','start'),
+ ('welcome','👋・benvenuto','start'),('rules','📜・regolamento','start'),('verification','✅・verifica','start'),
  ('announcements','📢・annunci','info'),('services','🛠・servizi','info'),('portfolio','🎨・portfolio','info'),
- ('faq','❓・faq','info'),('role_panel','🔔・ruoli','info'),('ticket_panel','🎫・apri-ticket','info'),('events','📅・eventi','info'),
+ ('faq','❓・faq','info'),('role_panel','🔔・ruoli','info'),('ticket_panel','🎫・assistenza','info'),('events','📅・eventi','info'),
  ('suggestions','💡・suggerimenti','community'),('general','💬・generale','community'),
  ('transcripts','📁・trascrizioni','staff'),('mod_log','🛡・mod-log','staff'),('server_log','📡・server-log','staff'),('staff_orders','📋・commissioni','staff'))
 CHANNEL_DEFS=tuple((key,channel_name(label),category) for key,label,category in CHANNEL_DEFS)
@@ -25,12 +25,13 @@ CAT_NAMES={key:small_caps(label) for key,label in CAT_NAMES.items()}
 CHANNEL_TOPICS={
  'welcome':'Benvenuto in Lumia Development. Il tuo prossimo progetto inizia qui.',
  'rules':'Regole della community e accesso ai canali.',
+ 'verification':'Inizia la verifica: leggi le regole, completa il controllo privato e ricevi Member. Funziona anche senza DM.',
  'announcements':'Novità ufficiali, aggiornamenti e comunicazioni del team.',
  'services':'FiveM, Minecraft, script, gamemode e sviluppo su misura.',
  'portfolio':'Lavori, demo e anteprime condivisi dal team Lumia.',
  'faq':'Preventivi, tempi, consegne e assistenza: le domande frequenti.',
  'role_panel':'Personalizza i tuoi interessi e le notifiche che ricevi.',
- 'ticket_panel':'Un canale dedicato per il tuo progetto o per ricevere assistenza.',
+ 'ticket_panel':'Assistenza sui progetti Lumia. Richieste, ordini e pagamenti si gestiscono sul sito.',
  'events':'Appuntamenti, demo e sessioni della community.',
  'suggestions':'Proponi un miglioramento e confrontati con la community.',
  'general':'Parliamo di sviluppo, server e nuove idee. Benvenuto nella community.',
@@ -58,7 +59,14 @@ def style_targets(cfg,registry):
 
 
 def category_policy(kind):
-    return {'tickets':('management','support'),'private_tickets':('management',),'staff':('management',)}.get(kind,('member','management','support','moderator','developer'))
+    return {'start':('unverified','member','management','support','moderator','developer'),
+            'tickets':('management','support'),'private_tickets':('management',),'staff':('management',)}.get(kind,('member','management','support','moderator','developer'))
+
+
+def has_external_synced_children(channel,owned_ids):
+    # Discord propagates category overwrite edits to every synced child.
+    return isinstance(channel,discord.CategoryChannel) and any(
+        child.id not in owned_ids and child.permissions_synced for child in channel.channels)
 
 
 def role_permissions(key):
@@ -145,12 +153,15 @@ class ServerSetup(commands.Cog):
             return
         public={key for key in CAT_NAMES if 'member' in category_policy(key)}
         numbers={registry.get('cat:'+key) for key in public
-                 if self.bot.cfg['categories'].get(key,registry.get('cat:'+key))==registry.get('cat:'+key)}
+                 if (self.bot.cfg['categories'].get(key,0) or registry.get('cat:'+key))==registry.get('cat:'+key)}
         numbers.update(registry.get('channel:'+key) for key,_,cat in CHANNEL_DEFS if cat in public
-                       and self.bot.cfg['channels'].get(key,registry.get('channel:'+key))==registry.get('channel:'+key))
+                       and (self.bot.cfg['channels'].get(key,0) or registry.get('channel:'+key))==registry.get('channel:'+key))
+        owned_ids=numbers|{registry.get('lounge')}
         for number in numbers-{None,0}:
             channel=guild.get_channel(number)
             if not isinstance(channel,(discord.TextChannel,discord.CategoryChannel)):
+                continue
+            if has_external_synced_children(channel,owned_ids):
                 continue
             overwrites=dict(channel.overwrites)
             old=next((target for target in overwrites if target.id==previous),None)
@@ -173,10 +184,11 @@ class ServerSetup(commands.Cog):
         if not permissions.manage_channels or not permissions.manage_roles:
             return await respond(i,'Servono Gestisci canali e Gestisci ruoli. Posiziona il ruolo del bot sopra i ruoli che dovrà gestire.')
         await respond(i,None,embed=card('✦  Il nuovo spazio Lumia',
-            'Una struttura dedicata ai progetti e alla community, con nomi come **🎫・ᴀᴘʀɪ-ᴛɪᴄᴋᴇᴛ**.\n\n'
-            'Le risorse Lumia già create vengono riutilizzate e aggiornate nello stile. Conferma per procedere.',
+            'Un ingresso con ruolo Da verificare, canale di verifica e Member dopo il controllo. '
+            'Discord raccoglie l’assistenza; richieste e ordini si gestiscono dal sito.\n\n'
+            'Le risorse Lumia già create vengono riutilizzate. Sui canali creati dal bot si aggiornano accessi e posizione; i messaggi restano conservati. Conferma per procedere.',
             fields=[('Struttura',f'{len(ROLE_DEFS)} ruoli (membro esistente incluso) · {len(CAT_NAMES)} categorie · {len(CHANNEL_DEFS)} canali di testo',False),
-                    ('Spazi dedicati','Community, Lounge, ticket privati e area staff. Statistiche gestite da ServerStats.',False)]),view=SetupConfirm(self,i.user.id))
+                    ('Spazi dedicati','Ingresso e verifica, informazioni, community, assistenza privata e area staff.',False)]),view=SetupConfirm(self,i.user.id))
 
     async def build(self,guild):
         cfg=self.bot.cfg
@@ -219,6 +231,9 @@ class ServerSetup(commands.Cog):
                 checkpoint()
             if not isinstance(channel,discord.CategoryChannel):
                 raise ValueError('Una categoria registrata non è più valida.')
+            if cfg['categories'].get(key)!=channel.id:
+                cfg['categories'][key]=channel.id
+                checkpoint()
             categories[key]=channel
         for key,label,cat in CHANNEL_DEFS:
             current=guild.get_channel(cfg['channels'].get(key,0) or registry.get('channel:'+key,0))
@@ -228,12 +243,68 @@ class ServerSetup(commands.Cog):
                     cfg['channels'][key]=current.id
                 registry['channel:'+key]=current.id
                 checkpoint()
+            if not isinstance(current,discord.TextChannel):
+                raise ValueError('Un canale di testo registrato non è più valido.')
+            if cfg['channels'].get(key)!=current.id:
+                cfg['channels'][key]=current.id
+                checkpoint()
+            if registry.get('channel:'+key)==current.id and current.category!=categories[cat]:
+                await current.edit(category=categories[cat],sync_permissions=False,reason='Lumia: riordino canali registrati')
         if not guild.get_channel(registry.get('lounge',0)):
             lounge=await guild.create_voice_channel(channel_name('🔊・lounge'),category=categories['community'],reason='Allestimento Lumia')
             registry['lounge']=lounge.id
             checkpoint()
         await self.migrate_member_access(guild,registry)
+        await self.reconcile_access(guild,registry,resolved_roles)
         await self.apply_style(guild)
+        from .onboarding import publish_verification_panel
+        await publish_verification_panel(self.bot,guild)
+
+    async def reconcile_access(self,guild,registry,roles):
+        """Update the gate on proven Lumia resources; preserve unrelated overrides."""
+        targets=[(registry.get('cat:'+key),key) for key in CAT_NAMES
+                 if registry.get('cat:'+key) and self.bot.cfg['categories'].get(key,0) in (0,registry['cat:'+key])]
+        targets += [(registry.get('channel:'+key),category) for key,_,category in CHANNEL_DEFS
+                    if registry.get('channel:'+key) and self.bot.cfg['channels'].get(key,0) in (0,registry['channel:'+key])]
+        if registry.get('lounge'):
+            targets.append((registry['lounge'],'community'))
+        owned_ids={number for number,_ in targets}
+        updated=0
+        for number,kind in targets:
+            channel=guild.get_channel(number)
+            if not isinstance(channel,(discord.TextChannel,discord.CategoryChannel,discord.VoiceChannel)):
+                continue
+            if has_external_synced_children(channel,owned_ids):
+                continue
+            original=channel.overwrites
+            overwrites={target:discord.PermissionOverwrite.from_pair(*value.pair()) for target,value in original.items()}
+            writable=kind in ('community','tickets','private_tickets','staff')
+            def merge(target,**permissions):
+                value=overwrites.setdefault(target,discord.PermissionOverwrite())
+                value.update(**permissions)
+            merge(guild.default_role,view_channel=kind=='start',send_messages=False,read_message_history=kind=='start',
+                  create_public_threads=False,create_private_threads=False,send_messages_in_threads=False,
+                  use_application_commands=kind=='start')
+            merge(guild.me,view_channel=True,send_messages=True,read_message_history=True,manage_channels=True,
+                  embed_links=True,attach_files=True,use_application_commands=True)
+            allowed=category_policy(kind)
+            for key,role in roles.items():
+                if key not in allowed and key!='unverified' and role not in overwrites:
+                    continue
+                can_view=key in allowed
+                merge(role,view_channel=can_view,send_messages=can_view and writable,
+                      read_message_history=can_view,use_application_commands=can_view,
+                      create_public_threads=False,create_private_threads=False)
+                if not can_view:
+                    merge(role,connect=False,send_messages_in_threads=False)
+                elif isinstance(channel,discord.VoiceChannel):
+                    merge(role,connect=True,speak=True)
+                elif can_view and writable:
+                    merge(role,send_messages_in_threads=True,attach_files=True,embed_links=True)
+            if overwrites!=original:
+                await channel.edit(overwrites=overwrites,reason='Lumia: accesso con verifica e canali assistenza')
+                updated+=1
+        return updated
 
     async def apply_style(self,guild,*,topics=True):
         updated=0
@@ -358,11 +429,12 @@ class ServerSetup(commands.Cog):
         for key,content in texts.items():
             if key in ('welcome','rules'):
                 content=('**Benvenuto in Lumia Development**\n\n' if key=='welcome' else '**Regolamento e accesso**\n\n')+(
-                    'Benvenuto e regolamento vengono inviati in privato all’ingresso. '
-                    'Usa /inizia per riceverli di nuovo. Dopo aver accettato le regole nei DM, '
-                    'il bot assegna Member e invia il menu interessi e notifiche.\n\n'
-                    'Se i DM non arrivano, abilita i messaggi diretti dal server e riprova.')
-            for alias,channelkey in {'benvenuto':'welcome','regolamento':'rules','servizi':'services','portfolio':'portfolio','apri-ticket':'ticket_panel','suggerimenti':'suggestions'}.items():
+                    'Appena entri ricevi **Da verificare**. Apri #verifica e premi «Inizia la verifica»: '
+                    'leggi le regole, accettale e completa il breve controllo privato. Il bot assegna **Member** '
+                    'e rimuove Da verificare. Funziona anche con i messaggi privati chiusi.\n\n'
+                    'Puoi anche usare i pulsanti nei DM o /inizia. Per ordini, preventivi e pagamenti usa il sito; '
+                    'Discord è dedicato all’assistenza.')
+            for alias,channelkey in {'benvenuto':'welcome','regolamento':'rules','verifica':'verification','servizi':'services','portfolio':'portfolio','apri-ticket':'ticket_panel','assistenza':'ticket_panel','suggerimenti':'suggestions'}.items():
                 number=self.bot.cfg['channels'].get(channelkey,0)
                 if number:
                     content=content.replace('#'+alias,f'<#{number}>')

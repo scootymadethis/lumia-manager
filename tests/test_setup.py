@@ -169,7 +169,7 @@ class GatewayDelayTests(unittest.IsolatedAsyncioTestCase):
                 bot=NS(cfg=validate_config({'guild_id':123,'roles':{'member':50}}),store=store,save_config=lambda:None)
                 with self.assertRaises(StopAtCategory):
                     await ServerSetup(bot).build(guild)
-                self.assertEqual(len(guild.positions),9)
+                self.assertEqual(len(guild.positions),len(ROLE_DEFS)-1)
                 self.assertNotIn(guild.member,guild.positions)
                 self.assertNotIn(None,guild.overwrites)
             finally:

@@ -174,6 +174,12 @@ class ChannelMigrationTests(unittest.IsolatedAsyncioTestCase):
         self.store.put('setup','resources',registry)
         self.guild.get_role=lambda number:roles.get(number)
         self.guild.edit_role_positions=AsyncMock()
+        self.guild.default_role=MagicMock(spec=discord.Role)
+        self.guild.me=MagicMock(spec=discord.Member)
+        self.guild.me.id=900
+        for item in self.resources.values():
+            item.overwrites={}
+            item.send=AsyncMock(return_value=NS(id=9000))
         self.cog.migrate_member_access=AsyncMock();self.cog.apply_style=AsyncMock()
         await self.cog.build(self.guild)
         self.guild.create_voice_channel.assert_not_awaited()

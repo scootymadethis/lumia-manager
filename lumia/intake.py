@@ -4,23 +4,29 @@ import json
 import re
 import time
 
-PLATFORMS = {'fivem':'FiveM','minecraft':'Minecraft','discord':'Discord','web':'Web','other':'Altro'}
-SERVICES = {'complete':'Progetto completo','custom':'Funzione su misura','improve':'Migliorare un progetto','help':'Non so ancora'}
-BUDGETS = {'discuss':'Da concordare','under500':'Fino a 500 €','500-1500':'500–1.500 €','1500-5000':'1.500–5.000 €','over5000':'Oltre 5.000 €'}
-TIMELINES = {'flexible':'Da concordare','month':'Entro un mese, se possibile','quarter':'Nei prossimi tre mesi','date':'Ho una data da concordare'}
-LABELS = {'name':'Nome del progetto','goal':'Obiettivo','features':'Funzioni richieste','technical':'Situazione attuale e integrazioni','texts':'Testi e contenuti','style':'Stile e riferimenti','deadline':'Data desiderata e contesto'}
+PLATFORMS = {'fivem':'FiveM','minecraft':'Minecraft','discord':'Discord','web':'Web','other':'Altro','discuss':'Non so ancora'}
+SERVICES = {'complete':'Un progetto da zero','custom':'Aggiungere una funzione','improve':'Migliorare un progetto','other':'Altro','help':'Non so ancora'}
+BUDGETS = {'discuss':'Da concordare','under500':'Fino a 500 €','500-1500':'500–1.500 €','1500-5000':'1.500–5.000 €','over5000':'Oltre 5.000 €','other':'Altro'}
+TIMELINES = {'flexible':'Da concordare','month':'Entro un mese, se possibile','quarter':'Nei prossimi tre mesi','date':'Ho una data in mente','other':'Altro'}
+LABELS = {'name':'Nome del progetto','goal':'La tua idea','features':'Cosa ti piacerebbe avere','technical':'Da cosa partiamo','texts':'Testi e messaggi','style':'Colori ed esempi','deadline':'Data desiderata',
+          'other_platform':'Altra piattaforma','other_service':'Altro tipo di progetto','other_budget':'Altro budget','other_timeline':'Altri tempi'}
 
 
 def validate_brief(raw):
     if not isinstance(raw,dict): raise ValueError('Richiesta non valida.')
     result={}
+    defaults={'platform':'discuss','service':'help','budget':'discuss','timeline':'flexible'}
     for key,options in [('platform',PLATFORMS),('service',SERVICES),('budget',BUDGETS),('timeline',TIMELINES)]:
-        if raw.get(key) not in options: raise ValueError('Completa piattaforma, servizio, budget e tempi.')
-        result[key]=raw[key]
-    for key,maximum,minimum in [('name',120,3),('goal',2000,20),('features',2400,10),('technical',1200,0),('texts',2000,0),('style',1000,0),('deadline',200,0)]:
         value=raw.get(key,'')
-        if not isinstance(value,str) or not minimum<=len(value.strip())<=maximum:
-            raise ValueError(f'{LABELS[key]}: inserisci da {minimum} a {maximum} caratteri.')
+        if not isinstance(value,str): raise ValueError('Scelta non valida.')
+        value=value.strip() or defaults[key]
+        if value not in options: raise ValueError('Scegli una delle opzioni disponibili oppure salta il passaggio.')
+        result[key]=value
+    for key,maximum in [('name',120),('goal',2000),('features',2400),('technical',1200),('texts',2000),('style',1000),('deadline',200),
+                        ('other_platform',300),('other_service',300),('other_budget',300),('other_timeline',300)]:
+        value=raw.get(key,'')
+        if not isinstance(value,str) or len(value.strip())>maximum:
+            raise ValueError(f'{LABELS[key]}: usa al massimo {maximum} caratteri.')
         result[key]=value.strip()
     answers=raw.get('answers',[])
     if not isinstance(answers,list) or len(answers)>3: raise ValueError('Massimo tre approfondimenti.')
@@ -32,7 +38,6 @@ def validate_brief(raw):
             raise ValueError('Approfondimento troppo lungo o non valido.')
         if answer.strip(): result['answers'].append({'question':question.strip(),'answer':answer.strip()})
     if raw.get('acknowledged') is not True: raise ValueError('Conferma di voler richiedere un preventivo.')
-    if result['timeline']=='date' and not result['deadline']: raise ValueError('Indica la data desiderata.')
     return result
 
 
@@ -59,12 +64,16 @@ class Intake:
         with self.store.lock,self.store.db:
             existing=self.store.db.execute('SELECT * FROM web_requests WHERE submission=?',(key,)).fetchone()
             if existing:
-                if existing['customer']!=customer or existing['fingerprint']!=fingerprint: raise ValueError('Questa richiesta è già stata inviata. Apri il progetto nel manager.')
+                # Older drafts did not include the optional "other" fields. Compare
+                # their normalized content so a retry after updating stays idempotent.
+                same=existing['fingerprint']==fingerprint or json.dumps(validate_brief(json.loads(existing['brief'])),ensure_ascii=False,sort_keys=True)==encoded
+                if existing['customer']!=customer or not same: raise ValueError('Questa richiesta è già stata inviata. Apri il progetto nel manager.')
                 return self.orders.get(existing['order_id']),False
             count=self.store.db.execute('SELECT COUNT(*) FROM web_requests WHERE customer=? AND created>?',(customer,now-86400)).fetchone()[0]
             if count>=10: raise ValueError('Hai già inviato diverse richieste oggi. Scrivici dal progetto esistente.')
-            details=f"{PLATFORMS[brief['platform']]} · {SERVICES[brief['service']]}\n\n{brief['goal']}\n\n{brief['features']}"
-            cursor=self.store.db.execute('INSERT INTO orders(customer,title,total_cents,details,stage,created,updated) VALUES(?,?,0,?,\'bozza\',?,?)',(customer,brief['name'],details,now,now))
+            details='\n\n'.join(filter(None,[f"{PLATFORMS[brief['platform']]} · {SERVICES[brief['service']]}",brief['goal'],brief['features']]))
+            if not brief['goal'] and not brief['features']: details+='\n\nDettagli da definire insieme.'
+            cursor=self.store.db.execute('INSERT INTO orders(customer,title,total_cents,details,stage,created,updated) VALUES(?,?,0,?,\'bozza\',?,?)',(customer,brief['name'] or 'Nuovo progetto',details,now,now))
             number=cursor.lastrowid
             self.store.db.execute('INSERT INTO web_requests(order_id,submission,customer,brief,fingerprint,created) VALUES(?,?,?,?,?,?)',(number,key,customer,encoded,fingerprint,now))
             self.orders._audit(number,customer,'richiesta dal sito','Brief ricevuto. Prezzo e disponibilità da confermare dal team.')

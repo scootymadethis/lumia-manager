@@ -42,7 +42,20 @@ class WebTests(unittest.TestCase):
                                    store=self.store, orders=self.orders, get_guild=lambda _: self.guild)
         self.actor = 99
         self.sent_checkout = None
+        self.paypal_orders = {}
         def discord(request):
+            if request.url.host == 'api-m.sandbox.paypal.com':
+                if request.url.path.endswith('/v1/oauth2/token'):
+                    return httpx.Response(200,json={'access_token':'paypal-test-token'})
+                if request.url.path.endswith('/verify-webhook-signature'):
+                    return httpx.Response(200,json={'verification_status':'SUCCESS'})
+                if request.url.path == '/v2/checkout/orders':
+                    self.sent_checkout = json.loads(request.content)
+                    token = f'PP{len(self.paypal_orders)+1}'
+                    self.paypal_orders[token] = {'id':token,'status':'CREATED',**self.sent_checkout}
+                    return httpx.Response(201,json={'id':token,'links':[{'rel':'payer-action','href':f'https://www.sandbox.paypal.com/checkoutnow?token={token}'}]})
+                token = request.url.path.split('/')[4]
+                return httpx.Response(200,json=self.paypal_orders[token])
             if request.url.host == 'api.stripe.com':
                 self.sent_checkout = parse_qs(request.content.decode())
                 return httpx.Response(200, json={'id': 'cs_created', 'url': 'https://checkout.stripe.com/c/pay/cs_created'})
@@ -56,7 +69,8 @@ class WebTests(unittest.TestCase):
         self.transport = httpx.MockTransport(discord)
         self.env = patch.dict(os.environ, {'DISCORD_CLIENT_ID': '123', 'DISCORD_CLIENT_SECRET': 'test-secret',
                                           'LUMIA_PUBLIC_URL': 'https://manager.example',
-                                          'STRIPE_WEBHOOK_SECRET': 'whsec_test', 'STRIPE_SECRET_KEY': 'sk_test'}, clear=True)
+                                          'STRIPE_WEBHOOK_SECRET': 'whsec_test', 'STRIPE_SECRET_KEY': 'sk_test',
+                                          'PAYPAL_CLIENT_ID':'test-id','PAYPAL_CLIENT_SECRET':'test-secret','PAYPAL_WEBHOOK_ID':'hook-test'}, clear=True)
         self.env.start()
         self.app = create_app(self.bot, http_transport=self.transport)
         self.client = TestClient(self.app, base_url='https://manager.example', follow_redirects=False)
@@ -162,8 +176,8 @@ class WebTests(unittest.TestCase):
         self.login(10)
         response = self.client.post(f'/orders/{order["id"]}/checkout', data={'csrf': self.csrf(), 'amount': '0.01'}, headers={'origin': 'https://manager.example'})
         self.assertEqual(response.status_code, 303)
-        self.assertEqual(self.sent_checkout['line_items[0][price_data][unit_amount]'], ['7000'])
-        self.assertEqual(self.sent_checkout['metadata[order_id]'], [str(order['id'])])
+        self.assertEqual(self.sent_checkout['purchase_units'][0]['amount']['value'], '70.00')
+        self.assertEqual(self.sent_checkout['purchase_units'][0]['custom_id'], f'lumia:{order["id"]}:0')
         self.assertEqual(self.orders.recent_checkout(order['id'])['amount_cents'], 7000)
         self.assertEqual(self.orders.summary(order)['paid_cents'], 3000)
         self.sent_checkout = None
@@ -221,10 +235,12 @@ class WebTests(unittest.TestCase):
         self.login(10)
         sent = []
         def timeout_once(request):
-            sent.append((request.headers['idempotency-key'], request.content))
+            if request.url.path.endswith('/oauth2/token'):
+                return httpx.Response(200,json={'access_token':'test'})
+            sent.append((request.headers['paypal-request-id'], request.content))
             if len(sent) == 1:
                 raise httpx.ReadTimeout('response lost', request=request)
-            return httpx.Response(200, json={'id': 'cs_retry', 'url': 'https://checkout.stripe.com/c/pay/cs_retry'})
+            return httpx.Response(200, json={'id': 'PPRETRY', 'links':[{'rel':'payer-action','href':'https://www.sandbox.paypal.com/checkoutnow?token=PPRETRY'}]})
         self.app = create_app(self.bot, http_transport=httpx.MockTransport(timeout_once))
         self.client.close()
         # Preserve the authenticated browser session while restarting the app object.

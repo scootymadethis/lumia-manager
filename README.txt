@@ -1,3 +1,8 @@
+AGGIORNAMENTO SITO, TUTORIAL E VERIFICA DISCORD — 19 ottobre 2026
+Leggi AGGIORNAMENTO-PAYPAL.md per dashboard, ordini, PayPal e Discord dedicato all’assistenza.
+Include tutorial clienti, accesso agli ordini dalla homepage, ruolo Da verificare e pannello di verifica senza obbligo di DM.
+Questa guida sostituisce le precedenti istruzioni su Stripe e sugli ordini da Discord.
+
 LUMIA WORKSPACE — aggiornamento del 17 ottobre 2026
 Per la nuova board, tutorial e conversazioni segui AGGIORNAMENTO-WORKSPACE.md.
 Il pacchetto cumulativo conserva ambiente, configurazione e dati esistenti.

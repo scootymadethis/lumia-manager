@@ -73,23 +73,14 @@ class OrderCommands(commands.Cog):
         view.add_item(discord.ui.Button(label='Inizia il tuo progetto',style=discord.ButtonStyle.link,url=origin+'/start'))
         await respond(i,None,embed=with_avatar(card('La tua idea parte da qui.',
             'Il sito ti guida nei dettagli del progetto. Ritroverai preventivo, messaggi, consegne e pagamenti nella tua area clienti. '
-            'Preferisci parlarne qui? Puoi aprire un ticket dal pannello.',section='Lumia / Nuovo progetto',
+            'Discord rimane disponibile per l’assistenza sui tuoi progetti.',section='Lumia / Nuovo progetto',
             fields=[('Un passo alla volta','Scegli la piattaforma e raccontaci cosa vuoi creare.',False),
                     ('Nessun addebito adesso','Il team prepara il preventivo prima di iniziare.',False)]),i.user),view=view)
 
     @ordine.command(name='crea',description='Crea un preventivo o una commissione per un cliente')
     async def create(self,i:discord.Interaction,cliente:discord.Member,titolo:str,totale_euro:str,dettagli:str='',ticket:int|None=None):
         self.staff(i)
-        if cliente.bot:
-            return await respond(i,'Scegli un cliente, non un account bot.')
-        if ticket is not None:
-            item=self.bot.store.ticket(ticket)
-            if not item or item['owner']!=cliente.id:
-                return await respond(i,'Il ticket deve appartenere al cliente selezionato.')
-        order=self.bot.orders.create(cliente.id,titolo,to_cents(totale_euro),ticket,dettagli,actor=i.user.id)
-        await respond(i,None,embed=with_avatar(order_card(self.bot.orders,order),cliente),view=dashboard_view(order['id']))
-        await self.bot.log('staff_orders','Una nuova commissione è pronta per essere gestita.',title='Ordine creato',level='success',fields=[
-            ('Ordine',f'#{order["id"]} · {order["title"]}',False),('Cliente',member_label(cliente.id),True),('Operatore',member_label(i.user.id),True)])
+        return await respond(i, 'Gestisci ordini, milestone e pagamenti dal sito.', view=dashboard_view())
 
     @ordine.command(name='vedi',description='Consulta un tuo ordine o, per Management, una commissione')
     async def view(self,i:discord.Interaction,numero:int):
@@ -109,27 +100,17 @@ class OrderCommands(commands.Cog):
     @app_commands.choices(stato=[app_commands.Choice(name=v,value=k) for k,v in STAGES.items()])
     async def state(self,i:discord.Interaction,numero:int,stato:app_commands.Choice[str]):
         self.staff(i)
-        order=self.bot.orders.update(numero,stato.value,i.user.id)
-        await respond(i,None,embed=order_card(self.bot.orders,order),view=dashboard_view(numero))
-        await notify_order(self.bot,order,'Lo stato del tuo progetto è stato aggiornato.')
-        await self.bot.log('staff_orders','Lo stato della commissione è stato aggiornato.',title='Avanzamento progetto',fields=[
-            ('Ordine',f'#{numero} · {order["title"]}',False),('Nuovo stato',stato.name,True),('Operatore',member_label(i.user.id),True)])
+        return await respond(i, 'Gestisci ordini, milestone e pagamenti dal sito.', view=dashboard_view())
 
     @ordine.command(name='pagamento',description='Registra un pagamento già ricevuto: non effettua un addebito')
     async def payment(self,i:discord.Interaction,numero:int,importo_euro:str,riferimento:str):
         self.staff(i)
-        applied=self.bot.orders.record_payment(numero,to_cents(importo_euro),riferimento,i.user.id)
-        await respond(i,('Pagamento registrato nel registro amministrativo.' if applied else 'Questo pagamento è già registrato.')+'\nLa registrazione non emette una fattura e non movimenta denaro.')
-        if applied:
-            await self.bot.log('staff_orders','Un pagamento già ricevuto è stato aggiunto al registro. Nessun addebito eseguito.',
-                title='Pagamento registrato',level='success',fields=[('Ordine',f'#{numero}',True),
-                ('Importo',f'{to_cents(importo_euro)/100:.2f} EUR',True),('Operatore',member_label(i.user.id),True)])
+        return await respond(i, 'Gestisci ordini, milestone e pagamenti dal sito.', view=dashboard_view())
 
     @ordine.command(name='scadenza',description='Aggiunge una consegna o una scadenza a un ordine')
     async def milestone(self,i:discord.Interaction,numero:int,titolo:str,data:str):
         self.staff(i)
-        self.bot.orders.add_milestone(numero,titolo,data,i.user.id)
-        await respond(i,'Scadenza aggiunta. Visibile anche nella dashboard.')
+        return await respond(i, 'Gestisci ordini, milestone e pagamenti dal sito.', view=dashboard_view())
 
     @ordine.command(name='movimenti',description='Consulta i movimenti amministrativi di un ordine')
     async def movements(self,i:discord.Interaction,numero:int):
@@ -142,12 +123,7 @@ class OrderCommands(commands.Cog):
     @ordine.command(name='storna',description='Corregge una registrazione manuale errata senza movimentare denaro')
     async def reverse(self,i:discord.Interaction,movimento:int,motivo:app_commands.Range[str,3,500]):
         self.staff(i)
-        applied=self.bot.orders.reverse_payment(movimento,motivo,i.user.id)
-        await respond(i,'Registrazione manuale stornata con motivazione e storico conservato. Non è stato eseguito un rimborso reale.' if applied else 'Questa registrazione è già stata stornata.')
-        if applied:
-            await self.bot.log('staff_orders','Registrazione manuale stornata. Lo storico è conservato; nessun rimborso reale eseguito.',
-                title='Rettifica amministrativa',level='warning',fields=[('Movimento',f'#{movimento}',True),
-                ('Operatore',member_label(i.user.id),True),('Motivo',motivo,False)])
+        return await respond(i, 'Gestisci ordini, milestone e pagamenti dal sito.', view=dashboard_view())
 
 
 async def setup(bot):

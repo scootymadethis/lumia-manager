@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 import httpx
+from discord import app_commands
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +30,7 @@ from .notifications import notify_order
 from .workspace import Workspace
 from .intake import Intake, PLATFORMS, SERVICES, BUDGETS, TIMELINES, LABELS
 from .briefing import Briefing
+from .paypal import PayPal
 
 HERE = Path(__file__).parent
 DISCORD = 'https://discord.com/api/v10'
@@ -115,6 +117,7 @@ def create_demo_app():
                 {'title':'Avvio progetto','amount_cents':50000},
                 {'title':'Prima versione','amount_cents':25000},
                 {'title':'Consegna','amount_cents':50000,'milestone_id':milestone['id']}],900)
+            orders.release_installment(order['id'],orders.installments(order['id'])[-1]['id'],900)
         if stage == 'completato':
             milestone = orders.milestones(order['id'])[0]
             orders.set_milestone(order['id'], milestone['id'], True, 900)
@@ -134,10 +137,11 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         workspace.message(1,101,'Alessandro','Perfetto, controllo la prima versione e vi lascio un riscontro.')
         workspace.message(1,900,'Team Lumia','Nota di lavoro riservata al team.',staff=True,internal=True)
         workspace.delivery(1,900,'Prima versione','https://discord.gg/lumiadevelopment','Apri il ticket per concordare la prova della versione.')
-    stripe_key = '' if demo else os.getenv('STRIPE_SECRET_KEY', '').strip()
     stripe_secret = '' if demo else os.getenv('STRIPE_WEBHOOK_SECRET', '').strip()
+    paypal = PayPal(orders, public, http_transport)
     limits = Window()
     checkout_locks = {}
+    support_locks = {}
 
     @asynccontextmanager
     async def lifespan(app):
@@ -151,6 +155,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
     app.state.workspace=workspace
     app.state.intake=intake
     app.state.briefing=briefing
+    app.state.paypal=paypal
     app.mount('/static', StaticFiles(directory=HERE / 'static'), name='static')
     templates = Jinja2Templates(directory=HERE / 'templates')
     templates.env.filters['money'] = lambda cents: f'{cents / 100:,.2f}'.replace(',', '_').replace('.', ',').replace('_', '.') + ' €'
@@ -167,7 +172,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             return HTMLResponse('Host non consentito.', status_code=400)
         if demo and request.method not in ('GET', 'HEAD'):
             return HTMLResponse('DEMO: tutte le modifiche sono disabilitate.', status_code=403)
-        if request.method not in ('GET', 'HEAD', 'OPTIONS') and request.url.path != '/webhooks/stripe':
+        if request.method not in ('GET', 'HEAD', 'OPTIONS') and request.url.path not in ('/webhooks/stripe', '/webhooks/paypal'):
             if request.headers.get('origin') != public:
                 return HTMLResponse('Origine della richiesta non consentita.', status_code=403)
         try:
@@ -182,7 +187,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         # no-referrer makes browsers send Origin: null on HTML form POSTs.
         # Preserve same-origin submissions so the strict Origin check above works.
         response.headers['Referrer-Policy'] = 'same-origin'
-        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://media.discordapp.net; script-src 'self'; connect-src 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; base-uri 'none'"
+        response.headers['Content-Security-Policy'] = "default-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://media.discordapp.net; script-src 'self'; connect-src 'self'; form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com; frame-ancestors 'none'; base-uri 'none'"
         response.headers['Cache-Control'] = 'no-store' if not request.url.path.startswith('/static/') else 'public, max-age=3600'
         if not demo:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
@@ -249,20 +254,33 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         result['completed_milestones']=sum(bool(m['done']) for m in result['milestones'])
         result['progress']=round(result['completed_milestones']*100/len(result['milestones'])) if result['milestones'] else (100 if order['stage']=='completato' else 0)
         result['pending_deliveries']=sum(d['state']=='pending' for d in workspace.deliveries(order['id']))
+        today=datetime.now(zone).date().isoformat()
+        result['overdue']=any(not m['done'] and m['due']<today for m in result['milestones'])
+        result['needs_payment']=result['payable']['amount_cents']>0 and order['stage'] in ('confermato','in_corso','in_revisione','completato')
+        result['focuses']=[key for key,active in (
+            ('requests',order['stage']=='bozza'),('quotes',order['stage']=='preventivo'),
+            ('payments',result['needs_payment']),('deliveries',result['pending_deliveries'] and order['stage']!='annullato'),
+            ('overdue',result['overdue'] and order['stage'] not in ('annullato','completato'))) if active]
         guild = None if demo else bot.get_guild(int(bot.cfg['guild_id']))
         member = guild.get_member(order['customer']) if guild and hasattr(guild, 'get_member') else None
         result['customer_name'] = getattr(bot, 'demo_names', {}).get(order['customer'], getattr(member, 'display_name', f'Cliente {order["customer"]}'))
         profile=store.get('web_customers',order['customer'],{})
         if not member and profile: result['customer_name']=profile['name']
         result['customer_avatar']=str(member.display_avatar.url) if member and getattr(member,'display_avatar',None) else None
-        if order.get('ticket_id') and hasattr(store, 'ticket') and not demo:
-            ticket = store.ticket(order['ticket_id'])
-            if ticket and ticket.get('channel'):
+        ticket_id=store.get('order_support_tickets',order['id'],{}).get('id') or order.get('ticket_id')
+        if ticket_id and hasattr(store, 'ticket') and not demo:
+            ticket = store.ticket(ticket_id)
+            if ticket and ticket.get('channel') and ticket['owner']==order['customer']:
                 result['ticket_url'] = f'https://discord.com/channels/{bot.cfg["guild_id"]}/{ticket["channel"]}'
+                result['support_open']=ticket['state'] in ('creating','open','closing')
         return result
 
     def page(request, user, current, **extra):
         data = [decorate(order) for order in orders.list_for(user['id'], user['staff'])]
+        if extra.get('selected_sort')=='deadline':
+            data.sort(key=lambda o:min((m['due'] for m in o['milestones'] if not m['done']),default='9999'))
+        elif extra.get('selected_sort')=='amount':
+            data.sort(key=lambda o:o['due_cents'],reverse=True)
         totals = {'total': sum(o['total_cents'] for o in data if o['stage'] != 'annullato'),
                   'paid': sum(o['paid_cents'] for o in data),
                   'due': sum(o['due_cents'] for o in data if o['stage'] not in ('annullato', 'bozza', 'preventivo')),
@@ -314,14 +332,37 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         return templates.TemplateResponse(request=request, name='dashboard.html', context={
             'user': user, 'page': current, 'orders': data, 'totals': totals, 'stages': STAGES,
             'customers': list(customers.values()), 'payments': payments, 'milestones': milestones,
-            'demo': demo, 'stripe': demo or bool(stripe_key and stripe_secret), 'public_url': public,
+            'demo': demo, 'paypal': demo or paypal.ready, 'paypal_environment':paypal.environment, 'public_url': public,
             'site_url':os.getenv('LUMIA_SITE_URL','https://lumiadevelopment.it').rstrip('/'),
             'discord_url':os.getenv('LUMIA_DISCORD_INVITE','https://discord.gg/lumiadevelopment'),
             'brief_labels':LABELS,'platforms':PLATFORMS,'services':SERVICES,'budgets':BUDGETS,'timelines':TIMELINES,
             'attention':attention,'agenda':agenda,'today':today,'activity':activity,'unread':unread,
             'read_at':read,'tour':store.get('workspace_tour',f'{user["id"]}:{role}',{}),
             'customer_options':sorted(customer_options.items(),key=lambda item:item[1].casefold()),
-            'events': orders.events() if user['staff'] else [], **extra})
+            'queues':{key:sum(key in o['focuses'] for o in data) for key in ('requests','quotes','payments','deliveries','overdue')},
+            'snapshot':workspace_version(user),
+            'tutorial_order':data[0] if data else None,
+            'paypal_checkouts':paypal.pending() if user['staff'] else [],
+            'events': payment_events() if user['staff'] else [], **extra})
+
+    def payment_events():
+        with store.lock:
+            rows = [dict(row, provider='PayPal') for row in store.db.execute('SELECT * FROM paypal_events')]
+        rows += [dict(row, provider='Stripe (storico)') for row in orders.events()]
+        return sorted(rows, key=lambda row: row['created'], reverse=True)[:100]
+
+    def workspace_version(user):
+        visible=orders.list_for(user['id'], user['staff'])
+        state=[(o,orders.audit(o['id']),workspace.messages(o['id'],staff=user['staff']),
+                workspace.deliveries(o['id'])) for o in visible]
+        if user['staff']:
+            state.append(payment_events())
+        return _digest(json.dumps(state,sort_keys=True,default=str))
+
+    @app.get('/workspace/version')
+    async def workspace_updates(request:Request):
+        user=await principal(request)
+        return {'version':workspace_version(user)}
 
     async def audit_log(text):
         if not demo and hasattr(bot, 'log'):
@@ -468,9 +509,11 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         return RedirectResponse(f'/orders/{number}',status_code=303)
 
     @app.get('/orders')
-    async def listing(request: Request, q: str = '', stage: str = ''):
+    async def listing(request: Request, q: str = '', stage: str = '', focus: str = '', sort: str = 'updated'):
         user = await principal(request)
-        return page(request, user, 'orders', query=q[:200], selected_stage=stage if stage in STAGES else '')
+        return page(request, user, 'orders', query=q[:200], selected_stage=stage if stage in STAGES else '',
+                    selected_focus=focus if focus in ('requests','quotes','payments','deliveries','overdue') else '',
+                    selected_sort=sort if sort in ('updated','deadline','amount') else 'updated')
 
     @app.get('/orders/new')
     async def new(request: Request):
@@ -500,11 +543,45 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         order = visible_order(number, user)
         return page(request, user, 'detail', order=decorate(order), order_payments=orders.payments(number),
                     order_audit=orders.audit(number), messages=workspace.messages(number,staff=user['staff']),
-                    deliveries=workspace.deliveries(number),checkout_success=request.query_params.get('checkout') == 'success')
+                    deliveries=workspace.deliveries(number),checkout_success=request.query_params.get('checkout') == 'success',
+                    checkout_cancelled=request.query_params.get('checkout') == 'cancelled')
 
     @app.get('/activity')
     async def activity_page(request:Request):
         return page(request,await principal(request),'activity')
+
+    @app.post('/orders/{number:int}/support')
+    async def order_support(request:Request,number:int):
+        user=await principal(request)
+        values=await form(request,user)
+        order=visible_order(number,user)
+        if user['id']!=order['customer']:
+            raise HTTPException(403,'Il ticket deve essere aperto dal cliente del progetto.')
+        reason=values.get('reason','').strip()
+        if not 10 <= len(reason) <= 1800:
+            raise ValueError('Descrivi la richiesta di assistenza con 10–1800 caratteri.')
+        guild=bot.get_guild(int(bot.cfg['guild_id']))
+        cog=bot.get_cog('Tickets') if hasattr(bot,'get_cog') else None
+        if not guild or not cog:
+            raise HTTPException(503,'Assistenza Discord temporaneamente non disponibile. Scrivi nella conversazione del progetto.')
+        try:
+            member=await guild.fetch_member(user['id'])
+        except Exception:
+            raise HTTPException(409,'Per usare l’assistenza Discord entra nel server Lumia e completa la verifica. Puoi continuare a scriverci dal sito.') from None
+        async with support_locks.setdefault(number,asyncio.Lock()):
+            code=f'LM-{number:04d}'
+            existing=next((t for t in store.tickets() if t['owner']==user['id'] and t['kind']=='support'
+                and t['state'] in ('creating','open','closing') and t.get('fields',{}).get('Ordine')==code),None)
+            if existing:
+                ticket=existing
+            else:
+                try:
+                    ticket=await cog.create_ticket(guild,member,'support',{
+                        'Ordine':code,'Progetto':order['title'],'Richiesta':reason,'Area clienti':f'{public}/orders/{number}'})
+                except app_commands.CheckFailure as error:
+                    raise HTTPException(409,str(error)) from None
+            store.put('order_support_tickets',number,{'id':ticket['id']})
+        return RedirectResponse(f'/orders/{number}#support',status_code=303)
 
     @app.post('/activity/read')
     async def read_activity(request:Request):
@@ -530,10 +607,10 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             raise ValueError('Passaggio del tutorial non valido.') from None
         role='admin' if user['staff'] else 'client'
         tour_page=values.get('page','overview')
-        if tour_page not in ('overview','orders','detail','payments','activity','agenda','customers','new','settings'):
+        if tour_page not in ('overview','orders','detail','payments','activity','agenda','customers','new','settings','tutorial'):
             raise ValueError('Pagina del tutorial non valida.')
         store.put('workspace_tour',f'{user["id"]}:{role}',{
-            'status':values['status'],'step':step,'page':tour_page,'version':2,'at':time.time()})
+            'status':values['status'],'step':step,'page':tour_page,'version':2 if user['staff'] else 3,'at':time.time()})
         return JSONResponse({'saved':True})
 
     @app.post('/orders/{number:int}/messages')
@@ -705,72 +782,129 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
     async def settings(request: Request):
         return page(request, await principal(request, staff=True), 'settings')
 
+    @app.get('/tutorial')
+    async def customer_tutorial(request:Request):
+        return page(request,await principal(request),'tutorial')
+
     @app.post('/orders/{number:int}/checkout')
     async def checkout(request: Request, number: int):
         user = await principal(request)
-        values=await form(request, user)
+        values = await form(request, user)
         order = visible_order(number, user)
-        if not stripe_key or not stripe_secret:
-            raise HTTPException(503, 'I pagamenti Stripe non sono configurati. Contatta lo staff nel ticket.')
         if order['stage'] not in ('confermato', 'in_corso', 'in_revisione', 'completato'):
             raise HTTPException(400, 'Il preventivo deve essere confermato prima del pagamento.')
-        # One active Checkout creation at a time per order, within this bot process.
-        lock = checkout_locks.setdefault(number, asyncio.Lock())
-        async with lock:
-            return await create_checkout(order, number,values.get('installment_id'))
+        if not paypal.ready:
+            raise HTTPException(503, 'PayPal non è ancora configurato. Scrivi al team dal progetto.')
+        async with checkout_locks.setdefault(number, asyncio.Lock()):
+            try:
+                url = await paypal.create(number, values.get('installment_id'))
+            except ValueError as error:
+                raise HTTPException(409, str(error)) from None
+            except (httpx.HTTPError, KeyError, StopIteration):
+                raise HTTPException(502, 'PayPal non è al momento disponibile. Riprova dal progetto: il tentativo viene conservato.') from None
+        return RedirectResponse(url, status_code=303)
 
-    async def create_checkout(order, number,requested_installment=None):
-        # Re-read under the per-order lock; state/balance may have changed while waiting.
-        order = orders.get(number)
-        if not order or order['stage'] not in ('confermato', 'in_corso', 'in_revisione', 'completato'):
-            raise HTTPException(400, 'L’ordine non è attualmente disponibile per il pagamento.')
-        payable=orders.payable(number)
-        due=payable['amount_cents']
-        installment_id=payable['installment_id']
-        if installment_id is not None and requested_installment!=str(installment_id):
-            raise HTTPException(409,'Il piano è stato aggiornato. Ricarica la pagina e scegli la tranche disponibile.')
-        if due <= 0:
-            raise HTTPException(400, 'Non ci sono pagamenti disponibili per questo ordine.')
-        if due < 50:
-            raise HTTPException(400, 'Il pagamento online richiede almeno 0,50 €. Contatta lo staff per il residuo.')
-        recent = orders.recent_checkout(number)
-        if recent and recent['amount_cents'] == due and recent['installment_id']==installment_id:
-            return RedirectResponse(recent['url'], status_code=303)
-        attempt = store.get('web_checkout_attempts', number)
-        if attempt and attempt['expires_at'] > time.time():
-            if attempt['amount_cents'] != due or attempt.get('installment_id')!=installment_id:
-                raise HTTPException(409, 'Una sessione precedente è ancora in verifica. Contatta Management prima di iniziare un altro pagamento.')
-        else:
-            if recent:
-                raise HTTPException(409, 'Una sessione precedente potrebbe essere ancora aperta. Contatta Management per verificarla.')
-            attempt = {'key': f'lumia-{number}-{secrets.token_hex(24)}', 'amount_cents': due,
-                       'installment_id':installment_id,'expires_at': int(time.time()) + 3600}
-            attempt['data'] = {'mode': 'payment', 'payment_method_types[0]': 'card', 'success_url': f'{public}/orders/{number}?checkout=success',
-                              'cancel_url': f'{public}/orders/{number}', 'metadata[order_id]': str(number),
-                              'payment_intent_data[metadata][order_id]': str(number),
-                              'client_reference_id': str(number), 'expires_at': str(attempt['expires_at']),
-                              'line_items[0][quantity]': '1', 'line_items[0][price_data][currency]': 'eur',
-                              'line_items[0][price_data][unit_amount]': str(due),
-                              'line_items[0][price_data][product_data][name]': f'Lumia · {order["title"]} · {payable["title"]}'}
-            if installment_id is not None:
-                attempt['data']['metadata[installment_id]']=str(installment_id)
-                attempt['data']['payment_intent_data[metadata][installment_id]']=str(installment_id)
-            # Commit before the network call: a lost response must retain the same key/body.
-            store.put('web_checkout_attempts', number, attempt)
+    @app.get('/orders/{number:int}/paypal/return')
+    async def paypal_return(request: Request, number: int, token: str = ''):
+        user = await principal(request)
+        visible_order(number, user)
+        saved = paypal.checkout(token)
+        if saved['order_id'] != number:
+            raise HTTPException(404, 'Pagamento non trovato.')
+        if saved['status'] == 'paid':
+            return RedirectResponse(f'/orders/{number}?checkout=success', status_code=303)
+        return templates.TemplateResponse(request=request, name='paypal-return.html', context={
+            'user': user, 'number': number, 'token': token})
+
+    @app.post('/orders/{number:int}/paypal/capture')
+    async def paypal_capture(request: Request, number: int):
+        user = await principal(request)
+        values = await form(request, user)
+        order = visible_order(number, user)
+        token = values.get('token', '')
+        saved = paypal.checkout(token)
+        if saved['order_id'] != number:
+            raise HTTPException(404, 'Pagamento non trovato.')
+        async with checkout_locks.setdefault(number, asyncio.Lock()):
+            try:
+                applied = await paypal.capture(token)
+            except (httpx.HTTPError, KeyError):
+                raise HTTPException(502, 'La verifica PayPal è in corso. Torna al progetto e riprendi il pagamento per verificarne l’esito.') from None
+            except ValueError as error:
+                paypal.event('return-error:' + token, 'da_riconciliare', str(error))
+                raise HTTPException(409, 'Il pagamento richiede una verifica del team. Non ripetere il pagamento.') from None
+        if applied and not demo:
+            await notify_order(bot, order, 'Pagamento PayPal ricevuto. Consulta il saldo nel sito.')
+        return RedirectResponse(f'/orders/{number}?checkout=success', status_code=303)
+
+    @app.post('/webhooks/paypal')
+    async def paypal_webhook(request: Request):
+        if not paypal.ready:
+            raise HTTPException(503, 'Webhook PayPal non configurato.')
+        raw = await request.body()
+        if len(raw) > 1_048_576:
+            raise HTTPException(413, 'Evento troppo grande.')
         try:
-            async with httpx.AsyncClient(transport=http_transport, timeout=20) as http:
-                response = await http.post('https://api.stripe.com/v1/checkout/sessions',
-                    headers={'Authorization': 'Bearer ' + stripe_key, 'Idempotency-Key': attempt['key']},
-                    data=attempt['data'])
-                response.raise_for_status()
-                session = response.json()
-                if urlsplit(session['url']).scheme != 'https' or urlsplit(session['url']).hostname != 'checkout.stripe.com':
-                    raise ValueError('Unexpected checkout URL')
-                orders.save_checkout(number,session['id'],due,session['url'],installment_id,
-                                     attempt['expires_at'],attempt['key'])
-        except (httpx.HTTPError, KeyError, ValueError):
-            raise HTTPException(502, 'Stripe non ha creato la sessione di pagamento. Nessun pagamento è stato registrato.') from None
-        return RedirectResponse(session['url'], status_code=303)
+            event = json.loads(raw)
+            event_id, kind = event['id'], event['event_type']
+            if not isinstance(event_id, str) or not 1 <= len(event_id) <= 200 or not isinstance(kind, str):
+                raise ValueError()
+            if not isinstance(event.get('resource'), dict):
+                raise ValueError()
+        except (ValueError, TypeError, KeyError):
+            raise HTTPException(400, 'Evento PayPal non valido.') from None
+        try:
+            if not await paypal.verify(event, request.headers):
+                raise HTTPException(400, 'Firma PayPal non valida.')
+            resource = event['resource']
+            if kind in ('PAYMENT.CAPTURE.COMPLETED', 'CHECKOUT.ORDER.APPROVED'):
+                token = (resource.get('supplementary_data', {}).get('related_ids', {}).get('order_id')
+                         if kind.startswith('PAYMENT.') else resource.get('id'))
+                try:
+                    saved = paypal.checkout(token)
+                    async with checkout_locks.setdefault(saved['order_id'], asyncio.Lock()):
+                        if kind == 'CHECKOUT.ORDER.APPROVED':
+                            applied = await paypal.capture(token)
+                        else:
+                            result = await paypal.api('GET', '/v2/checkout/orders/' + token)
+                            applied = paypal.apply(result, event_id)
+                        if not applied and paypal.checkout(token)['status'] != 'paid':
+                            # Provider state may lag the webhook; let PayPal retry.
+                            raise HTTPException(503, 'Pagamento PayPal in verifica.')
+                    if applied and not demo:
+                        await notify_order(bot, orders.get(saved['order_id']), 'Pagamento PayPal ricevuto. Saldo aggiornato nel sito.')
+                except ValueError as error:
+                    paypal.event(event_id, 'da_riconciliare', str(error))
+                    await audit_log(f'PayPal: evento {event_id} da riconciliare. {error}')
+            elif kind in ('PAYMENT.CAPTURE.REFUNDED', 'PAYMENT.CAPTURE.REVERSED', 'CUSTOMER.DISPUTE.CREATED'):
+                paypal.event(event_id, 'da_riconciliare', f'{kind}: {resource.get("id", "")}')
+                await audit_log(f'PayPal: {kind}, evento {event_id}. Verifica il registro.')
+            else:
+                paypal.event(event_id, 'ignorato', kind)
+        except (httpx.HTTPError, KeyError):
+            raise HTTPException(503, 'Verifica PayPal temporaneamente non disponibile.') from None
+        return {'received': True}
+
+    @app.post('/payments/paypal/{token}/verify')
+    async def paypal_verify_payment(request:Request,token:str):
+        user=await principal(request,staff=True)
+        await form(request,user)
+        saved=paypal.checkout(token)
+        async with checkout_locks.setdefault(saved['order_id'],asyncio.Lock()):
+            try:
+                result=await paypal.api('GET','/v2/checkout/orders/'+token)
+                status=result.get('status','UNKNOWN')
+                event_id=f'check:{token}:{secrets.token_hex(8)}'
+                if status=='COMPLETED':
+                    paypal.apply(result,event_id)
+                elif status=='VOIDED':
+                    orders.expire_checkout(token)
+                    paypal.event(event_id,'chiuso',token+' · annullato da PayPal, nessun incasso registrato')
+                else:
+                    paypal.event(event_id,'in_attesa',token+' · '+status)
+            except httpx.HTTPError:
+                raise HTTPException(502,'PayPal non è disponibile. Il tentativo viene conservato per la verifica.') from None
+        return RedirectResponse('/payments',status_code=303)
 
     @app.post('/webhooks/stripe')
     async def webhook(request: Request):

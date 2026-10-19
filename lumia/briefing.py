@@ -8,13 +8,13 @@ from urllib.parse import urlsplit
 import httpx
 
 QUESTIONS={
- 'fivem':['Partiamo da un server esistente? Quale framework e versione utilizzi?','Qual è il flusso che i giocatori devono poter completare?','Quali script, inventari o sistemi devono integrarsi?'],
- 'minecraft':['Quale versione, software server e modalità di gioco utilizzi?','Che cosa devono poter fare i giocatori, dall’ingresso in poi?','Quali plugin esistenti e sistemi devono funzionare insieme?'],
- 'discord':['Quali azioni vuoi automatizzare per utenti e staff?','Hai già un server, dei ruoli e un sistema di ticket?','Servono integrazioni con un sito o con il gioco?'],
- 'web':['Chi userà il sito e quale azione deve riuscire a completare?','Quali pagine e integrazioni ti servono?','Hai già dominio, hosting, logo e contenuti?'],
- 'other':['Chi utilizzerà il progetto?','Quali sono le tre funzioni indispensabili?','Hai già materiali o sistemi da integrare?']}
+ 'fivem':['Hai già un server o partiamo da zero?','Cosa ti piacerebbe far fare ai giocatori?'],
+ 'minecraft':['Hai già un server o partiamo da zero?','Che tipo di gioco ti piace?'],
+ 'discord':['Hai già un server Discord?','Cosa vorresti che facesse il bot?'],
+ 'web':['Hai già un sito?','Cosa vorresti che le persone potessero fare sul sito?'],
+ 'other':['A cosa ti servirebbe il progetto?','Hai un esempio di qualcosa che ti piace?']}
 
-SCHEMA={'type':'object','additionalProperties':False,'properties':{'questions':{'type':'array','minItems':1,'maxItems':3,'items':{'type':'string','minLength':10,'maxLength':240}}},'required':['questions']}
+SCHEMA={'type':'object','additionalProperties':False,'properties':{'questions':{'type':'array','minItems':1,'maxItems':2,'items':{'type':'string','minLength':10,'maxLength':240}}},'required':['questions']}
 
 
 class Briefing:
@@ -49,7 +49,7 @@ class Briefing:
                         if len(content)>32768: raise ValueError('Response too large')
             result=json.loads(json.loads(content)['message']['content'])
             questions=result['questions']
-            if not isinstance(questions,list) or not 1<=len(questions)<=3 or any(not isinstance(q,str) or not 10<=len(q.strip())<=240 for q in questions): raise ValueError('Invalid questions')
+            if not isinstance(questions,list) or not 1<=len(questions)<=2 or any(not isinstance(q,str) or not 10<=len(q.strip())<=240 for q in questions): raise ValueError('Invalid questions')
             if len({q.strip().casefold() for q in questions})!=len(questions) or any(re.search(r'https?://|password|token|carta di credito|numero di carta',q,re.I) for q in questions): raise ValueError('Unsafe or duplicate questions')
             return {'questions':[q.strip() for q in questions],'source':'local-ai'}
         except (httpx.HTTPError,ValueError,KeyError,TypeError):

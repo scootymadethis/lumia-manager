@@ -51,12 +51,12 @@ class VerificationModal(discord.ui.Modal,title='Verifica account'):
             count=failures.get('count',0)+1 if failures.get('at',0)>current-600 else 1
             self.bot.store.put('verification_attempts',self.author,
                 {'count':count,'at':current,'blocked_until':current+600 if count>=5 else 0})
-            return await respond(i,'Il risultato non è corretto. Premi di nuovo «Accetto le regole» per riprovare.',ephemeral=private)
+            return await respond(i,'Il risultato non è corretto. Premi di nuovo «Accetto le regole» per riprovare: puoi farlo dal messaggio privato di verifica o dai DM.',ephemeral=private)
         self.bot.store.delete('verification_attempts',self.author)
         await self.finish(self.bot,i,verified=enabled)
 
     async def on_error(self,i,error):
-        await respond(i,'Verifica non completata. Riprova dal pulsante nei DM o usa /inizia nel server.',
+        await respond(i,'Verifica non completata. Riprova dal canale di verifica o dai pulsanti nei DM.',
                       ephemeral=i.guild_id is not None)
         await self.bot.log('server_log',f'Verifica non completata per {member_label(i.user.id)}: {type(error).__name__}.')
 
@@ -66,6 +66,22 @@ class Verification(commands.Cog):
 
     def __init__(self,bot):
         self.bot=bot
+        import asyncio
+        self.sync_lock=asyncio.Lock()
+
+    @verifica.command(name='sincronizza',description='Assegna Da verificare a chi non ha Member e rimuove il ruolo di attesa dai Member')
+    async def sync(self,i:discord.Interaction):
+        require(i,lambda m:is_management(m,self.bot.cfg))
+        if i.guild.id!=self.bot.cfg['guild_id']:
+            raise app_commands.CheckFailure('Server non autorizzato.')
+        await i.response.defer(ephemeral=True,thinking=True)
+        from .onboarding import sync_pending_members
+        async with self.sync_lock:
+            result=await sync_pending_members(self.bot,i.guild)
+        await respond(i,None,embed=card('Ruoli di verifica aggiornati',
+            'I Member esistenti conservano l’accesso. Gli altri utenti ricevono soltanto Da verificare; nessuno è stato verificato automaticamente.',
+            fields=[('In attesa',str(result['pending']),True),('Member ripuliti',str(result['cleaned']),True),
+                    ('Da ricontrollare',str(result['failed']),True)]))
 
     @verifica.command(name='stato',description='Mostra se la verifica è attiva')
     async def status(self,i:discord.Interaction):

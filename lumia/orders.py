@@ -96,11 +96,13 @@ class Orders:
             ''')
             columns={row['name'] for row in store.db.execute('PRAGMA table_info(order_checkouts)')}
             for name,kind in (('installment_id','INTEGER'),('expires_at','REAL'),
-                              ('status',"TEXT NOT NULL DEFAULT 'open'"),('attempt_key','TEXT')):
+                              ('status',"TEXT NOT NULL DEFAULT 'open'"),('attempt_key','TEXT'),
+                              ('provider',"TEXT NOT NULL DEFAULT 'stripe'")):
                 if name not in columns:
                     store.db.execute(f'ALTER TABLE order_checkouts ADD COLUMN {name} {kind}')
 
     def _audit(self, number, actor, action, detail):
+        self.store.db.execute('UPDATE orders SET updated=? WHERE id=?', (time.time(),number))
         self.store.db.execute('INSERT INTO order_audit(order_id,actor,action,detail,created) VALUES(?,?,?,?,?)',
                               (number, int(actor), action, detail, time.time()))
 
@@ -202,7 +204,7 @@ class Orders:
     def record_payment(self, order_id, amount_cents, reference, actor, provider='manual', event_id=None):
         _money(amount_cents, positive=True)
         reference = _text(reference, 'Riferimento', 200)
-        if provider not in ('manual', 'stripe'):
+        if provider not in ('manual', 'stripe', 'paypal'):
             raise ValueError('Provider non valido.')
         with self.store.lock, self.store.db:
             self.store.db.execute('BEGIN IMMEDIATE')
@@ -227,7 +229,8 @@ class Orders:
         cur=self.store.db.execute('INSERT INTO order_payments(order_id,amount_cents,reference,actor,provider,event_id,created) VALUES(?,?,?,?,?,?,?)',
                               (order_id, amount_cents, reference, int(actor), provider, event_id, time.time()))
         self._allocate_payment(cur.lastrowid,order_id,amount_cents,installment_id)
-        self._audit(order_id, actor, 'pagamento', f'{"Stripe" if provider == "stripe" else "Incasso manuale"}: {_eur(amount_cents)}; {reference}')
+        label = {'stripe': 'Stripe', 'paypal': 'PayPal', 'manual': 'Incasso manuale'}[provider]
+        self._audit(order_id, actor, 'pagamento', f'{label}: {_eur(amount_cents)}; {reference}')
         return True
 
     def _allocate_payment(self,payment_id,order_id,amount,installment_id=None):
@@ -357,14 +360,14 @@ class Orders:
                 raise ValueError('Milestone non trovata.')
             self._audit(order_id, actor, 'milestone', f'#{milestone_id}: {"completata" if done else "da completare"}')
 
-    def save_checkout(self, order_id, session_id, amount_cents, url, installment_id=None, expires_at=None, attempt_key=None):
+    def save_checkout(self, order_id, session_id, amount_cents, url, installment_id=None, expires_at=None, attempt_key=None, provider='stripe'):
         _money(amount_cents, positive=True)
         with self.store.lock, self.store.db:
             if not self.get(order_id):
                 raise ValueError('Ordine non trovato.')
             self.store.db.execute('''INSERT INTO order_checkouts
-                (session_id,order_id,amount_cents,url,created,installment_id,expires_at,attempt_key) VALUES(?,?,?,?,?,?,?,?)''',
-                (session_id,order_id,amount_cents,url,time.time(),installment_id,expires_at or time.time()+3600,attempt_key))
+                (session_id,order_id,amount_cents,url,created,installment_id,expires_at,attempt_key,provider) VALUES(?,?,?,?,?,?,?,?,?)''',
+                (session_id,order_id,amount_cents,url,time.time(),installment_id,expires_at or time.time()+3600,attempt_key,provider))
 
     def recent_checkout(self, order_id):
         with self.store.lock:

@@ -23,7 +23,7 @@ class IntegrationTests(unittest.IsolatedAsyncioTestCase):
                     server=next(c for c in commands if c.name=='server')
                     self.assertTrue({'stile','canali','anteprima','embed'}.issubset({c.name for c in server.commands}))
                     verification=next(c for c in commands if c.name=='verifica')
-                    self.assertEqual({'stato','attiva','disattiva'},{c.name for c in verification.commands})
+                    self.assertEqual({'stato','attiva','disattiva','sincronizza'},{c.name for c in verification.commands})
                     for command in commands:
                         payload=command.to_dict(bot.tree)
                         self.assertLessEqual(len(payload.get('options',[])),25)

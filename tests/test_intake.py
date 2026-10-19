@@ -96,11 +96,63 @@ class IntakeTests(unittest.TestCase):
         self.web_login()
         self.assertEqual(self.submit(csrf='wrong').status_code,403)
         self.assertEqual(self.client.post('/requests',data={},headers={'origin':'https://evil.example'}).status_code,403)
-        for changes in ({'acknowledged':False},{'platform':'unknown'},{'goal':'short'},{'features':' '},{'timeline':'date','deadline':''},{'style':'a'*1001}):
+        for changes in ({'acknowledged':False},{'platform':'unknown'},{'goal':123},{'features':['invalid']},{'style':'a'*1001},{'other_budget':'a'*301}):
             self.assertEqual(self.submit(raw=brief(**changes)).status_code,400,changes)
         self.assertEqual(self.client.post('/requests',data={'csrf':self.csrf(),'brief':'[]'},headers=self.origin).status_code,400)
         self.assertEqual(self.client.post('/requests',content='a'*132000,headers={**self.origin,'content-type':'application/x-www-form-urlencoded'}).status_code,413)
         self.assertEqual(len(self.fixture.orders.list_for(77)),0)
+
+    def test_all_questions_can_be_skipped_and_order_gets_a_neutral_title(self):
+        self.web_login()
+        response=self.submit(raw={'acknowledged':True})
+        self.assertEqual(response.status_code,201,response.text)
+        number=response.json()['id']
+        order=self.fixture.orders.get(number)
+        self.assertEqual(order['title'],'Nuovo progetto')
+        self.assertEqual(order['total_cents'],0)
+        saved=self.intake.get(number)['brief']
+        self.assertEqual(saved['platform'],'discuss')
+        self.assertEqual(saved['service'],'help')
+        self.assertEqual(saved['budget'],'discuss')
+        self.assertEqual(saved['timeline'],'flexible')
+        self.assertEqual(saved['goal'],'')
+        page=self.client.get(response.json()['url'])
+        self.assertEqual(page.status_code,200)
+        self.assertIn('Dettagli da definire insieme.',page.text)
+
+    def test_short_answers_and_unspecified_date_are_accepted(self):
+        self.web_login()
+        response=self.submit(raw=brief(name='A',goal='Un bot',features='',timeline='date',deadline=''))
+        self.assertEqual(response.status_code,201,response.text)
+        saved=self.intake.get(response.json()['id'])['brief']
+        self.assertEqual(saved['goal'],'Un bot')
+        self.assertEqual(saved['deadline'],'')
+
+    def test_other_is_supported_for_every_choice_with_optional_details(self):
+        self.web_login()
+        raw=brief(platform='other',service='other',budget='other',timeline='other',
+                  other_platform='Un’app',other_service='Un’idea diversa',other_budget='Ne parliamo insieme',other_timeline='Dopo le vacanze')
+        response=self.submit(raw=raw)
+        self.assertEqual(response.status_code,201,response.text)
+        saved=self.intake.get(response.json()['id'])['brief']
+        self.assertEqual(saved['other_platform'],'Un’app')
+        page=self.client.get(response.json()['url']).text
+        self.assertIn('Ne parliamo insieme',page)
+        self.assertIn('Dopo le vacanze',page)
+        response=self.submit(key='other-empty-details-123456',raw=brief(platform='other',service='other',budget='other',timeline='other',name='',goal='',features=''))
+        self.assertEqual(response.status_code,201,response.text)
+
+    def test_retry_of_an_old_brief_keeps_same_order_after_new_optional_fields(self):
+        import hashlib
+        raw=brief()
+        order,_=self.intake.submit(77,'legacy-brief-retry-123456789',raw)
+        encoded=json.dumps(raw,ensure_ascii=False,sort_keys=True)
+        with self.fixture.store.db:
+            self.fixture.store.db.execute('UPDATE web_requests SET brief=?,fingerprint=? WHERE order_id=?',
+                (encoded,hashlib.sha256(encoded.encode()).hexdigest(),order['id']))
+        repeated,created=self.intake.submit(77,'legacy-brief-retry-123456789',raw)
+        self.assertFalse(created)
+        self.assertEqual(repeated['id'],order['id'])
 
     def test_maximum_unicode_brief_is_accepted_and_preserved(self):
         self.web_login()
@@ -134,7 +186,7 @@ class IntakeTests(unittest.TestCase):
         self.assertEqual(response.status_code,303)
         response=self.client.post(f'/orders/{number}/checkout',data={'csrf':self.csrf(),'installment_id':str(self.fixture.orders.installments(number)[0]['id'])},headers=self.origin)
         self.assertEqual(response.status_code,303,response.text)
-        self.assertIn('25000',str(self.fixture.sent_checkout))
+        self.assertEqual(self.fixture.sent_checkout['purchase_units'][0]['amount']['value'],'250.00')
         self.assertEqual(self.fixture.orders.summary(self.fixture.orders.get(number))['paid_cents'],0)
         with self.assertRaises(ValueError):self.fixture.orders.update(number,'bozza',99)
 
@@ -169,7 +221,7 @@ class IntakeTests(unittest.TestCase):
         payload={'csrf':self.csrf(),'brief':json.dumps(brief())}
         response=self.client.post('/requests/questions',data=payload,headers=self.origin)
         self.assertEqual(response.json()['source'],'guided')
-        self.assertEqual(len(response.json()['questions']),3)
+        self.assertEqual(len(response.json()['questions']),2)
         for _ in range(5):self.client.post('/requests/questions',data=payload,headers=self.origin)
         self.assertEqual(self.client.post('/requests/questions',data=payload,headers=self.origin).status_code,429)
 

@@ -219,11 +219,17 @@ class TicketTests(unittest.IsolatedAsyncioTestCase):
     async def test_creation_requires_management_role_without_consuming_quota(self):
         self.bot.cfg['roles']['management'] = 0
         with self.assertRaises(ValueError):
-            await self.cog.create_ticket(self.guild, self.author, 'custom', {'Richiesta': 'x'})
+            await self.cog.create_ticket(self.guild, self.author, 'support', {'Richiesta': 'x'})
         self.assertEqual(self.store.tickets(), [])
 
+    async def test_new_project_tickets_are_redirected_to_the_site_without_using_quota(self):
+        for kind in ('fivem','minecraft','script','custom'):
+            with self.assertRaises(ValueError):
+                await self.cog.create_ticket(self.guild,self.author,kind,{'Richiesta':'Progetto'})
+        self.assertEqual(self.store.tickets(),[])
+
     async def test_creation_uses_explicit_overwrites_and_persistent_controls(self):
-        ticket = await self.cog.create_ticket(self.guild, self.author, 'custom', {'Richiesta': 'x'})
+        ticket = await self.cog.create_ticket(self.guild, self.author, 'support', {'Richiesta': 'x'})
         self.assertEqual(ticket['state'], 'open')
         self.assertIn(self.author, self.guild.created_kwargs['overwrites'])
         channel = self.guild.get_channel(ticket['channel'])
@@ -334,7 +340,7 @@ class TicketTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_long_form_is_visible_in_full_inside_private_ticket_channel(self):
         text = 'requisito à ' * 150
-        ticket = await self.cog.create_ticket(self.guild, self.author, 'custom', {'Richiesta': text})
+        ticket = await self.cog.create_ticket(self.guild, self.author, 'support', {'Richiesta': text})
         channel = self.guild.get_channel(ticket['channel'])
         posted = '\n'.join(content or (kwargs['embed'].description or '') if 'embed' in kwargs else content or ''
                            for content,kwargs in channel.sent)

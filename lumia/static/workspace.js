@@ -23,6 +23,8 @@
   const storedFavorites = read(favoritesKey, []);
   const favorites = new Set(Array.isArray(storedFavorites) ? storedFavorites.map(String).filter(value => /^\d+$/.test(value)) : []);
   let onlyFavorites = false;
+  let liveQuery = document.querySelector('.project-filter [name="q"]')?.value.trim().toLocaleLowerCase('it') || '';
+  let liveStage = document.querySelector('.project-filter [name="stage"]')?.value || '';
   const board = document.querySelector('[data-project-board]');
   const list = document.querySelector('[data-project-list]');
   const favoriteButtons = [...document.querySelectorAll('[data-favorite]')];
@@ -33,17 +35,51 @@
       const title = button.closest('.workspace-project').querySelector('h3').textContent;
       button.setAttribute('aria-label', `${selected ? 'Rimuovi' : 'Aggiungi'} ${title} ${selected ? 'dai' : 'ai'} preferiti`);
     });
-    document.querySelectorAll('[data-project-id]').forEach(card => card.hidden = onlyFavorites && !favorites.has(card.dataset.projectId));
+    const matches = item => (!liveQuery || item.dataset.search.toLocaleLowerCase('it').includes(liveQuery)) && (!liveStage || item.dataset.stage === liveStage);
+    document.querySelectorAll('[data-project-id]').forEach(card => card.hidden = (onlyFavorites && !favorites.has(card.dataset.projectId)) || !matches(card));
     list?.querySelectorAll('.project-row').forEach(row => {
       const id = new URL(row.href).pathname.match(/\/orders\/(\d+)/)?.[1];
-      row.hidden = onlyFavorites && !favorites.has(id);
+      const card = board?.querySelector(`[data-project-id="${id}"]`);
+      row.hidden = card ? card.hidden : onlyFavorites && !favorites.has(id);
     });
     board?.querySelectorAll('.board-column').forEach(column => {
       column.querySelector('.board-column-heading>span:last-child').textContent = column.querySelectorAll('[data-project-id]:not([hidden])').length;
     });
     const empty = document.querySelector('.favorites-empty');
     if (empty) empty.hidden = !onlyFavorites || !!board?.querySelector('[data-project-id]:not([hidden])');
+    const count = document.querySelector('[data-project-count]');
+    if (count) { const n = board.querySelectorAll('[data-project-id]:not([hidden])').length; count.textContent = `${n} ${n === 1 ? 'progetto trovato' : 'progetti trovati'}`; }
   };
+  const filters = document.querySelector('.project-filter');
+  filters?.querySelector('[name="q"]').addEventListener('input', event => {
+    liveQuery = event.target.value.trim().toLocaleLowerCase('it');
+    applyFavorites();
+  });
+  filters?.querySelector('[name="stage"]').addEventListener('change', event => {
+    liveStage = event.target.value;
+    applyFavorites();
+  });
+  filters?.querySelector('[name="sort"]').addEventListener('change', () => filters.requestSubmit());
+
+  // Never overwrite an in-progress form when another person updates the project.
+  const updateBanner = document.querySelector('[data-workspace-updates]');
+  document.querySelector('[data-workspace-refresh]')?.addEventListener('click', () => location.reload());
+  let pollTimer;
+  let checking = false;
+  const checkUpdates = async () => {
+    if (demo || document.hidden || checking || !updateBanner.hidden) return;
+    checking = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`/workspace/version${location.search.includes('view=client') ? '?view=client' : ''}`, {signal: controller.signal, redirect: 'error'});
+      if (response.ok && (await response.json()).version !== root.dataset.snapshot) updateBanner.hidden = false;
+    } catch (_) { /* Keep the current workspace usable during a network outage. */ }
+    finally { clearTimeout(timeout); checking = false; }
+  };
+  if (!demo) pollTimer = setInterval(checkUpdates, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdates(); });
+  addEventListener('pagehide', () => clearInterval(pollTimer));
   favoriteButtons.forEach(button => button.addEventListener('click', () => {
     const id = button.dataset.favorite;
     if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
@@ -130,45 +166,50 @@
   const backButton = guide.querySelector('[data-guide-back]');
   const skipButton = guide.querySelector('[data-guide-skip]');
   const dots = guide.querySelector('.guide-dots');
-  const tourKey = `lumia:tour:v2:${scope}`;
+  const tourVersion = staff ? 2 : 3;
+  const tourKey = `lumia:tour:v${tourVersion}:${scope}`;
   const serverTour = {status: root.dataset.tourStatus, step: Number(root.dataset.tourStep), page: root.dataset.tourPage, version: Number(root.dataset.tourVersion)};
-  let tour = serverTour.version === 2 && serverTour.status ? serverTour : read(tourKey, {});
+  let tour = serverTour.version === tourVersion && serverTour.status ? serverTour : read(tourKey, {});
   let index = -1;
   let steps = [];
   let saveQueue = Promise.resolve();
   const configs = {
     overview: [
       ['[data-tour="welcome"]', staff ? 'Il tuo centro operativo.' : 'Il tuo progetto parte da qui.', staff ? 'Qui trovi il lavoro aperto e puoi creare un nuovo ordine. Ogni progetto raccoglie messaggi, consegne, milestone e pagamenti.' : 'Questo è il tuo spazio con Lumia. Vedi soltanto i progetti associati al tuo account Discord.'],
-      ['[data-tour="summary"]', 'I numeri che servono.', 'Progetti aperti, pagamenti ricevuti e residuo dei lavori confermati. Tocca un riepilogo per aprire i dettagli.'],
+      ['[data-tour="summary"]', 'I numeri che servono.', staff ? 'Progetti aperti, pagamenti ricevuti e residuo dei lavori confermati. Tocca un riepilogo per aprire i dettagli.' : 'Vedi i tuoi progetti attivi, quanto hai già pagato e quanto resta da saldare. Apri una voce per i dettagli.'],
       ['[data-tour="attention"] .panel-heading', staff ? 'Parti da ciò che richiede attenzione.' : 'Il tuo prossimo passo.', 'Preventivi, tranche disponibili e consegne da verificare vengono raccolti qui. Apri una voce per andare al progetto giusto.'],
       ['[data-tour="projects"] .workspace-section-heading', 'Un posto per ogni progetto.', 'Apri una card per parlare con il team, seguire le milestone e controllare le consegne. La stella salva i preferiti su questo browser.'],
       ['[data-tour="search"]', 'Trova. Apri. Continua.', 'Usa la ricerca per raggiungere una pagina o un progetto. Da tastiera puoi aprirla anche con Ctrl K o ⌘ K.'],
       ['[data-tour="nav-activity"]', 'Resta aggiornato.', staff ? 'Qui arrivano messaggi dei clienti, consegne e risposte. Le note interne rimangono visibili solo a Management.' : 'Qui ritrovi messaggi del team, consegne e risposte alle revisioni.'],
-      ['[data-tour="nav-agenda"]', 'Le date, tutte insieme.', 'L’agenda raccoglie milestone e tranche datate. Puoi riaprire questa guida dal punto interrogativo o dal menu account.']
+      ['[data-tour="nav-agenda"]', 'Le date, tutte insieme.', 'L’agenda raccoglie le tappe del progetto e le tranche con una data. Puoi riaprire questa guida dal menu account.'],
+      ['[data-tour="nav-tutorial"]', 'Il percorso completo è sempre qui.', 'Il tutorial clienti spiega account, richieste, preventivi, PayPal, avanzamento, consegne e assistenza. Puoi fermarti e riprendere dall’ultimo capitolo su questo browser.']
     ],
     orders: [
-      ['[data-tour="filters"]', 'Ritrova il progetto giusto.', 'Cerca per nome o numero e filtra per stato. Le viste board ed elenco si adattano al tuo modo di lavorare.'],
-      ['[data-project-board]', 'Il lavoro segue un percorso.', 'Le colonne separano preventivi, sviluppo, revisioni e progetti conclusi. Apri una card per lavorarci; gli stati si modificano nei dettagli, con i permessi corretti.'],
+      ['[data-tour="filters"]', 'Ritrova il progetto giusto.', 'Cerca per nome o numero LM e filtra per stato. Puoi scegliere le colonne o l’elenco.'],
+      ['[data-project-board]', 'Il lavoro segue un percorso.', staff ? 'Le colonne separano preventivi, sviluppo, revisioni e progetti conclusi. Apri una scheda per gestire il lavoro.' : 'Le colonne separano preventivi, sviluppo, revisioni e progetti conclusi. Apri una scheda per seguire il lavoro o rispondere al team.'],
       ['[data-only-favorites]', 'Tieni vicini i progetti importanti.', 'Aggiungi una card ai preferiti con la stella, poi usa questo filtro. I preferiti vengono salvati per il tuo account su questo browser.']
     ],
     detail: [
+      ['.detail-title', 'Tutto il progetto, in una pagina.', staff ? 'Qui trovi lo stato e tutti gli strumenti del progetto.' : 'Controlla stato e dettagli. Se il preventivo è pronto, leggi proposta e piano di pagamento, chiarisci i dubbi nella conversazione e poi usa Accetta preventivo.'],
       ['#request-brief .panel-heading','La tua idea, conservata qui.',staff ? 'La richiesta originale resta consultabile. Se serve un dettaglio in più, chiedilo nella conversazione del progetto.' : 'Qui ritrovi ciò che hai inviato dal sito. Il team ti proporrà prezzo e lavoro compreso prima di iniziare.'],
       ['#prepare-quote .panel-heading','Dal brief alla proposta.','Definisci importo, ambito e tempi concordati. Dopo l’invio il cliente può leggere e accettare il preventivo; puoi aggiungere un piano a tranche.'],
-      ['[data-tour="payment"]', 'Il prossimo pagamento è qui.', 'Il riepilogo mostra la tranche disponibile. Stripe apre un Checkout separato: confermi tu ogni pagamento e il saldo si aggiorna dal webhook.'],
-      ['[data-tour="milestones"] .panel-heading', 'Segui le tappe concordate.', staff ? 'Aggiungi le date e completa le milestone quando il lavoro è pronto. Una tranche collegata diventa pagabile al completamento.' : 'Queste sono le tappe del progetto. Gli avanzamenti vengono aggiornati dal team.'],
+      ['[data-tour="payment"]', 'Il prossimo pagamento è qui.', 'Il riepilogo mostra l’importo disponibile. Dopo la conferma del preventivo puoi aprire PayPal: confermi tu ogni pagamento. Il saldo si aggiorna quando PayPal lo conferma; se è in attesa, controlla prima di riprovare.'],
+      ['[data-tour="milestones"] .panel-heading', 'Segui le tappe concordate.', staff ? 'Aggiungi le date e completa le milestone quando il lavoro è pronto. Una tranche collegata diventa pagabile al completamento.' : 'Le milestone sono le tappe concordate. Il team aggiorna gli avanzamenti e l’agenda raccoglie le date.'],
       ['[data-tour="plan"] .panel-heading', 'Un piano chiaro.', staff ? 'Qui imposti le tranche, le date o le milestone di sblocco. Gli importi devono sommare al totale e, dopo la conferma, restano fissi.' : 'Qui vedi quanto è stato pagato e quali tranche restano. Si pagano in ordine quando diventano disponibili.'],
       ['[data-tour="deliveries"] .panel-heading', 'Le versioni da provare.', staff ? 'Pubblica un link HTTPS alla versione e spiega come verificarla. Il cliente può approvarla o richiedere modifiche.' : 'Apri una consegna, provala e poi approva o descrivi cosa va rivisto. La risposta viene conservata nel progetto.'],
-      ['[data-tour="conversation"] .panel-heading', 'Parliamone nel progetto.', staff ? 'Scrivi al cliente oppure seleziona Nota interna per lasciare un appunto riservato a Management. Il cliente non vede le note interne.' : 'Scrivi domande e riscontri qui: la conversazione rimane collegata al progetto.']
+      ['[data-tour="conversation"] .panel-heading', 'Parliamone nel progetto.', staff ? 'Scrivi al cliente oppure seleziona Nota interna per lasciare un appunto riservato a Management. Il cliente non vede le note interne.' : 'Scrivi domande e riscontri qui: la conversazione rimane collegata al progetto.'],
+      ['#support .panel-heading', 'Se serve assistenza privata.', 'Entra nel server Discord e completa la verifica. Da questa sezione puoi descrivere il problema e aprire un ticket collegato al progetto, oppure riaprire quello esistente.']
     ],
-    payments: [['[data-tour="ledger"]', 'Il registro dei pagamenti.', 'Qui trovi gli incassi registrati. Puoi esportare i movimenti in CSV. Il riepilogo non sostituisce una fattura.']],
+    tutorial: [['.tutorial-index', 'Scegli il capitolo che ti serve.', 'Segui gli otto capitoli con Avanti e Indietro o scegli dall’indice. Il punto di lettura resta su questo browser. I collegamenti aprono le pagine: per accettare, pagare o inviare una risposta devi usare i rispettivi comandi.']],
+    payments: [['[data-tour="ledger"]', 'Il registro dei pagamenti.', staff ? 'Qui trovi gli incassi registrati. Puoi esportare i movimenti in CSV. Il riepilogo non sostituisce una fattura.' : 'Qui vedi quanto hai pagato, il residuo e i movimenti registrati. Apri il progetto per la tranche disponibile; puoi anche esportare i movimenti.']],
     agenda: [['[data-tour="agenda"] .panel-heading', 'Una vista sulle prossime date.', 'Milestone e tranche datate restano collegate al progetto. Le date trascorse sono segnalate per aiutarti a verificarle.']],
     activity: [['[data-tour="activity"]', 'Riprendi il filo.', 'Apri un’attività per tornare alla conversazione o alla consegna. Segna come lette le attività già controllate.']],
     customers: [['.customer-grid', 'Le relazioni, ordinate.', 'Qui trovi i clienti con progetti registrati. Apri i loro progetti per consultare accordi, consegne e pagamenti.']],
     new: [['.form-panel', 'Partiamo dai dati essenziali.', 'Inserisci il cliente Discord, il titolo e l’importo del progetto. Potrai aggiungere milestone, consegne e un piano a tranche nei dettagli.']],
-    settings: [['.settings-stack', 'Servizi e accessi.', 'Controlla gli indirizzi e la configurazione di Stripe. Le credenziali restano sul server; i permessi seguono i ruoli Discord.']]
+    settings: [['.settings-stack', 'Servizi e accessi.', 'Controlla gli indirizzi e la configurazione di PayPal. Le credenziali restano sul server; i permessi seguono i ruoli Discord.']]
   };
   const saveTour = status => {
-    tour = {status, step: Math.max(0, index), page: root.dataset.page, version: 2};
+    tour = {status, step: Math.max(0, index), page: root.dataset.page, version: tourVersion};
     write(tourKey, tour);
     if (demo) return;
     const body = new URLSearchParams({csrf: root.dataset.csrf, status, step: String(tour.step), page: tour.page});
@@ -238,7 +279,7 @@
     spotlight.hidden = true;
     guide.querySelector('.guide-welcome-icon').hidden = false;
     title.textContent = tour.status === 'started' && tour.page === root.dataset.page ? 'Riprendiamo da qui.' : (staff ? 'Il tuo nuovo centro operativo.' : 'Benvenuto nel tuo workspace.');
-    description.textContent = staff ? 'Ti guido tra progetti, clienti, consegne e pagamenti. Puoi fermarti e riaprire la guida quando vuoi.' : 'Ti mostro come seguire il progetto, parlare con il team e gestire consegne e pagamenti. Un passo alla volta.';
+    description.textContent = staff ? 'Ti guido tra progetti, clienti, consegne e pagamenti. Puoi fermarti e riaprire la guida quando vuoi.' : 'Ti mostro i comandi di questa pagina. Per scoprire tutto il sito, apri il tutorial completo: otto capitoli dalla richiesta all’assistenza.';
     stepLabel.textContent = staff ? 'Lumia / Management' : 'Lumia / Area clienti';
     backButton.hidden = true; skipButton.hidden = false; dots.hidden = true;
     nextButton.textContent = tour.status === 'started' && tour.page === root.dataset.page ? 'Riprendi →' : 'Iniziamo →';
@@ -258,7 +299,7 @@
   guide.addEventListener('cancel', event => { event.preventDefault(); closeGuide(index >= 0 ? 'started' : 'skipped'); });
   addEventListener('resize', () => { if (guide.open) place(); }, {passive: true});
   addEventListener('scroll', () => { if (guide.open && index >= 0) place(); }, {passive: true});
-  if (!tour.status || tour.version !== 2) requestAnimationFrame(openGuide);
+  if (root.dataset.page !== 'tutorial' && (!tour.status || tour.version !== tourVersion)) requestAnimationFrame(openGuide);
 
   try {
     const key = `lumia:workspace-entry:${scope}`;

@@ -6,11 +6,12 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#030304"><meta name="color-scheme" content="dark"><meta name="robots" content="noindex,nofollow">
-  <title>{% if page=='detail' %}{{ order.title }}{% elif page=='orders' %}Progetti{% elif page=='new' %}Nuovo ordine{% elif page=='customers' %}Clienti{% elif page=='payments' %}Pagamenti{% elif page=='agenda' %}Agenda{% elif page=='activity' %}Attività{% elif page=='settings' %}Impostazioni{% else %}Workspace{% endif %} · Lumia</title>
-  <link rel="icon" href="/static/lumia-logo-discord.png"><link rel="stylesheet" href="/static/design.css?v=6"><link rel="stylesheet" href="/static/manager.css?v=6"><link rel="stylesheet" href="/static/workspace.css?v=6">
-  <script src="/static/ui.js?v=6" defer></script><script src="/static/workspace.js?v=6" defer></script>
+  <title>{% if page=='detail' %}{{ order.title }}{% elif page=='tutorial' %}Tutorial clienti{% elif page=='orders' %}Progetti{% elif page=='new' %}Nuovo ordine{% elif page=='customers' %}Clienti{% elif page=='payments' %}Pagamenti{% elif page=='agenda' %}Agenda{% elif page=='activity' %}Attività{% elif page=='settings' %}Impostazioni{% else %}Workspace{% endif %} · Lumia</title>
+  <link rel="icon" href="/static/lumia-logo-discord.png"><link rel="stylesheet" href="/static/design.css?v=6"><link rel="stylesheet" href="/static/manager.css?v=6"><link rel="stylesheet" href="/static/workspace.css?v=9">
+  <link rel="stylesheet" href="/static/orders.css?v=8"><script src="/static/ui.js?v=6" defer></script><script src="/static/workspace.js?v=9" defer></script>
+  {% if page=='tutorial' %}<link rel="stylesheet" href="/static/tutorial.css?v=1"><script src="/static/customer-tutorial.js?v=1" defer></script>{% endif %}
 </head>
-<body class="workspace" data-user-id="{{ user.id }}" data-role="{{ 'admin' if user.staff else 'client' }}" data-page="{{ page }}" data-demo="{{ 'true' if demo else 'false' }}" data-csrf="{{ user.csrf }}" data-tour-status="{{ tour.status|default('') }}" data-tour-step="{{ tour.step|default(0) }}" data-tour-page="{{ tour.page|default('overview') }}" data-tour-version="{{ tour.version|default(0) }}">
+<body class="workspace" data-snapshot="{{ snapshot }}" data-user-id="{{ user.id }}" data-role="{{ 'admin' if user.staff else 'client' }}" data-page="{{ page }}" data-demo="{{ 'true' if demo else 'false' }}" data-csrf="{{ user.csrf }}" data-tour-status="{{ tour.status|default('') }}" data-tour-step="{{ tour.step|default(0) }}" data-tour-page="{{ tour.page|default('overview') }}" data-tour-version="{{ tour.version|default(0) }}">
 <a class="skip-link" href="#main">Vai al contenuto</a>
 <div class="workspace-atmosphere" aria-hidden="true"></div>
 <div class="manager-shell">
@@ -21,6 +22,7 @@
       {% for key,label,glyph,path in [('overview','Home','grid','/'),('orders','Progetti','orders','/orders'),('agenda','Agenda','calendar','/agenda'),('activity','Attività','bell','/activity'),('payments','Pagamenti','wallet','/payments')] %}
         <a class="nav-item nav-{{ key }} {{ 'active' if page==key or (key=='orders' and page in ['detail','new']) else '' }}" href="{{ path }}{{ suffix }}" data-tour="nav-{{ key }}" {% if page==key %}aria-current="page"{% endif %}>{{ icon(glyph) }}<span>{{ label }}</span>{% if key=='activity' and unread %}<span class="nav-count">{{ unread }}</span>{% endif %}</a>
       {% endfor %}
+      {% if not user.staff %}<a class="nav-item nav-tutorial {{ 'active' if page=='tutorial' else '' }}" href="/tutorial{{ suffix }}" data-tour="nav-tutorial" {% if page=='tutorial' %}aria-current="page"{% endif %}>{{ icon('help') }}<span>Tutorial</span></a>{% endif %}
       {% if user.staff %}<div class="nav-divider">Gestione</div><a class="nav-item nav-customers {{ 'active' if page=='customers' else '' }}" href="/customers">{{ icon('users') }}<span>Clienti</span></a><a class="nav-item nav-settings {{ 'active' if page=='settings' else '' }}" href="/settings">{{ icon('settings') }}<span>Impostazioni</span></a>{% endif %}
     </nav>
     <div class="sidebar-bottom"><a class="text-link" href="/start{{ suffix }}">{{ icon('plus') }} Nuova richiesta</a><a class="text-link" href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Supporto Discord {{ icon('up') }}</a><button type="button" class="guide-launch" data-guide-open>{{ icon('spark') }}<span>Fammi da guida</span>{{ icon('arrow') }}</button><a class="text-link" href="{{ site_url }}">Lumia Development {{ icon('up') }}</a></div>
@@ -28,18 +30,19 @@
   <div class="main-shell">
     <header class="topbar">
       <a class="brand mobile-brand" href="/{{ suffix }}"><img src="/static/lumia-logo-discord.png" alt="" width="30" height="30">Lumia</a>
-      <div class="topbar-breadcrumb"><span>{{ 'Management' if user.staff else 'Area clienti' }}</span><i>/</i><strong>{{ {'overview':'Workspace','orders':'Progetti','detail':'Progetto','new':'Nuovo ordine','payments':'Pagamenti','customers':'Clienti','settings':'Impostazioni','agenda':'Agenda','activity':'Attività'}[page] }}</strong></div>
+      <div class="topbar-breadcrumb"><span>{{ 'Management' if user.staff else 'Area clienti' }}</span><i>/</i><strong>{{ {'overview':'Workspace','orders':'Progetti','detail':'Progetto','new':'Nuovo ordine','payments':'Pagamenti','customers':'Clienti','settings':'Impostazioni','agenda':'Agenda','activity':'Attività','tutorial':'Tutorial clienti'}[page] }}</strong></div>
       <div class="topbar-tools">
         <button type="button" class="workspace-search" data-command-open aria-label="Cerca e naviga" data-tour="search">{{ icon('search') }}<span>Cerca o vai a…</span><kbd>Ctrl K</kbd></button>
         <button type="button" class="icon-button help-shortcut" data-guide-open aria-label="Apri la guida">{{ icon('help') }}</button>
         <a class="icon-button activity-shortcut" href="/activity{{ suffix }}" aria-label="Attività{% if unread %}, {{ unread }} nuove{% endif %}">{{ icon('bell') }}{% if unread %}<span class="notification-dot"></span>{% endif %}</a>
-        <details class="account-menu"><summary aria-label="Menu account">{{ avatar(user.name,user.avatar) }}</summary><div class="account-popover"><strong>{{ user.name }}</strong><span>{{ 'Management' if user.staff else 'Cliente' }}</span><a href="/start{{ suffix }}">Nuova richiesta</a><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Supporto Discord</a><a href="/payments{{ suffix }}">Pagamenti</a>{% if user.staff %}<a href="/settings">Impostazioni</a>{% endif %}<button type="button" data-guide-open>Apri la guida</button><a href="{{ site_url }}">Sito Lumia</a>{% if not demo %}<form action="/logout" method="post">{{ csrf(user) }}<button type="submit">Esci dall’account</button></form>{% endif %}</div></details>
+        <details class="account-menu"><summary aria-label="Menu account">{{ avatar(user.name,user.avatar) }}</summary><div class="account-popover"><strong>{{ user.name }}</strong><span>{{ 'Management' if user.staff else 'Cliente' }}</span><a href="/start{{ suffix }}">Nuova richiesta</a><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Supporto Discord</a><a href="/payments{{ suffix }}">Pagamenti</a>{% if user.staff %}<a href="/settings">Impostazioni</a>{% else %}<a href="/tutorial{{ suffix }}">Tutorial clienti</a>{% endif %}<button type="button" data-guide-open>Guida a questa pagina</button><a href="{{ site_url }}">Sito Lumia</a>{% if not demo %}<form action="/logout" method="post">{{ csrf(user) }}<button type="submit">Esci dall’account</button></form>{% endif %}</div></details>
       </div>
     </header>
     <main class="manager-main" id="main">
+      <div class="workspace-updates notice" hidden role="status" data-workspace-updates><span>Ci sono aggiornamenti ai tuoi progetti.</span><button type="button" class="button secondary small" data-workspace-refresh>Aggiorna ora</button></div>
       {% if demo %}<div class="demo-banner">DEMO · Dati di esempio <a href="/">Management</a><a href="/?view=client">Cliente</a></div>{% endif %}
-      {% if user.staff and events|selectattr('status','equalto','da_riconciliare')|list|length %}<div class="notice">{{ icon('shield') }}<div><strong>Riconciliazione richiesta</strong><p>Ci sono eventi Stripe da verificare nel registro.</p></div><a class="text-link" href="/payments">Controlla {{ icon('arrow') }}</a></div>{% endif %}
-      {% if page in ['overview','orders','activity','agenda'] %}{% include 'manager/'+page+'.html' %}
+      {% if user.staff and events|selectattr('status','equalto','da_riconciliare')|list|length %}<div class="notice">{{ icon('shield') }}<div><strong>Riconciliazione richiesta</strong><p>Ci sono eventi di pagamento da verificare nel registro.</p></div><a class="text-link" href="/payments">Controlla {{ icon('arrow') }}</a></div>{% endif %}
+      {% if page in ['overview','orders','activity','agenda','tutorial'] %}{% include 'manager/'+page+'.html' %}
       {% elif page in ['detail','new','customers','payments','settings'] %}{% include 'manager/'+page+'.html' %}{% endif %}
       <footer class="manager-footer"><span>Lumia Workspace</span><button type="button" data-guide-open>Serve una mano? {{ icon('help') }}</button></footer>
     </main>

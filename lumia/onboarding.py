@@ -23,8 +23,47 @@ def assignable(guild,role):
                 and role < guild.me.top_role)
 
 
+async def ensure_pending_role(bot,member):
+    """Assign only the gate role; missing setup never grants Member."""
+    number=bot.cfg['roles'].get('unverified',0)
+    current={role.id for role in member.roles}
+    if member.bot or not number or bot.cfg['roles'].get('member',0) in current:
+        return False
+    role=member.guild.get_role(number)
+    if not assignable(member.guild,role):
+        raise ValueError('Il ruolo Da verificare non è assegnabile. Controlla /server diagnostica.')
+    if number not in current:
+        await member.add_roles(role,reason='Lumia: accesso in attesa di verifica')
+    return True
+
+
+async def sync_pending_members(bot,guild):
+    """Repair gate roles after downtime without granting Member or sending DMs."""
+    if guild.id!=bot.cfg['guild_id']:
+        raise ValueError('Server non autorizzato.')
+    pending=guild.get_role(bot.cfg['roles'].get('unverified',0))
+    if not assignable(guild,pending):
+        raise ValueError('Configura Da verificare con /server allestimento e controlla la gerarchia del bot.')
+    result={'pending':0,'cleaned':0,'failed':0}
+    async for member in guild.fetch_members(limit=None):
+        if member.bot:
+            continue
+        current={role.id for role in member.roles}
+        try:
+            if bot.cfg['roles']['member'] in current:
+                if pending.id in current:
+                    await member.remove_roles(pending,reason='Lumia: Member già presente')
+                    result['cleaned']+=1
+            elif pending.id not in current:
+                await ensure_pending_role(bot,member)
+                result['pending']+=1
+        except discord.HTTPException:
+            result['failed']+=1
+    return result
+
+
 def private_text(bot,text):
-    aliases={'servizi':'services','portfolio':'portfolio','apri-ticket':'ticket_panel',
+    aliases={'servizi':'services','portfolio':'portfolio','apri-ticket':'ticket_panel','assistenza':'ticket_panel','verifica':'verification',
              'suggerimenti':'suggestions','ruoli':'role_panel'}
     for alias,key in aliases.items():
         number=bot.cfg.get('channels',{}).get(key,0)
@@ -61,6 +100,10 @@ async def send_preferences(bot,member):
 async def send_onboarding(bot,member):
     if member.bot or member.guild.id!=bot.cfg['guild_id']:
         return 'ignored'
+    try:
+        await ensure_pending_role(bot,member)
+    except (ValueError,discord.HTTPException):
+        await bot.log('server_log',f'Ruolo Da verificare non assegnato a <@{member.id}>. Controlla gerarchia e /server diagnostica.')
     previous=bot.store.get('onboarding_delivery',member.id,{})
     if time.time()-previous.get('sent',0)<60:
         return 'recent'
@@ -79,8 +122,10 @@ async def send_onboarding(bot,member):
         if bot.cfg['roles'].get('member',0) in {r.id for r in member.roles}:
             await send_preferences(bot,member)
     except discord.HTTPException:
+        verification=bot.cfg['channels'].get('verification',0)
+        fallback=f' Può completare la verifica in <#{verification}> anche con i DM chiusi.' if verification else ''
         await bot.log('server_log',f'Onboarding privato non consegnato a <@{member.id}>. '
-                      'Può abilitare i messaggi privati dal server e usare /inizia. Nessun benvenuto pubblico inviato.')
+                      'Può abilitare i messaggi privati dal server e usare /inizia.'+fallback)
         return 'blocked'
     except (OSError,ValueError,KeyError):
         await bot.log('server_log','Onboarding privato non inviato: verifica welcome e rules in server_texts.json.')
@@ -143,6 +188,51 @@ class RulesPanel(LocalView):
         await complete_acceptance(self.bot,i)
 
 
+class VerificationPanel(LocalView):
+    @discord.ui.button(label='Inizia la verifica',style=discord.ButtonStyle.success,custom_id='lumia:verification:start:v1')
+    async def verify(self,i,button):
+        if i.guild_id!=self.bot.cfg['guild_id']:
+            return await reply(i,'Apri la verifica nel server Lumia.')
+        await i.response.defer(ephemeral=True,thinking=True)
+        try:
+            verify_can_join(self.bot.store)
+            member=await self.member(i)
+            if member is None:
+                return
+            await ensure_pending_role(self.bot,member)
+            texts=json.loads((Path(__file__).parent.parent/'server_texts.json').read_text(encoding='utf-8'))
+            rules=list(private_cards('rules',texts['rules']))
+            if not rules:
+                raise ValueError('Il regolamento non è disponibile. Avvisa lo staff.')
+        except (ValueError,OSError,KeyError) as error:
+            return await reply(i,str(error))
+        for index,part in enumerate(rules):
+            await reply(i,None,embed=with_avatar(part,member),view=RulesPanel(self.bot) if index==len(rules)-1 else None)
+
+
+async def publish_verification_panel(bot,guild):
+    channel=guild.get_channel(bot.cfg['channels'].get('verification',0))
+    if not isinstance(channel,discord.TextChannel):
+        raise ValueError('Configura il canale verifica con /server allestimento.')
+    panel=embed('🔓  Benvenuto: verifica il tuo accesso',
+        'Hai il ruolo **Da verificare**. Premi «Inizia la verifica», leggi e accetta le regole '
+        'e rispondi al semplice controllo. Riceverai **Member** e il ruolo Da verificare verrà rimosso.\n\n'
+        'Le risposte sono private. Puoi completare tutto qui anche con i DM chiusi. '
+        'Ordini e pagamenti si gestiscono nel sito; Discord è dedicato all’assistenza.')
+    options={'embed':panel,'view':VerificationPanel(bot),'allowed_mentions':discord.AllowedMentions.none()}
+    number=bot.store.get('panels','verification')
+    if number:
+        try:
+            message=await channel.fetch_message(number)
+            await message.edit(content=None,**options)
+            return message
+        except discord.NotFound:
+            pass
+    message=await channel.send(**options)
+    bot.store.put('panels','verification',message.id)
+    return message
+
+
 async def complete_acceptance(bot,i,verified=False):
     member=await RulesPanel(bot).member(i)
     if member is None:
@@ -154,8 +244,14 @@ async def complete_acceptance(bot,i,verified=False):
     role=member.guild.get_role(bot.cfg['roles']['member'])
     if not assignable(member.guild,role):
         return await reply(i,'Il ruolo Member non è configurato correttamente. Avvisa lo staff.')
+    pending_id=bot.cfg['roles'].get('unverified',0)
+    pending=member.guild.get_role(pending_id) if pending_id else None
+    if pending_id and not assignable(member.guild,pending):
+        return await reply(i,'Il ruolo Da verificare non è configurato correttamente. Avvisa lo staff.')
     if role.id not in {r.id for r in member.roles}:
         await member.add_roles(role,reason='Accettazione regolamento Lumia')
+    if pending and pending.id in {r.id for r in member.roles}:
+        await member.remove_roles(pending,reason='Lumia: verifica completata')
     bot.store.put('rules',i.user.id,{'accepted':time.time(),'verified':time.time() if verified else None})
     await reply(i,'Accesso completato. Il ruolo Member è attivo.')
     try:
@@ -222,7 +318,7 @@ async def open_private_onboarding(bot,i):
     messages={
         'sent':'Ti ho inviato benvenuto e regolamento in privato. Accetta le regole lì per ricevere Member e scegliere i tuoi interessi.',
         'recent':'Ti ho già inviato i messaggi privati. Controlla i DM; puoi richiederli di nuovo dopo un minuto.',
-        'blocked':'Non riesco a scriverti in privato. Abilita i messaggi diretti dai membri di questo server nelle impostazioni privacy, poi usa /inizia.',
+        'blocked':'Non riesco a scriverti in privato. Puoi usare il pulsante nel canale di verifica anche con i DM chiusi, oppure abilita i messaggi diretti e usa /inizia.',
         'invalid':'I testi di benvenuto non sono disponibili. Avvisa lo staff.',
         'ignored':'Questo percorso è disponibile per gli utenti del server Lumia.'}
     await reply(i,messages[status])
@@ -234,6 +330,7 @@ class Onboarding(commands.Cog):
         bot.add_view(RulesPanel(bot))
         bot.add_view(RolePanel(bot))
         bot.add_view(PrivateStartPanel(bot))
+        bot.add_view(VerificationPanel(bot))
 
     @app_commands.command(name='inizia',description='Ricevi in privato benvenuto, regolamento e menu dei ruoli')
     @app_commands.guild_only()
@@ -245,7 +342,8 @@ class Onboarding(commands.Cog):
         require(i,lambda m:is_management(m,self.bot.cfg))
         await i.response.defer(ephemeral=True)
         for key,view,title,text in (
-            ('rules',PrivateStartPanel(self.bot),'🔓  Il tuo accesso a Lumia','Benvenuto e regolamento arrivano in privato. Premi qui sotto o usa /inizia, poi accetta le regole nei DM per ricevere il ruolo Member.\n\nSe non ricevi il messaggio, abilita i messaggi diretti dal server e riprova.'),
+            ('verification',VerificationPanel(self.bot),'🔓  Verifica il tuo accesso','Appena entri ricevi Da verificare. Premi «Inizia la verifica», leggi e accetta le regole e rispondi al breve controllo. Il bot assegna Member e rimuove Da verificare.\n\nLa verifica è privata e funziona anche con i DM chiusi. Non servono password o pagamenti.'),
+            ('rules',VerificationPanel(self.bot),'📜  Regole e accesso','Leggi e accetta il regolamento dal pulsante qui sotto. Dopo la verifica ricevi Member. Le risposte sono visibili soltanto a te. Puoi anche usare i pulsanti ricevuti in privato.'),
             ('role_panel',PrivateStartPanel(self.bot),'🔔  Il tuo spazio, le tue preferenze','Interessi e notifiche si scelgono in privato. Premi qui sotto o usa /inizia per ricevere il menu FiveM, Minecraft, Novità e Release.')):
             channel=i.guild.get_channel(self.bot.cfg['channels'][key])
             if not isinstance(channel,discord.TextChannel):
@@ -266,7 +364,7 @@ class Onboarding(commands.Cog):
     async def faq(self,i:discord.Interaction):
         await respond(i,None,embed=embed('💬  Da un’idea a un progetto',
             '**Cosa realizziamo**\nServer FiveM e Minecraft, script, plugin, gamemode e integrazioni.\n\n'
-            '**Vuoi un preventivo?**\nApri un ticket con piattaforma, versione o framework, funzioni richieste, budget e scadenza desiderata.\n\n'
+            '**Vuoi un preventivo?**\nUsa /ordina: il sito raccoglie piattaforma, requisiti, budget e scadenza. Preventivo, ordine e pagamenti PayPal restano nell’area clienti.\n\n'
             '**Hai bisogno di assistenza?**\nIndica l’ordine e descrivi il problema, allegando gli errori utili senza credenziali.\n\n'
             '**Prima di partire**\nPrezzo, tempi, sorgenti e licenza vengono concordati nel preventivo.'))
 
