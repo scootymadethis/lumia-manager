@@ -130,7 +130,12 @@
   document.querySelectorAll('[data-command-open]').forEach(button => button.addEventListener('click', event => openCommand(event.detail > 0)));
   command.querySelector('[data-command-close]').addEventListener('click', () => command.close());
   search.addEventListener('input', filterCommands);
-  command.addEventListener('click', event => { if (event.target === command && event.clientX < command.getBoundingClientRect().left) command.close(); });
+  command.addEventListener('click', event => {
+    if (event.target !== command) return;
+    // A click on the backdrop targets the dialog itself: close when it lands outside the box, on any side.
+    const box = command.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) command.close();
+  });
   command.addEventListener('keydown', event => {
     const items = commandItems.filter(item => !item.hidden);
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
