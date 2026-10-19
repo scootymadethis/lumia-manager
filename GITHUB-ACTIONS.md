@@ -10,13 +10,14 @@ Il workflow `.github/workflows/deploy.yml` parte quando un commit viene **carica
 
 Il job:
 
-1. Blocca i deploy concorrenti e controlla repository, branch e modifiche locali.
-2. Scarica `main` con il token temporaneo del job, senza stampare o salvare il token nel repository.
-3. Aggiorna i sorgenti solo con un avanzamento Git lineare. Non cancella il lavoro locale.
-4. Costruisce la nuova immagine mentre l'app precedente resta in servizio.
-5. Esegue i test nella nuova immagine, senza rete e senza montare i dati reali.
-6. Ferma `app`, crea e verifica il backup SQLite con la vecchia immagine, poi avvia quella nuova.
-7. Controlla landing e login nel container e verifica l'ID dell'immagine avviata.
+1. Scarica la cartella `scripts` del commit caricato in una cartella del runner, separata dalla produzione, ed esegue `deploy.sh` e i controlli da lì. Una correzione agli script di deploy vale quindi già dal deploy che la porta in produzione.
+2. Blocca i deploy concorrenti e controlla repository, branch e modifiche locali.
+3. Scarica `main` con il token temporaneo del job, senza stampare o salvare il token nel repository.
+4. Aggiorna i sorgenti solo con un avanzamento Git lineare. Non cancella il lavoro locale.
+5. Costruisce la nuova immagine mentre l'app precedente resta in servizio.
+6. Esegue i test nella nuova immagine, senza rete e senza montare i dati reali.
+7. Ferma `app`, crea e verifica il backup SQLite con la vecchia immagine, poi avvia quella nuova.
+8. Controlla landing e login nel container e verifica l'ID dell'immagine avviata.
 
 Se un passaggio fallisce dopo l'aggiornamento dei sorgenti, tenta di ripristinare commit e tag dell'immagine precedente e riavviare `app`. Non ripristina automaticamente il database: gli eventuali pagamenti già registrati restano conservati. Il job resta fallito anche quando il ripristino riesce, così puoi vedere il problema.
 

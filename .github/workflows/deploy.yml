@@ -22,11 +22,13 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GIT_TERMINAL_PROMPT: '0'
     steps:
+      # Script e controlli del commit da pubblicare, non quelli ancora in produzione.
+      - name: Scarica gli script di deploy
+        uses: actions/checkout@v7
+        with:
+          path: lumia-deploy
+          sparse-checkout: scripts
+          persist-credentials: false
       - name: Aggiorna, verifica e riavvia app
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          script=$(mktemp "$RUNNER_TEMP/lumia-deploy.XXXXXX")
-          trap 'rm -f -- "$script"' EXIT
-          cp -- "$LUMIA_DEPLOY_DIR/scripts/deploy.sh" "$script"
-          bash "$script" "$LUMIA_DEPLOY_DIR"
+        run: bash "$GITHUB_WORKSPACE/lumia-deploy/scripts/deploy.sh" "$LUMIA_DEPLOY_DIR"

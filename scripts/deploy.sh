@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Executed from a temporary copy: a Git update must not replace a running script.
+# Executed from a checkout of the commit being deployed, outside production: a Git update
+# must not replace a running script, and the checks must be the new ones, not production's.
 set -Eeuo pipefail
 umask 077
+checks=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/deploy_checks.py
+[[ -f "$checks" ]] || { echo 'Manca deploy_checks.py accanto a deploy.sh.' >&2; exit 1; }
 target=${1:-/home/scooty/lumia-manager}
 [[ -d "$target" ]] || { echo 'Cartella di produzione assente.' >&2; exit 1; }
 cd -- "$target"
@@ -10,7 +13,7 @@ for command in git docker python3 flock; do command -v "$command" >/dev/null || 
 git_root=$(git rev-parse --show-toplevel)
 [[ $(cd -- "$git_root" && pwd -P) == "$target" ]] || { echo 'Il progetto deve essere la radice del repository Git.' >&2; exit 1; }
 [[ $(git branch --show-current) == main ]] || { echo 'La produzione deve trovarsi sul branch main.' >&2; exit 1; }
-python3 scripts/deploy_checks.py worktree
+python3 "$checks" worktree
 for file in .env config.json compose.yaml server_texts.json; do
   [[ -f "$file" ]] || { echo "Manca $file nella produzione." >&2; exit 1; }
 done
@@ -83,7 +86,7 @@ if [[ -n ${GITHUB_SHA:-} && "$GITHUB_SHA" != "$next_sha" ]]; then
   exit 0
 fi
 git merge-base --is-ancestor "$old_sha" "$next_sha" || { echo 'La produzione e main sono divergenti. Nessun reset automatico.' >&2; exit 1; }
-python3 scripts/deploy_checks.py guard "$old_sha" "$next_sha"
+python3 "$checks" guard "$old_sha" "$next_sha"
 container=$(docker compose ps -q app)
 [[ -n "$container" && "$container" != *$'\n'* ]] || { echo 'Atteso un solo container app già in esecuzione.' >&2; exit 1; }
 old_image=$(docker inspect --format '{{.Image}}' "$container")
@@ -131,7 +134,7 @@ for file in Path("/backup").glob("lumia-*.zip"):
     file.chmod(0o600)
     os.chown(file,int(os.environ["LUMIA_BACKUP_UID"]),int(os.environ["LUMIA_BACKUP_GID"]))
 '
-python3 scripts/deploy_checks.py backup "$snapshot"
+python3 "$checks" backup "$snapshot"
 docker compose up -d --no-deps --no-build app
 healthy=0
 for attempt in $(seq 1 40); do
