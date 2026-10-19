@@ -9,7 +9,7 @@
     </div>
     <div class="command-group">
       <p class="command-group-label">Progetti</p>
-      {% for o in orders %}<a class="command-item" data-command-item href="/orders/{{ o.id }}{{ suffix }}"><span class="command-icon">{{ icon('orders') }}</span><span class="command-label">{{ o.title }}<small>LM-{{ '%04d'|format(o.id) }}{% if user.staff %} · {{ o.customer_name }}{% endif %}</small></span>{{ badge(o.stage, stages) }}{{ icon('arrow', 'command-go') }}</a>{% endfor %}
+      {% for o in orders %}<a class="command-item" data-command-item href="/orders/{{ o.id }}{{ suffix }}"><span class="command-icon">{{ icon('orders') }}</span><span class="command-label">{{ o.title }}<small>LM-{{ '%04d'|format(o.id) }}{% if user.staff %} · {{ o.customer_name }}{% endif %}</small></span>{{ badge(o.stage,{'bozza':'In valutazione'}) if o.intake and o.stage=='bozza' else badge(o.stage,stages) }}{{ icon('arrow', 'command-go') }}</a>{% endfor %}
     </div>
     <p class="command-no-results" hidden>Nessun risultato. Prova con un altro nome o con il codice LM.</p>
   </div>

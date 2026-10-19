@@ -336,7 +336,10 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 .demo-switch {
   display: inline-flex; padding: 2px;
   border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  /* An opaque surface track keeps the inactive link at 4.5:1 or more
+     (warn text on a warn tint over --warn-bg was only 4.1:1 in light). */
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 24%, transparent);
 }
 .demo-switch a {
   position: relative;
