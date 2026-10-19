@@ -236,7 +236,7 @@
 }
 
 /* ---------- Bands ---------- */
-.band { padding: var(--band-pad) 0; background: var(--canvas); }
+.band { padding: var(--band-pad) 0; background: var(--canvas); overflow-x: clip; }
 .band-alt { background: var(--canvas-alt); }
 .band-head { max-width: 860px; margin-bottom: clamp(40px, 6vw, 72px); }
 .band-head .lede { margin-top: 18px; }
@@ -298,9 +298,14 @@
 }
 .service.is-lit .service-light { opacity: 1; }
 
-/* ---------- Three worlds, one vision ---------- */
+/* ---------- Three worlds, one vision ----------
+   One orbit of radius 120 px carries the three tiles at 120° apart:
+   FiveM at (0, −120), Minecraft and Discord at (∓104, 60). With a 104 px mark
+   and 64 px tiles every tile clears the mark (36 px flat to flat above,
+   23 px corner to corner below, where both curves fall away), and the outer
+   ring clears the farthest tile corner (157 px) by 11 px. */
 .worlds { margin-top: clamp(72px, 9vw, 128px); text-align: center; }
-.worlds-art { --c: 144px; position: relative; width: 320px; max-width: 100%; height: 288px; margin: 0 auto var(--s6); }
+.worlds-art { --c: 168px; position: relative; width: 336px; max-width: 100%; height: 336px; margin: 0 auto var(--s6); }
 .worlds-art::before, .worlds-art::after { /* the shared orbit */
   content: ""; position: absolute; left: 50%; top: var(--c);
   border-radius: 50%;
@@ -308,8 +313,8 @@
   pointer-events: none;
   transition: transform 1100ms var(--spring-soft), opacity var(--d-slow) var(--ease-out);
 }
-.worlds-art::before { width: 192px; height: 192px; margin: -96px 0 0 -96px; }
-.worlds-art::after { width: 272px; height: 272px; margin: -136px 0 0 -136px; box-shadow: inset 0 0 0 1px var(--line); }
+.worlds-art::before { width: 240px; height: 240px; margin: -120px 0 0 -120px; }
+.worlds-art::after { width: 336px; height: 336px; margin: -168px 0 0 -168px; box-shadow: inset 0 0 0 1px var(--line); }
 .world {
   position: absolute; left: 50%; top: var(--c);
   display: grid; place-items: center;
@@ -321,9 +326,9 @@
 }
 .world img { width: 60%; height: auto; }
 .world-discord img { width: 70%; border-radius: 22%; }
-.world-fivem { transform: translate(0, -96px); }
-.world-minecraft { transform: translate(-83px, 48px); transition-delay: 60ms; }
-.world-discord { transform: translate(83px, 48px); transition-delay: 120ms; }
+.world-fivem { transform: translate(0, -120px); }
+.world-minecraft { transform: translate(-104px, 60px); transition-delay: 60ms; }
+.world-discord { transform: translate(104px, 60px); transition-delay: 120ms; }
 .world-lumia {
   z-index: 1;
   width: 104px; height: 104px; margin: -52px 0 0 -52px;
@@ -334,11 +339,12 @@
 .world-lumia img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.22); }
 /* Armed by landing.js before the band scrolls in; the worlds then converge */
 .worlds.is-armed:not(.is-in) .world { opacity: 0; }
-.worlds.is-armed:not(.is-in) .world-fivem { transform: translate(0, -154px) scale(.9); }
-.worlds.is-armed:not(.is-in) .world-minecraft { transform: translate(-133px, 77px) scale(.9); }
-.worlds.is-armed:not(.is-in) .world-discord { transform: translate(133px, 77px) scale(.9); }
+/* Start 1.4× out along the same radii (168 px), so each tile travels straight in */
+.worlds.is-armed:not(.is-in) .world-fivem { transform: translate(0, -168px) scale(.9); }
+.worlds.is-armed:not(.is-in) .world-minecraft { transform: translate(-145px, 84px) scale(.9); }
+.worlds.is-armed:not(.is-in) .world-discord { transform: translate(145px, 84px) scale(.9); }
 .worlds.is-armed:not(.is-in) .world-lumia { transform: scale(.92); }
-.worlds.is-armed:not(.is-in) .worlds-art::before, .worlds.is-armed:not(.is-in) .worlds-art::after { opacity: 0; transform: scale(1.4); }
+.worlds.is-armed:not(.is-in) .worlds-art::before, .worlds.is-armed:not(.is-in) .worlds-art::after { opacity: 0; transform: scale(1.18); }
 .worlds h3 { max-width: 18ch; margin-inline: auto; }
 .worlds p { max-width: 36ch; margin: 12px auto 0; font-size: var(--t-lede); line-height: 1.38; letter-spacing: -.016em; color: var(--ink-3); }
 
@@ -374,15 +380,25 @@
   background: var(--canvas-alt);
   box-shadow: inset 0 0 0 .5px var(--line-2);
 }
-.device-bar {
+.device-bar, .card-bar {
   display: flex; align-items: center; gap: var(--s2);
   height: 52px; padding: 0 var(--s4);
   border-bottom: 1px solid var(--line);
   background: var(--surface);
   font-size: var(--t-foot); color: var(--ink-3);
+  white-space: nowrap;
 }
-.device-bar .brand-tile { width: 20px; height: 20px; border-radius: 6px; }
-.device-bar b { color: var(--ink); font-weight: 650; }
+.device-bar .brand-tile, .card-bar .brand-tile { width: 20px; height: 20px; border-radius: 6px; }
+.device-bar b, .card-bar b { color: var(--ink); font-weight: 650; }
+/* Says out loud that this is a picture of the client area, not the client area */
+.bar-tag {
+  margin-left: auto; padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--canvas-alt); box-shadow: inset 0 0 0 .5px var(--line-2);
+  font-size: var(--t-cap); font-weight: 600; letter-spacing: .01em; color: var(--ink-3);
+}
+/* Each card carries its own bar only where the shared device dissolves (≤980 px) */
+.card-bar { display: none; }
 .stage-card {
   position: absolute; left: var(--s4); right: var(--s4); top: 52px; bottom: 30px;
   display: flex; flex-direction: column; justify-content: center;
@@ -405,14 +421,17 @@
 .mini-list li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: var(--t-callout); }
 .mini-list li:first-child { border-top: 0; }
 .mini-list .icon, .mini-row .icon { width: 16px; height: 16px; color: var(--accent); }
+/* An illustration of a button, never a button: smaller and softer than any
+   real CTA on the page, and inert to the pointer and to text selection */
 .mini-button {
-  display: flex; align-items: center; justify-content: center; gap: var(--s2);
-  min-height: 40px; margin-top: var(--s4); padding: 0 var(--s4);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; margin-top: var(--s4); padding: 0 var(--s3);
   border-radius: var(--r-pill);
-  background: var(--btn); color: var(--btn-ink);
-  font-size: var(--t-callout); font-weight: 600;
+  background: var(--ink-2); color: var(--btn-ink);
+  font-size: var(--t-foot); font-weight: 600;
+  pointer-events: none; -webkit-user-select: none; user-select: none;
 }
-.mini-button .icon { width: 16px; height: 16px; }
+.mini-button .icon { width: 14px; height: 14px; }
 .mini-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 20px 0 6px; }
 .mini-steps li { position: relative; display: grid; place-items: center; }
 .mini-steps li::before { content: ""; position: absolute; top: 50%; right: calc(50% + 12px); left: calc(-50% + 12px); height: 2px; margin-top: -1px; border-radius: 2px; background: var(--surface-3); }
@@ -531,12 +550,24 @@
   .story { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .story-steps, .story-stage, .device, .device-screen { display: contents; }
   .device::before, .stage-backdrop, .device-bar, .stage-dots { display: none; }
+  /* ...but every card keeps a frame of its own, so it reads as a preview:
+     a solid bezel (two hairlines around 8 px of surface, drawn as shadows),
+     the client-area bar with its "Anteprima" tag, then the screen. */
   .step, .step:first-child, .step:last-child { min-height: 0; padding: var(--s9) 0 var(--s6); justify-content: flex-start; }
   .step:first-child { padding-top: 0; }
   .step:nth-child(1) { order: 1; } .stage-card[data-card="0"] { order: 2; }
   .step:nth-child(2) { order: 3; } .stage-card[data-card="1"] { order: 4; }
   .step:nth-child(3) { order: 5; } .stage-card[data-card="2"] { order: 6; }
-  .stage-card, .stage-card.is-before { position: static; opacity: 1; transform: none; transition: none; max-width: 440px; }
+  .stage-card, .stage-card.is-before {
+    position: static; opacity: 1; transform: none; transition: none;
+    width: calc(100% - 16px); max-width: 440px; margin: var(--s2);
+    border-radius: 26px; overflow: hidden;
+    background: var(--canvas-alt);
+    box-shadow: 0 0 0 .5px var(--line-2), 0 0 0 8px var(--surface), 0 0 0 8.5px var(--line-2), var(--sh-3);
+  }
+  .card-bar { display: flex; height: 46px; padding: 0 14px; }
+  .card-bar .brand-tile { width: 18px; height: 18px; border-radius: 5px; }
+  .stage-card .mini { margin: 14px; padding: 18px; box-shadow: var(--sh-1), 0 0 0 .5px var(--line); }
 }
 @media (max-width: 760px) {
   .brand-sub { display: none; }
@@ -553,6 +584,10 @@
 @media (max-width: 420px) {
   .returning-client .rc-text > span { display: block; }
   .footer-top { gap: var(--s6); }
+}
+@media (max-width: 359px) {
+  /* The orbit keeps its proportions on the narrowest phones */
+  .worlds-art { scale: .84; margin-block: -27px calc(var(--s6) - 27px); }
 }
 
 /* ---------- Motion ---------- */
@@ -596,7 +631,8 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after { animati
 }
 
 @media (prefers-contrast: more) {
-  .service, .preview, .mini { box-shadow: 0 0 0 1px var(--line-2); }
+  .service, .preview, .mini, .stage-card .mini { box-shadow: 0 0 0 1px var(--line-2); }
+  .bar-tag { box-shadow: inset 0 0 0 1px var(--line-2); }
   .returning-client { box-shadow: inset 0 0 0 1px var(--line-2); }
   .site-nav.is-quiet { background: var(--surface); }
 }
