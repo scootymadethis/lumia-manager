@@ -83,8 +83,10 @@
     --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 32px; --r-pill: 999px;
 
     /* Space: 4 pt */
+    /* Every padding, margin and gap below comes from this scale. */
     --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
     --s7: 32px; --s8: 40px; --s9: 48px; --s10: 64px; --s11: 96px; --s12: 144px;
+    --target: 44px;            /* minimum touch target (spec §4.5) */
     --gutter: clamp(16px, 4.2vw, 48px);
     --maxw: 1200px;
 
@@ -258,11 +260,11 @@
 
   /* Skip link: off screen until it receives keyboard focus */
   .skip-link {
-    position: fixed; left: 16px; top: 12px; z-index: 1000;
-    display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px;
+    position: fixed; left: var(--s4); top: var(--s3); z-index: 1000;
+    display: inline-flex; align-items: center; min-height: var(--target); padding: 0 var(--s5);
     border-radius: var(--r-pill); background: var(--btn); color: var(--btn-ink);
     font-size: var(--t-callout); font-weight: 600;
-    transform: translateY(calc(-100% - 24px));
+    transform: translateY(calc(-100% - var(--s6)));
     transition: transform var(--d-fast) var(--ease-out);
   }
   .skip-link:focus-visible, .skip-link:focus { transform: none; }
@@ -310,8 +312,8 @@
   /* ---------- Buttons ---------- */
   .button {
     position: relative;
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 44px; padding: 0 20px;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+    min-height: var(--target); padding: 0 var(--s5);
     border: 0; border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink);
     font-family: inherit; font-size: var(--t-callout); font-weight: 600; line-height: 1.2; letter-spacing: var(--tr-text);
@@ -329,9 +331,9 @@
   .button.ghost { background: transparent; color: var(--accent); }
   .button.danger { background: var(--bad-bg); color: var(--bad); }
 
-  .button.small { min-height: 34px; padding: 0 14px; gap: 6px; font-size: var(--t-foot); }
+  .button.small { min-height: 36px; padding: 0 var(--s4); gap: var(--s1); font-size: var(--t-foot); }
   .button.small .icon { width: 16px; height: 16px; }
-  .button.large { min-height: 52px; padding: 0 28px; font-size: var(--t-body); }
+  .button.large { min-height: 52px; padding: 0 var(--s7); font-size: var(--t-body); }
   .button.large .icon { width: 20px; height: 20px; }
 
   @media (hover: hover) and (pointer: fine) {
@@ -342,7 +344,7 @@
     .button.danger:hover:not(:disabled, [aria-disabled="true"]) { background: color-mix(in srgb, var(--bad) 16%, var(--bad-bg)); }
   }
   @media (pointer: coarse) {
-    .button.small { min-height: 44px; }
+    .button.small { min-height: var(--target); }
   }
 
   /* Disabled (every form in demo): a quiet tonal pill, not a washed-out colour */
@@ -352,8 +354,8 @@
   /* Busy: keeps its width, label fades under a calm spinner */
   .button[aria-busy="true"] { cursor: progress; pointer-events: none; color: transparent; }
   .button[aria-busy="true"]::after {
-    content: ""; position: absolute; top: 50%; left: 50%;
-    width: 18px; height: 18px; margin: -9px 0 0 -9px;
+    content: ""; position: absolute; inset: 0; margin: auto;
+    width: 18px; height: 18px;
     border-radius: 50%;
     border: 2px solid var(--busy-ink, var(--ink));
     border-right-color: transparent;
@@ -369,7 +371,7 @@
   .icon-button {
     position: relative;
     display: inline-grid; place-items: center; flex: none;
-    width: 44px; height: 44px; padding: 0;
+    width: var(--target); height: var(--target); padding: 0;
     border: 0; border-radius: 50%;
     background: transparent; color: var(--ink-2);
     cursor: pointer;
@@ -388,7 +390,7 @@
   /* Text link */
   .text-link {
     position: relative;
-    display: inline-flex; align-items: center; gap: 4px;
+    display: inline-flex; align-items: center; gap: var(--s1);
     color: var(--accent); font-weight: 500;
     text-decoration: underline; text-decoration-color: transparent;
     text-decoration-thickness: 1px; text-underline-offset: .2em;
@@ -399,25 +401,26 @@
     .text-link:hover .icon:last-child { transform: translateX(2px); }
   }
   @media (pointer: coarse) {
-    /* Standalone link: 44 px tap target without changing the layout */
-    .text-link::after { content: ""; position: absolute; inset: -12px -4px; }
+    /* Standalone link: grows to exactly a 44 px tap target without changing
+       the layout, and never more, so stacked links overlap as little as possible */
+    .text-link::after { content: ""; position: absolute; inset: min(0px, calc((100% - var(--target)) / 2)) calc(-1 * var(--s1)); }
   }
 
   /* ---------- Fields ---------- */
   :where(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="range"], [type="file"], [type="color"], [type="submit"], [type="button"], [type="reset"], [type="image"]), select, textarea) {
     display: block; width: 100%;
-    min-height: 44px; padding: 10px 14px;
+    min-height: var(--target); padding: var(--s2) var(--s4);
     border: 1px solid var(--line-2); border-radius: var(--r-sm);
     background-color: var(--field); color: var(--ink);
     font-family: inherit; font-size: max(16px, 1rem); line-height: 1.35; letter-spacing: var(--tr-text);
     -webkit-appearance: none; appearance: none;
   }
-  :where(textarea) { min-height: 112px; padding-block: 12px; line-height: 1.5; resize: vertical; }
+  :where(textarea) { min-height: 112px; padding-block: var(--s3); line-height: 1.5; resize: vertical; }
   :where(select:not([multiple], [size])) {
-    padding-right: 40px;
+    padding-right: var(--s8);
     background-image: var(--select-chevrons);
     background-repeat: no-repeat;
-    background-position: right 12px center;
+    background-position: right var(--s3) center;
     background-size: 18px 18px;
     cursor: pointer;
   }
@@ -459,24 +462,24 @@
   :where(input[type="checkbox"], input[type="radio"]):disabled { opacity: .45; cursor: not-allowed; }
   @media (pointer: coarse) {
     /* 22 px box, 44 px target (spec §4.5) even outside a .check row */
-    :where(input[type="checkbox"], input[type="radio"])::after { content: ""; position: absolute; inset: -11px; }
+    :where(input[type="checkbox"], input[type="radio"])::after { content: ""; position: absolute; inset: calc((100% - var(--target)) / 2); }
   }
 
   .check {
-    display: inline-flex; align-items: center; gap: 10px;
-    min-height: 44px;
+    display: inline-flex; align-items: center; gap: var(--s3);
+    min-height: var(--target);
     font-size: var(--t-callout); line-height: 1.35; color: var(--ink);
     cursor: pointer;
   }
   .check:has(input:disabled) { cursor: not-allowed; color: var(--ink-3); }
 
-  .field { display: grid; gap: 6px; align-content: start; min-width: 0; }
+  .field { display: grid; gap: var(--s2); align-content: start; min-width: 0; }
   .field-label { font-size: var(--t-callout); line-height: 1.3; font-weight: 550; letter-spacing: var(--tr-text); color: var(--ink); }
   .field-hint { font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
 
-  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; align-items: start; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); align-items: start; }
   .form-grid > .wide { grid-column: 1 / -1; }
-  .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: var(--s6); }
+  .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); margin-top: var(--s6); }
 
   @media (max-width: 620px) {
     .form-grid { grid-template-columns: minmax(0, 1fr); }
@@ -485,8 +488,8 @@
 
   /* ---------- Badge (macro badge) ---------- */
   .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    min-height: 24px; padding: 0 10px;
+    display: inline-flex; align-items: center; gap: var(--s1);
+    min-height: 24px; padding: 0 var(--s3);
     border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink-2);
     font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
@@ -524,12 +527,11 @@
   }
   .panel-heading {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 8px 16px;
+    gap: var(--s2) var(--s4);
     margin-bottom: var(--s4);
   }
   .panel-heading h2 { font-size: var(--t-title3); line-height: 1.26; letter-spacing: var(--tr-title3); font-weight: 650; }
   .panel-heading > :not(:first-child) { flex: none; }
-  .panel-heading .eyebrow + h2 { margin-top: 2px; }
   .panel-body { display: flow-root; min-width: 0; }
   .panel-body > * + * { margin-top: var(--s4); }
   /* Flush: no inner padding, content runs edge to edge (tables, lists).
@@ -542,14 +544,14 @@
   /* ---------- Page heading ---------- */
   .page-heading {
     display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-    gap: 16px 24px;
-    margin-bottom: clamp(20px, 3vw, 32px);
+    gap: var(--s4) var(--s6);
+    margin-bottom: clamp(var(--s5), 3vw, var(--s7));
   }
   .page-heading > :first-child { min-width: 0; flex: 1 1 28rem; }
-  .page-heading .eyebrow { margin-bottom: 4px; }
+  .page-heading .eyebrow { margin-bottom: var(--s1); }
   .page-heading h1 { font-size: var(--t-title1); line-height: 1.06; letter-spacing: var(--tr-title1); }
-  .page-heading .lede { margin-top: 10px; max-width: 60ch; font-size: clamp(1.0625rem, 1rem + .3vw, 1.1875rem); }
-  .page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .page-heading .lede { margin-top: var(--s3); max-width: 60ch; font-size: clamp(1.0625rem, 1rem + .3vw, 1.1875rem); }
+  .page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
 
   /* ---------- Tables ---------- */
   .table-scroll {
@@ -561,15 +563,15 @@
     border-radius: var(--r-xs);
   }
   .data-table { width: 100%; border-collapse: collapse; font-size: var(--t-callout); line-height: 1.4; font-variant-numeric: tabular-nums; font-feature-settings: var(--font-features-num); }
-  .data-table caption { padding-bottom: 10px; text-align: left; font-size: var(--t-foot); color: var(--ink-3); }
+  .data-table caption { padding-bottom: var(--s3); text-align: left; font-size: var(--t-foot); color: var(--ink-3); }
   .data-table th {
-    padding: 0 12px 10px;
+    padding: 0 var(--s3) var(--s3);
     border-bottom: 1px solid var(--line);
     text-align: left; vertical-align: bottom;
     font-size: var(--t-foot); font-weight: 500; color: var(--ink-3); white-space: nowrap;
   }
   .data-table td {
-    padding: 14px 12px;
+    padding: var(--s3);
     border-bottom: 1px solid var(--line);
     color: var(--ink-2); vertical-align: middle;
   }
@@ -594,9 +596,14 @@
     .data-table.stack tr {
       padding: var(--s3) var(--s4);
       border-radius: var(--r-md);
-      background: var(--surface-2);
+      background: var(--surface);
+      box-shadow: var(--sh-1);
     }
-    .panel .data-table.stack tr { border-radius: max(var(--r-xs), calc(var(--r-lg) - var(--panel-pad))); }
+    .panel .data-table.stack tr {
+      border-radius: max(var(--r-xs), calc(var(--r-lg) - var(--panel-pad)));
+      background: var(--surface-2);
+      box-shadow: none;
+    }
     .data-table.stack td { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); padding: var(--s1) 0; border: 0; text-align: right; }
     .data-table.stack :is(th, td):is(:first-child, :last-child) { padding-inline: 0; }
     .data-table.stack td:first-child { justify-content: flex-start; padding-bottom: var(--s2); text-align: left; color: var(--ink); font-weight: 600; }
@@ -608,32 +615,32 @@
 
   /* ---------- Empty state ---------- */
   .empty-state {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: clamp(32px, 6vw, 48px) 20px;
+    display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+    padding: clamp(var(--s7), 6vw, var(--s9)) var(--s5);
     text-align: center;
   }
   .empty-state > .icon {
-    width: 56px; height: 56px; padding: 15px; margin-bottom: 10px;
+    width: 56px; height: 56px; padding: var(--s4); margin-bottom: var(--s2);
     border-radius: 50%;
     background: var(--fill); color: var(--ink-3);
   }
   .empty-state h3 { font-size: var(--t-title3); }
   .empty-state p { max-width: 40ch; font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3); }
-  .empty-state :is(.button, .text-link) { margin-top: 12px; }
+  .empty-state :is(.button, .text-link) { margin-top: var(--s3); }
 
   /* ---------- Notice and demo banner ---------- */
   .notice {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 16px;
+    display: flex; align-items: flex-start; gap: var(--s3);
+    padding: var(--s3) var(--s4);
     border-radius: var(--r-md);
     background: var(--accent-bg); color: var(--ink);
     font-size: var(--t-callout); line-height: 1.45;
   }
-  .notice > .icon { margin-top: 1px; color: var(--accent); }
+  .notice > .icon { margin-top: calc((1lh - 20px) / 2); color: var(--accent); } /* centred on the first line */
   .notice > div { min-width: 0; }
   .notice strong { display: block; color: var(--ink); }
   .notice p { color: var(--ink-2); }
-  .notice .button, .notice .text-link { margin-top: 8px; }
+  .notice .button, .notice .text-link { margin-top: var(--s2); }
   .notice.ok { background: var(--ok-bg); }
   .notice.ok > .icon { color: var(--ok); }
   .notice.warn { background: var(--warn-bg); }
@@ -642,13 +649,13 @@
   .notice.bad > .icon { color: var(--bad); }
 
   .demo-banner {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px;
-    padding: 8px var(--gutter);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s1) var(--s3);
+    padding: var(--s2) var(--gutter);
     background: var(--warn-bg); color: var(--warn);
     font-size: var(--t-foot); line-height: 1.4; font-weight: 500; text-align: center;
   }
   .demo-banner strong {
-    display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px;
+    display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--s2);
     border-radius: var(--r-pill);
     background: var(--warn); color: var(--canvas);
     font-size: var(--t-cap); font-weight: 700; letter-spacing: var(--tr-text);
@@ -656,8 +663,8 @@
 
   /* ---------- Pill, chip, kbd ---------- */
   .pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    min-height: 26px; padding: 0 10px;
+    display: inline-flex; align-items: center; gap: var(--s1);
+    min-height: 24px; padding: 0 var(--s3);
     border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink-2);
     font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
@@ -667,8 +674,8 @@
 
   .chip {
     position: relative;
-    display: inline-flex; align-items: center; gap: 6px;
-    min-height: 34px; padding: 0 14px;
+    display: inline-flex; align-items: center; gap: var(--s2);
+    min-height: 36px; padding: 0 var(--s4);
     border: 0; border-radius: var(--r-pill);
     background: var(--surface); color: var(--ink-2);
     box-shadow: inset 0 0 0 1px var(--line-2);
@@ -678,7 +685,7 @@
   }
   .chip .icon { width: 16px; height: 16px; }
   :is(button, a).chip { cursor: pointer; }
-  :is(button, a).chip::after { content: ""; position: absolute; inset: -5px 0; }
+  :is(button, a).chip::after { content: ""; position: absolute; inset: calc((100% - var(--target)) / 2) 0; }
   :is(button, a).chip:active { transform: scale(.97); }
   .chip:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
     background: var(--btn); color: var(--btn-ink); box-shadow: none;
@@ -689,7 +696,7 @@
 
   .kbd {
     display: inline-grid; place-items: center;
-    min-width: 22px; height: 22px; padding: 0 6px;
+    min-width: 24px; height: 24px; padding: 0 var(--s1);
     border-radius: var(--r-xs);
     background: var(--surface); color: var(--ink-3);
     box-shadow: inset 0 0 0 1px var(--line-2), 0 1px 0 var(--line-2);
@@ -715,8 +722,8 @@
   /* ---------- Disclosure ---------- */
   details.disclosure + details.disclosure { border-top: 1px solid var(--line); }
   details.disclosure > summary {
-    display: flex; align-items: center; gap: 12px;
-    min-height: 48px; padding: 10px 0;
+    display: flex; align-items: center; gap: var(--s3);
+    min-height: var(--s9); padding: var(--s3) 0;
     list-style: none;
     font-size: var(--t-callout); font-weight: 600; letter-spacing: var(--tr-text); color: var(--ink);
     cursor: pointer;
@@ -739,8 +746,8 @@
      on white; the selected segment is a raised solid pill. */
   .segmented {
     position: relative; isolation: isolate;
-    display: inline-flex; align-items: center; gap: 2px;
-    max-width: 100%; padding: 3px;
+    display: inline-flex; align-items: center; gap: 0;
+    max-width: 100%; padding: var(--s1);
     border-radius: var(--r-pill);
     background: linear-gradient(var(--fill), var(--fill)), var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -750,8 +757,8 @@
   }
   .segmented > :is(button, a) {
     position: relative;
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    min-height: 32px; padding: 0 14px;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+    min-height: 32px; padding: 0 var(--s4);
     border: 0; border-radius: var(--r-pill);
     background: transparent; color: var(--ink-2);
     font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
@@ -763,15 +770,16 @@
   .segmented > :is(button, a):active { transform: scale(.97); }
   .segmented > :is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
     background: var(--segment-on); color: var(--ink);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 2px 8px -2px rgba(0, 0, 0, .08), 0 0 0 .5px rgba(0, 0, 0, .05);
+    box-shadow: var(--sh-1), 0 0 0 .5px var(--line);
   }
   @media (hover: hover) and (pointer: fine) {
     .segmented > :is(button, a):not([aria-pressed="true"], [aria-current]:not([aria-current="false"])):hover { color: var(--ink); }
   }
   @media (pointer: coarse) {
-    /* 40px visivi + hit-slop verticale: con il padding di 3px del contenitore il bersaglio è 46px (spec §4.5, ≥ 44px). */
-    .segmented > :is(button, a) { min-height: 40px; }
-    .segmented > :is(button, a)::after { content: ""; position: absolute; inset: -3px 0; }
+    /* 40 px segments in a 48 px track; the hit-slop fills the track padding,
+       so the whole track height is the tap target (spec §4.5, ≥ 44 px). */
+    .segmented > :is(button, a) { min-height: var(--s8); }
+    .segmented > :is(button, a)::after { content: ""; position: absolute; inset: calc(-1 * var(--s1)) 0; }
   }
 
   /* ---------- Liquid Glass (spec §4.4) ----------
@@ -822,12 +830,13 @@
      A bare dialog only loses the UA chrome. The card look and the entrance
      are opt-in with .dialog, so full-screen dialogs (the guided tour)
      keep a transparent, untransformed box. */
-  :where(dialog) { padding: 0; border: 0; color: var(--ink-2); background: var(--surface); }
-  :where(dialog)::backdrop { background: var(--scrim, rgba(0, 0, 0, .28)); }
+  :where(dialog) { padding: 0; border: 0; }
+  .dialog::backdrop { background: var(--scrim); }
   .dialog {
-    width: min(560px, calc(100vw - 32px));
-    max-height: min(720px, calc(100dvh - 32px));
-    padding: clamp(20px, 3vw, 28px);
+    width: min(560px, calc(100vw - 2 * var(--s4)));
+    max-height: min(720px, calc(100dvh - 2 * var(--s4)));
+    padding: clamp(var(--s5), 3vw, var(--s7));
+    color: var(--ink-2);
     border-radius: var(--r-xl);
     background: var(--surface);
     box-shadow: var(--sh-3);
@@ -836,8 +845,8 @@
   .dialog[open] { animation: lumia-dialog-in var(--d-base) var(--ease-out); }
   .dialog[open]::backdrop { animation: lumia-fade-in var(--d-base) var(--ease-out); }
   .dialog h2 { font-size: var(--t-title2); }
-  .dialog h2 + p { margin-top: 8px; font-size: var(--t-callout); line-height: 1.45; color: var(--ink-2); }
-  .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: var(--s6); }
+  .dialog h2 + p { margin-top: var(--s2); font-size: var(--t-callout); line-height: 1.45; color: var(--ink-2); }
+  .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s6); }
   @media (max-width: 620px) {
     .dialog-actions > .button { flex: 1 1 0; }
   }
@@ -847,11 +856,11 @@
      Centred with `translate`, so the entrance can own `transform`. */
   .toast {
     position: fixed; z-index: 90;
-    left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%; bottom: calc(var(--s6) + env(safe-area-inset-bottom, 0px));
     translate: -50% 0;
-    display: flex; align-items: center; gap: 10px;
-    width: max-content; max-width: calc(100vw - 32px);
-    min-height: 44px; padding: 10px 18px;
+    display: flex; align-items: center; gap: var(--s3);
+    width: max-content; max-width: calc(100vw - 2 * var(--s4));
+    min-height: var(--target); padding: var(--s2) var(--s5);
     border-radius: var(--r-pill);
     font-size: var(--t-callout); font-weight: 550; line-height: 1.35;
     animation: lumia-toast-in var(--d-base) var(--ease-out);
