@@ -712,7 +712,9 @@
     .segmented > :is(button, a):not([aria-pressed="true"], [aria-current]:not([aria-current="false"])):hover { color: var(--ink); }
   }
   @media (pointer: coarse) {
-    .segmented > :is(button, a) { min-height: 40px; }
+    /* 40px visivi + hit-slop verticale: con il padding di 3px del contenitore il bersaglio è 46px (spec §4.5, ≥ 44px). */
+    .segmented > :is(button, a) { position: relative; min-height: 40px; }
+    .segmented > :is(button, a)::after { content: ""; position: absolute; inset: -3px 0; }
   }
 
   /* ---------- Liquid Glass (spec §4.4) ----------
