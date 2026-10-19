@@ -1,3 +1,635 @@
-/* Lumia "Bianco": project page and its includes (detail, order journey, brief,
-   collaboration, support, plan). Loaded on every dashboard page after workspace.css.
-   Filled in by Task 6. */
+/* =========================================================
+   Lumia "Bianco": the project page and its includes
+   (detail, order journey, brief, collaboration, support, plan).
+   Loaded on every dashboard page after workspace.css; every rule
+   is scoped under .project, so other pages are untouched.
+   Layout follows the project's own width (container queries),
+   so the rail and the full sidebar both get the right columns.
+   ========================================================= */
+
+.project {
+  --project-gap: clamp(12px, 1.4vw, 20px);
+  --inset-radius: max(var(--r-sm), calc(var(--r-lg) - var(--panel-pad, 20px)));
+  container: project / inline-size;
+  display: grid;
+  gap: var(--project-gap);
+}
+.project > .page-heading { margin-bottom: var(--s2); }
+.project .project-notice { margin: 0; }
+
+/* ---------------------------------------------------------
+   Heading: code, customer, title with stage, expected date
+   --------------------------------------------------------- */
+.project-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3);
+  margin-bottom: var(--s3);
+  font-size: var(--t-foot); line-height: 1.3;
+}
+.project-code {
+  display: inline-flex; align-items: center; min-height: 24px; padding: 0 var(--s2);
+  border-radius: var(--r-xs);
+  background: var(--fill); color: var(--ink-2);
+  font-weight: 600;
+}
+.project-customer {
+  position: relative;
+  display: inline-flex; align-items: center; gap: var(--s2);
+  color: var(--ink-2); font-weight: 550;
+}
+.project-customer .avatar-mini { width: 22px; height: 22px; font-size: 11px; }
+.project-customer > .icon { width: 14px; height: 14px; color: var(--ink-3); }
+@media (hover: hover) and (pointer: fine) {
+  .project-customer:hover { color: var(--accent); }
+  .project-customer:hover > .icon { color: currentColor; }
+}
+@media (pointer: coarse) {
+  .project-customer::after { content: ""; position: absolute; inset: -10px -4px; }
+}
+.detail-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); }
+.detail-title h1 { min-width: 0; overflow-wrap: anywhere; }
+.detail-title .badge { min-height: 28px; padding: 0 var(--s3); font-size: var(--t-foot); }
+
+.project-eta {
+  display: inline-flex; align-items: center; gap: var(--s3);
+  padding: var(--s2) var(--s5) var(--s2) var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--surface); box-shadow: var(--sh-1);
+}
+.project-eta > .icon {
+  width: 36px; height: 36px; padding: var(--s2);
+  border-radius: 50%;
+  background: var(--accent-bg); color: var(--accent);
+}
+.project-eta > span { display: grid; line-height: 1.25; }
+.project-eta-label { font-size: var(--t-cap); color: var(--ink-3); }
+.project-eta time { font-size: var(--t-callout); font-weight: 650; color: var(--ink); }
+.project-eta.is-late > .icon { background: var(--warn-bg); color: var(--warn); }
+
+/* ---------------------------------------------------------
+   "Il prossimo passo": the payment callout, the one loud card
+   --------------------------------------------------------- */
+.payment-callout {
+  position: relative; isolation: isolate;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+  overflow: hidden;
+}
+.payment-callout::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(70% 120% at 0% 0%, rgba(var(--glow), .16), rgba(var(--glow), 0) 62%),
+    radial-gradient(40% 60% at 100% 100%, rgba(var(--glow), .06), rgba(var(--glow), 0) 70%);
+}
+.callout-main, .callout-pay { padding: clamp(24px, 3.4vw, 40px); min-width: 0; }
+.callout-eyebrow {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-callout); font-weight: 600; color: var(--accent);
+}
+.callout-eyebrow.is-muted { color: var(--ink-3); }
+.callout-pulse { position: relative; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.callout-pulse::after {
+  content: ""; position: absolute; inset: 0;
+  border-radius: inherit; background: currentColor;
+  opacity: 0;
+  animation: project-pulse 2.4s var(--ease-out) .8s 3;
+}
+@keyframes project-pulse {
+  from { opacity: .45; transform: scale(1); }
+  to { opacity: 0; transform: scale(3.2); }
+}
+.payment-callout h2 {
+  margin-top: var(--s3);
+  max-width: 20ch;
+  font-size: var(--t-title1); line-height: 1.08; letter-spacing: var(--tr-title1); font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.callout-text { margin-top: var(--s3); max-width: 46ch; font-size: var(--t-body); line-height: 1.5; color: var(--ink-3); }
+.callout-cta { margin-top: var(--s5); }
+.callout-facts {
+  display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5);
+  margin-top: var(--s5);
+  font-size: var(--t-foot); line-height: 1.35; color: var(--ink-2);
+}
+.callout-facts li { display: inline-flex; align-items: center; gap: var(--s2); }
+.callout-facts .icon { width: 16px; height: 16px; color: var(--ink-3); }
+
+.support-options {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s5);
+  margin-top: var(--s6); padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-callout);
+}
+.support-options .text-link .icon:first-child { width: 18px; height: 18px; }
+.support-note { flex: 1 1 100%; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+
+.callout-pay {
+  display: flex; flex-direction: column; justify-content: center;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+}
+.callout-pay-label { font-size: var(--t-foot); color: var(--ink-3); }
+.callout-pay .callout-amount {
+  display: block; margin-top: var(--s1);
+  font-size: clamp(2.5rem, 2rem + 1.6vw, 3.25rem); line-height: 1; font-weight: 700;
+  letter-spacing: -.036em; color: var(--ink);
+}
+.callout-pay .callout-amount small { font-size: .46em; font-weight: 600; letter-spacing: 0; color: var(--ink-3); }
+.checkout-form { margin-top: var(--s5); }
+.checkout-form .button { width: 100%; padding-inline: var(--s5); white-space: normal; text-wrap: balance; }
+.callout-fine {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  margin-top: var(--s3);
+  font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3);
+}
+.callout-fine .icon { width: 16px; height: 16px; margin-top: 1px; }
+.callout-unavailable { margin-top: var(--s5); padding: var(--s3); border-radius: var(--r-sm); background: var(--warn-bg); color: var(--ink-2); }
+.callout-unavailable .icon { color: var(--warn); }
+.callout-settled .icon { color: var(--ok); }
+
+@container project (min-width: 720px) {
+  .payment-callout.has-pay { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
+  .payment-callout.has-pay .callout-pay { border-top: 0; border-left: 1px solid var(--line); }
+}
+
+/* ---------------------------------------------------------
+   Progress: the six-step journey and the money summary
+   --------------------------------------------------------- */
+.project-progress .panel-heading { margin-bottom: var(--s5); }
+.project-progress .panel-heading > span { font-size: var(--t-foot); }
+.order-journey {
+  --dot: 28px;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.order-journey li {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  min-width: 0; text-align: center;
+  font-size: var(--t-foot); line-height: 1.25; color: var(--ink-3);
+}
+.order-journey li::before {
+  content: ""; position: absolute;
+  top: calc(var(--dot) / 2 - 1px);
+  left: calc(-50% + var(--dot) / 2 + 6px); right: calc(50% + var(--dot) / 2 + 6px);
+  height: 2px; border-radius: 2px;
+  background: var(--surface-3);
+}
+.order-journey li:first-child::before { display: none; }
+.order-journey li:is(.is-done, .is-current)::before { background: var(--ink); }
+.journey-dot {
+  position: relative; z-index: 1;
+  display: grid; place-items: center;
+  width: var(--dot); height: var(--dot); border-radius: 50%;
+  background: var(--surface); color: var(--ink-3);
+  box-shadow: inset 0 0 0 1.5px var(--surface-3);
+  font-size: 11px; font-weight: 650; letter-spacing: 0;
+  font-variant-numeric: tabular-nums; font-feature-settings: var(--font-features-num);
+}
+.journey-dot .icon { width: 14px; height: 14px; stroke-width: 2.4; }
+.order-journey .is-done .journey-dot { background: var(--ink); color: var(--canvas); box-shadow: none; }
+.order-journey .is-current .journey-dot { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 5px var(--accent-bg); }
+.order-journey strong { font-weight: 500; color: inherit; overflow-wrap: anywhere; }
+.order-journey .is-done strong { color: var(--ink-2); }
+.order-journey .is-current strong { font-weight: 650; color: var(--ink); }
+.journey-summary { display: none; }
+
+@container project (max-width: 560px) {
+  .order-journey { --dot: 24px; }
+  .order-journey li::before { left: calc(-50% + var(--dot) / 2 + 3px); right: calc(50% + var(--dot) / 2 + 3px); }
+  .order-journey .is-current .journey-dot { box-shadow: 0 0 0 4px var(--accent-bg); }
+  /* Labels stay for assistive tech; the summary line speaks for them visually */
+  .order-journey strong {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+  .journey-summary {
+    display: flex; justify-content: space-between; gap: var(--s3);
+    margin-top: var(--s4);
+    font-size: var(--t-foot); color: var(--ink-3);
+  }
+  .journey-summary b { font-weight: 650; color: var(--ink); }
+}
+
+.project-stats {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4) var(--s5);
+  margin-top: var(--s6); padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+.journey + .project-stats { margin-top: var(--s6); }
+.project-progress .panel-heading + .project-stats { margin-top: 0; padding-top: 0; border-top: 0; }
+.project-stat { display: grid; gap: var(--s1); min-width: 0; }
+.project-stat span { font-size: var(--t-foot); color: var(--ink-3); }
+.project-stat strong {
+  font-size: clamp(1.0625rem, .9rem + .7vw, 1.5rem); line-height: 1.15; font-weight: 650;
+  letter-spacing: -.02em; color: var(--ink); white-space: nowrap;
+}
+.project-stat strong.good { color: var(--ok); }
+.project-meter { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--s3); }
+.project-meter progress { flex: 1 1 auto; }
+.project-meter span { flex: none; font-size: var(--t-foot); color: var(--ink-3); }
+
+/* ---------------------------------------------------------
+   Columns: main story on the left, people and tools on the right.
+   On narrow widths the two columns dissolve into one ordered flow.
+   --------------------------------------------------------- */
+.project-columns { display: flex; flex-direction: column; gap: var(--project-gap); min-width: 0; }
+.project-main, .project-side { display: contents; }
+.project-main > * { order: 1; }
+.project-manage { order: 2; }
+#milestones { order: 3; }
+#payment-plan { order: 4; }
+#payments { order: 5; }
+#deliveries { order: 6; }
+#conversation { order: 7; }
+#support { order: 8; }
+.project-history { order: 9; }
+
+@container project (min-width: 880px) {
+  .project-columns {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(296px, 352px);
+    align-items: start;
+  }
+  .project-main, .project-side { display: flex; flex-direction: column; gap: var(--project-gap); min-width: 0; }
+}
+
+/* ---------------------------------------------------------
+   Shared bits inside the project panels
+   --------------------------------------------------------- */
+.project .panel { scroll-margin-top: calc(var(--topbar-h, 64px) + var(--s4)); }
+.project .pill { flex: none; }
+.section-empty {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s4);
+  border-radius: var(--inset-radius);
+  background: var(--surface-2);
+  font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3);
+}
+.section-empty > .icon {
+  width: 36px; height: 36px; padding: var(--s2); flex: none;
+  border-radius: 50%;
+  background: var(--surface); color: var(--ink-3);
+  box-shadow: var(--sh-1);
+}
+.stack-form { display: grid; gap: var(--s4); }
+.stack-form .form-actions, .quote-form .form-actions { margin-top: 0; }
+.project .form-grid { gap: var(--s4); }
+.project-details { max-width: 70ch; color: var(--ink-2); white-space: pre-line; overflow-wrap: anywhere; }
+
+.staff-tag {
+  display: inline-flex; align-items: center; gap: var(--s1);
+  min-height: 22px; padding: 0 var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--fill); color: var(--ink-3);
+  font-size: var(--t-cap); font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.staff-tag .icon { width: 12px; height: 12px; }
+
+/* Disclosures in project panels: the leading glyph stays put, only the chevron turns */
+.project details.disclosure > summary > .icon:not(:last-child) { width: 18px; height: 18px; color: var(--ink-2); }
+.project details.disclosure[open] > summary > .icon:not(:last-child) { transform: none; }
+
+/* Staff tools: a quiet row at the foot of the panel, opening into a tray */
+details.staff-tool { margin-top: var(--s4); border-top: 1px solid var(--line); }
+details.staff-tool > summary { gap: var(--s2); padding-bottom: var(--s2); }
+.project details.staff-tool > summary > .icon:first-child {
+  width: 28px; height: 28px; padding: 6px;
+  border-radius: 50%;
+  background: var(--fill); color: var(--ink-2);
+}
+details.staff-tool > summary > .staff-tag { margin-left: auto; }
+details.staff-tool > summary > .icon:last-child { margin-left: 0; }
+details.staff-tool > form {
+  margin-bottom: var(--s1);
+  padding: var(--s4);
+  border-radius: var(--inset-radius);
+  background: var(--surface-2);
+}
+details.staff-tool > :not(summary):last-child { padding-bottom: var(--s4); }
+
+/* ---------------------------------------------------------
+   Brief: received banner, original request, quote
+   --------------------------------------------------------- */
+.brief-received {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s4);
+  padding: clamp(20px, 2.4vw, 28px);
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, var(--accent-bg), var(--surface) 72%);
+  box-shadow: var(--sh-1);
+}
+.brief-received-icon {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent);
+}
+.brief-received-icon .icon { width: 22px; height: 22px; stroke-width: 2.2; }
+.brief-received .eyebrow { color: var(--accent); }
+.brief-received h2 { margin-top: var(--s1); font-size: var(--t-title2); }
+.brief-received p:not(.eyebrow) { margin-top: var(--s2); max-width: 56ch; font-size: var(--t-callout); line-height: 1.5; color: var(--ink-2); }
+.brief-received .text-link { margin-top: var(--s3); font-size: var(--t-callout); }
+
+.brief-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.brief-facts li {
+  display: grid; gap: 2px; min-width: 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.brief-facts span { font-size: var(--t-cap); color: var(--ink-3); }
+.brief-facts strong { font-size: var(--t-callout); line-height: 1.3; font-weight: 600; overflow-wrap: anywhere; }
+@container project (min-width: 1100px) {
+  .brief-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.request-expand { border-top: 1px solid var(--line); }
+.request-answers { display: grid; gap: var(--s4); }
+.request-answer h3 { font-size: var(--t-foot); line-height: 1.35; font-weight: 600; letter-spacing: 0; color: var(--ink-3); }
+.request-answer p { margin-top: var(--s1); max-width: 70ch; font-size: var(--t-callout); line-height: 1.5; color: var(--ink-2); white-space: pre-line; overflow-wrap: anywhere; }
+.quote-total { font-size: var(--t-title3); font-weight: 650; color: var(--ink); }
+
+/* ---------------------------------------------------------
+   Il progetto and the quote acceptance
+   --------------------------------------------------------- */
+.accept-quote {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s4) var(--s5);
+  border-radius: var(--inset-radius);
+  background: var(--accent-bg);
+  scroll-margin-top: calc(var(--topbar-h, 64px) + var(--s6));
+}
+.accept-quote > div { flex: 1 1 16rem; }
+.accept-quote p { margin-top: 2px; font-size: var(--t-foot); color: var(--ink-2); }
+
+/* ---------------------------------------------------------
+   Rows: tranches and milestones
+   --------------------------------------------------------- */
+.installment-row, .milestone-row {
+  display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: var(--s3) var(--s4);
+  padding: var(--s4) 0;
+  border-top: 1px solid var(--line);
+}
+:is(.installment-list, .milestone-list) > :first-child { border-top: 0; padding-top: var(--s1); }
+.milestone-marker {
+  display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--fill); color: var(--ink-2);
+  font-size: var(--t-cap); font-weight: 650;
+}
+.milestone-marker .icon { width: 16px; height: 16px; stroke-width: 2.2; }
+:is(.installment-row.is-paid, .milestone-row.is-done) .milestone-marker { background: var(--ok-bg); color: var(--ok); }
+.installment-row.is-due .milestone-marker { background: var(--accent); color: var(--on-accent); }
+:is(.installment-info, .milestone-info) { min-width: 0; }
+:is(.installment-info, .milestone-info) strong { display: block; font-size: var(--t-callout); line-height: 1.3; font-weight: 600; overflow-wrap: anywhere; }
+:is(.installment-info, .milestone-info) small { display: block; margin-top: 2px; color: var(--ink-3); overflow-wrap: anywhere; }
+.milestone-row.is-late small { color: var(--warn); }
+/* The side column is narrow: the toggle sits under the title */
+.project-side .milestone-row { grid-template-columns: 32px minmax(0, 1fr); align-items: start; }
+.project-side .milestone-row > .milestone-marker { margin-top: -4px; }
+.project-side .milestone-row > form { grid-column: 2; }
+.milestone-row.is-done strong { color: var(--ink-2); }
+
+.installment-row.is-due {
+  margin-inline: calc(-1 * var(--s3)); padding-inline: var(--s3);
+  border-top-color: transparent;
+  border-radius: var(--r-md);
+  background: var(--accent-bg);
+}
+.installment-row.is-due + .installment-row { border-top-color: transparent; }
+.installment-amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); text-align: right; }
+.installment-amount strong { font-size: var(--t-callout); font-weight: 650; white-space: nowrap; }
+.installment-amount small { color: var(--ink-3); white-space: nowrap; }
+.badge.is-due { background: var(--accent); color: var(--on-accent); }
+.installment-release { margin-top: var(--s1); margin-left: calc(-1 * var(--s3)); }
+.installment-release .button { padding-inline: var(--s3); }
+
+/* ---------------------------------------------------------
+   Plan builder (ui.js): rows, running total, actions
+   --------------------------------------------------------- */
+.plan-form > * + * { margin-top: var(--s4); }
+.plan-parts { display: grid; gap: var(--s3); }
+.plan-part {
+  padding: var(--s4);
+  border-radius: max(var(--r-xs), calc(var(--inset-radius) - var(--s2)));
+  background: var(--surface);
+  box-shadow: var(--sh-1);
+  animation: lumia-reveal var(--d-base) var(--ease-out);
+}
+.plan-part-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin: calc(-1 * var(--s2)) 0 var(--s3); }
+.plan-part-header strong { font-size: var(--t-callout); font-weight: 650; }
+.plan-remove { margin-right: calc(-1 * var(--s3)); }
+.plan-part-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+.plan-part .field-label { font-size: var(--t-foot); font-weight: 550; color: var(--ink-2); }
+@container project (min-width: 520px) {
+  .plan-part-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3) var(--s4); }
+}
+.plan-total {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.plan-total-label { display: grid; font-size: var(--t-callout); font-weight: 600; color: var(--ink); }
+.plan-total-label small { font-size: var(--t-foot); font-weight: 450; color: var(--ink-3); }
+.plan-total output { font-size: var(--t-title3); font-weight: 650; letter-spacing: -.01em; color: var(--ink); }
+.plan-total[data-invalid="false"] output { color: var(--ok); }
+.plan-total[data-invalid="true"] { background: var(--bad-bg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 40%, transparent); }
+.plan-total[data-invalid="true"] :is(output, small) { color: var(--bad); }
+.plan-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2); }
+@container project (max-width: 520px) {
+  .plan-actions > .button { flex: 1 1 100%; }
+}
+
+/* ---------------------------------------------------------
+   Ledger
+   --------------------------------------------------------- */
+.project-ledger .subtext { display: block; margin-top: 2px; font-size: var(--t-foot); color: var(--ink-3); }
+.project-ledger .payment-ref { overflow-wrap: anywhere; }
+.project-ledger td.number.good { color: var(--ok); }
+.project-ledger td.number.danger { color: var(--bad); }
+.project-ledger tr.is-reversed td.number { color: var(--ink-3); }
+.project-ledger tr.reversal-row td { color: var(--ink-3); }
+.project-ledger tr.reversal-row td.number { color: var(--bad); }
+.project-ledger-manage { min-width: 9rem; }
+.payment-reversal > summary {
+  display: inline-flex; align-items: center; min-height: 32px;
+  list-style: none;
+  font-size: var(--t-foot); font-weight: 600; color: var(--bad);
+}
+.payment-reversal > summary::-webkit-details-marker { display: none; }
+.payment-reversal[open] > form { min-width: min(260px, 70vw); margin-top: var(--s2); text-align: left; }
+.payment-reversal[open] > form { animation: lumia-reveal var(--d-base) var(--ease-out); }
+@media (pointer: coarse) {
+  .payment-reversal > summary { min-height: var(--target); }
+}
+@container project (max-width: 620px) {
+  .project-ledger td.project-ledger-manage { flex-wrap: wrap; }
+  .project-ledger .payment-reversal { margin-left: auto; text-align: right; }
+}
+
+/* ---------------------------------------------------------
+   Deliveries
+   --------------------------------------------------------- */
+.delivery-list { display: grid; gap: var(--s3); }
+.delivery-card {
+  padding: var(--s4);
+  border-radius: var(--inset-radius);
+  background: var(--surface-2);
+}
+.delivery-heading { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); }
+.delivery-icon {
+  display: grid; place-items: center; flex: none;
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  background: var(--surface); color: var(--ink-2);
+  box-shadow: var(--sh-1);
+}
+.delivery-title { flex: 1 1 10rem; min-width: 0; }
+.delivery-title h3 { font-size: var(--t-callout); line-height: 1.3; font-weight: 600; letter-spacing: 0; overflow-wrap: anywhere; }
+.delivery-date { display: block; font-size: var(--t-foot); color: var(--ink-3); }
+.delivery-state {
+  display: inline-flex; align-items: center; gap: var(--s1);
+  min-height: 24px; padding: 0 var(--s3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-foot); font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.delivery-state.pending { background: var(--warn-bg); color: var(--warn); }
+.delivery-state.approved { background: var(--ok-bg); color: var(--ok); }
+.delivery-state.changes { background: var(--review-bg); color: var(--review); }
+.delivery-description { margin-top: var(--s3); max-width: 64ch; font-size: var(--t-callout); line-height: 1.5; color: var(--ink-2); white-space: pre-line; overflow-wrap: anywhere; }
+.delivery-actions { margin-top: var(--s4); }
+.delivery-review { margin-top: var(--s4); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.delivery-review-title { font-size: var(--t-callout); font-weight: 600; color: var(--ink); }
+.delivery-review-actions { margin-top: var(--s3); }
+.delivery-changes { margin-top: var(--s2); }
+.delivery-changes > summary { min-height: var(--target); padding: 0; color: var(--accent); }
+.delivery-review > .fineprint { margin-top: var(--s2); }
+.delivery-feedback {
+  margin-top: var(--s4); padding: var(--s3) var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--review);
+}
+.delivery-feedback strong { font-size: var(--t-foot); color: var(--ink-3); }
+.delivery-feedback p { margin-top: 2px; font-size: var(--t-callout); color: var(--ink-2); white-space: pre-line; overflow-wrap: anywhere; }
+.delivery-panel > details.staff-tool { margin-top: var(--s4); }
+
+/* ---------------------------------------------------------
+   Conversation
+   --------------------------------------------------------- */
+.conversation-messages { display: grid; gap: var(--s5); }
+.conversation-message { display: flex; align-items: flex-start; gap: var(--s3); min-width: 0; }
+.conversation-message > .avatar { width: 32px; height: 32px; font-size: 13px; }
+.message-content { min-width: 0; max-width: min(100%, 60ch); }
+.message-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--s2); font-size: var(--t-foot); line-height: 1.35; }
+.message-meta strong { font-weight: 600; }
+.message-meta time { font-size: var(--t-cap); color: var(--ink-3); }
+.team-label { color: var(--accent); font-weight: 550; }
+.message-internal { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; color: var(--warn); }
+.message-internal .icon { width: 13px; height: 13px; }
+.message-bubble {
+  margin-top: var(--s1);
+  padding: var(--s3) var(--s4);
+  border-radius: 4px 18px 18px 18px;
+  background: var(--surface-2);
+  font-size: var(--t-callout); line-height: 1.5; color: var(--ink-2);
+  white-space: pre-line; overflow-wrap: anywhere;
+}
+.own-message { flex-direction: row-reverse; }
+.own-message .message-content { margin-left: auto; text-align: left; }
+.own-message .message-meta { justify-content: flex-end; }
+.own-message .message-bubble { border-radius: 18px 4px 18px 18px; background: var(--accent-bg); color: var(--ink); }
+.internal-message .message-bubble {
+  background: var(--warn-bg); color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 22%, transparent);
+}
+.conversation-empty { justify-content: flex-start; }
+
+.message-compose { margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); }
+.compose-field textarea { min-height: 96px; border-radius: var(--r-md); background-color: var(--surface-2); border-color: transparent; }
+html[data-theme="dark"] .compose-field textarea { background-color: var(--field); }
+.compose-field textarea:focus { border-color: var(--accent); }
+.compose-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); margin-top: var(--s3); }
+.compose-actions > .button { margin-left: auto; }
+.compose-internal { display: inline-flex; align-items: center; gap: var(--s1); }
+.compose-internal .icon { width: 16px; height: 16px; color: var(--warn); }
+
+/* ---------------------------------------------------------
+   Side column: team tools, support
+   --------------------------------------------------------- */
+.manage-stage .field-label { display: block; margin-bottom: var(--s2); }
+.manage-stage-row { display: flex; gap: var(--s2); }
+.manage-stage-row select { flex: 1 1 auto; min-width: 0; }
+.manage-stage-row .button { flex: none; }
+.manage-links { margin-top: var(--s4); padding-top: var(--s2); border-top: 1px solid var(--line); }
+.manage-link {
+  display: flex; align-items: center; gap: var(--s3);
+  min-height: var(--target); margin-inline: calc(-1 * var(--s2)); padding: 0 var(--s2);
+  border-radius: var(--r-sm);
+  font-size: var(--t-callout); font-weight: 500; color: var(--ink-2);
+}
+.manage-link .icon { width: 18px; height: 18px; color: var(--ink-3); }
+.manage-link .icon:last-child { width: 16px; height: 16px; margin-left: auto; color: var(--ink-4); }
+.manage-link:active { background: var(--fill); }
+@media (hover: hover) and (pointer: fine) {
+  .manage-link:hover { background: var(--fill); color: var(--ink); }
+}
+
+.support-mark {
+  display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  background: var(--accent-bg); color: var(--accent);
+}
+.support-copy { font-size: var(--t-callout); line-height: 1.5; color: var(--ink-3); }
+.support-request { border-top: 1px solid var(--line); }
+.support-request .form-actions { justify-content: space-between; }
+
+/* ---------------------------------------------------------
+   History
+   --------------------------------------------------------- */
+.project-history { padding-block: var(--s1); }
+.project-history > details > summary { gap: var(--s3); }
+.project-history > details > summary .pill { min-height: 22px; }
+.audit-list { position: relative; display: grid; gap: var(--s4); padding-left: var(--s6); }
+.audit-list::before {
+  content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px;
+  width: 1.5px; border-radius: 2px; background: var(--line-2);
+}
+.audit-list li { position: relative; min-width: 0; }
+.audit-list li::before {
+  content: ""; position: absolute; left: calc(-1 * var(--s6) + 1px); top: 6px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface); box-shadow: inset 0 0 0 2px var(--ink-4);
+}
+.audit-list li:first-child::before { box-shadow: inset 0 0 0 2px var(--accent); }
+.audit-list strong { font-size: var(--t-callout); font-weight: 600; }
+.audit-list p { margin-top: 2px; font-size: var(--t-foot); line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
+.audit-list small { display: block; margin-top: 2px; font-size: var(--t-cap); color: var(--ink-3); }
+
+/* ---------------------------------------------------------
+   Phones
+   --------------------------------------------------------- */
+@container project (max-width: 620px) {
+  .callout-main, .callout-pay { padding: var(--s6) var(--s5); }
+  .support-options { gap: var(--s1) var(--s5); }
+  .project-eta { padding: 0; background: none; box-shadow: none; }
+  .project-eta > .icon { width: 32px; height: 32px; padding: 7px; }
+  .milestone-row { grid-template-columns: 32px minmax(0, 1fr); }
+  .milestone-row > form { grid-column: 2; }
+  .project-stats { gap: var(--s4) var(--s3); }
+  .message-content { max-width: calc(100% - 44px); }
+  .manage-stage-row { flex-wrap: wrap; }
+  .manage-stage-row .button { flex: 1 1 100%; }
+  .accept-quote .button { flex: 1 1 100%; }
+}
+
+/* ---------------------------------------------------------
+   Preferences
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .callout-pulse::after { animation: none; }
+  .plan-part, .payment-reversal[open] > form { animation-name: lumia-fade-in; }
+}
+@media (prefers-contrast: more) {
+  .payment-callout, .project-eta, .brief-received { box-shadow: 0 0 0 1px var(--line-2); }
+  .payment-callout::before { display: none; }
+  .section-empty, .delivery-card, .brief-facts li, details.staff-tool > form { box-shadow: inset 0 0 0 1px var(--line-2); }
+}
