@@ -1,0 +1,105 @@
+/* =========================================================
+   Lumia "Bianco": sign-in, error and PayPal return.
+   One centred card with the brand tile, on --canvas-alt with
+   a faint ice glow. Loaded after base.css.
+   ========================================================= */
+
+body.auth-page {
+  display: grid; place-content: center; justify-items: center; gap: var(--s6);
+  min-height: 100vh; min-height: 100dvh;
+  padding:
+    calc(var(--s7) + env(safe-area-inset-top, 0px))
+    max(var(--gutter), env(safe-area-inset-right, 0px))
+    calc(var(--s7) + env(safe-area-inset-bottom, 0px))
+    max(var(--gutter), env(safe-area-inset-left, 0px));
+  background:
+    radial-gradient(60% 46% at 50% 30%, rgba(var(--glow), .13), rgba(var(--glow), .04) 55%, rgba(var(--glow), 0) 80%),
+    var(--canvas-alt);
+}
+html[data-theme="dark"] body.auth-page {
+  background:
+    radial-gradient(60% 46% at 50% 30%, rgba(var(--glow), .1), rgba(var(--glow), .03) 55%, rgba(var(--glow), 0) 80%),
+    var(--canvas-alt);
+}
+
+/* ---------- Card ---------- */
+.auth-card {
+  display: flex; flex-direction: column; align-items: center;
+  width: min(440px, 100%);
+  padding: clamp(var(--s7), 6vw, var(--s9)) clamp(var(--s5), 5vw, var(--s9));
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+  text-align: center;
+  animation: auth-in var(--d-slow) var(--ease-out) both;
+}
+
+/* ---------- Brand tile ---------- */
+.auth-mark {
+  position: relative; display: grid; place-items: center;
+  width: 88px; height: 88px; margin-bottom: var(--s5);
+  border-radius: 24px;
+}
+.brand-tile {
+  position: relative; display: block; flex: none;
+  width: 64px; height: 64px; border-radius: 15px; overflow: hidden;
+  background: #000;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 10px 22px -8px rgba(0, 0, 0, .3), 0 22px 40px -20px rgba(10, 40, 80, .35);
+}
+.brand-tile img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.24); }
+.tile-edge {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(155deg, rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, .07) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .6);
+}
+html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 1px rgba(255, 255, 255, .1), 0 12px 30px -10px rgba(var(--glow), .3); }
+
+/* PayPal return: an arc circles the tile while the payment is checked */
+.auth-mark.is-busy::after {
+  content: ""; position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(var(--glow), 0) 0deg, var(--accent) 300deg, rgba(var(--glow), 0) 300.5deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  animation: lumia-spin 1100ms linear infinite;
+}
+
+/* ---------- Copy ---------- */
+.auth-status { margin-bottom: var(--s3); }
+.auth-card h1 {
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem); line-height: 1.08;
+  letter-spacing: -.032em; font-weight: 700;
+  font-feature-settings: var(--font-features-display);
+}
+.auth-lede {
+  margin-top: var(--s3); max-width: 32ch;
+  font-size: var(--t-body); line-height: 1.47; color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Actions ---------- */
+.auth-actions { display: flex; flex-direction: column; align-items: center; gap: var(--s4); width: 100%; margin-top: var(--s7); }
+.auth-actions form { width: 100%; }
+.auth-actions .button.large { width: 100%; }
+
+.auth-note {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  margin-top: var(--s6); padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-foot); line-height: 1.45; color: var(--ink-3); text-align: left;
+}
+.auth-note .icon { width: 16px; height: 16px; margin-top: 1px; color: var(--ink-3); }
+
+.auth-foot { font-size: var(--t-foot); }
+
+/* ---------- Motion ---------- */
+@keyframes auth-in { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation-name: lumia-fade-in; }
+  .auth-mark.is-busy::after { background: var(--accent); opacity: .5; animation: lumia-breathe var(--d-slow) var(--ease-in-out) infinite alternate; }
+}
+
+@media (prefers-contrast: more) {
+  .auth-card { box-shadow: 0 0 0 1px var(--line-2); }
+}
