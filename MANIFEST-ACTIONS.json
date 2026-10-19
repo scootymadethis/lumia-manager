@@ -1,0 +1,8 @@
+{
+  ".github/workflows/deploy.yml": "e0e6182f607b3665eb9d30eda62b7fe9a8bcfe5e604a93d82d7b4a825c9beea0",
+  ".gitattributes": "cbf43dd44cb60765f0d4919b64d20282fd2f236c5f588250a55e02ab747d8017",
+  "scripts/deploy.sh": "c08b997b1d38149b8273d92ec83c16e5bcaf6b515d3c0ef227ba65b2f147ffbb",
+  "scripts/deploy_checks.py": "193be2b4c0114c3fc78d59fba06e48f6b26599453b91497a04c51bfbcefd865f",
+  "tests/test_deploy_checks.py": "13962e6068d237cf1b0423329fd6ee5b4ebbaa27ab9e1ecdda7ff4a126f62b9d",
+  "GITHUB-ACTIONS.md": "3695c5a93621643da138f11b45cbc1b6bd663050a5d61434c9194840ac6bd5ed"
+}
