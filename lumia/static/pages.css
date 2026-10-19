@@ -1,2 +1,421 @@
-/* Lumia "Bianco": activity, agenda, customers, payments and settings.
-   Loaded on every dashboard page after board.css. Filled in by Task 8. */
+/* =========================================================
+   Lumia "Bianco": activity, agenda, customers, payments, settings.
+   Loaded on every dashboard page after board.css. Every rule is
+   scoped to a class these pages own, so nothing leaks elsewhere.
+   Builds on base.css (panel, data-table, empty-state, pill, badge,
+   progress, disclosure) and workspace.css (page shell).
+   ========================================================= */
+
+/* Shared rhythm between the stacked sections of these pages */
+.workspace { --pages-gap: clamp(12px, 1.4vw, 20px); }
+
+/* A list row that behaves like a pressable cell (activity, agenda):
+   the hit area bleeds into the panel padding, hairlines are inset
+   past the leading glyph, like grouped lists on iOS. */
+:is(.activity-item, .agenda-row) {
+  position: relative;
+  display: grid; align-items: center;
+  margin-inline: calc(-1 * var(--s3));
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  color: inherit;
+  -webkit-touch-callout: none;
+  transition: transform var(--d-press) var(--ease-out);
+}
+:is(.activity-item, .agenda-row):active { transform: scale(.99); }
+:is(.activity-list, .agenda-list) > li + li > :is(.activity-item, .agenda-row)::before {
+  content: "";
+  position: absolute; top: 0; right: var(--s3); left: var(--row-inset);
+  height: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.activity-item, .agenda-row):hover { background: var(--surface-2); }
+  :is(.activity-item, .agenda-row):hover::before,
+  :is(.activity-list, .agenda-list) > li:hover + li > :is(.activity-item, .agenda-row)::before { opacity: 0; }
+  :is(.activity-item, .agenda-row):hover :is(.activity-go, .agenda-go) { color: var(--ink-3); transform: translateX(2px); }
+}
+:is(.activity-go, .agenda-go) {
+  width: 16px; height: 16px;
+  color: var(--ink-4);
+  transition: transform var(--d-fast) var(--ease-out);
+}
+:is(.activity-day, .agenda-month) {
+  padding: var(--s5) 0 var(--s2);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 600; letter-spacing: var(--tr-text);
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------
+   Attività
+   --------------------------------------------------------- */
+.activity-feed { padding-top: var(--s1); padding-bottom: var(--s3); }
+.activity-feed > .empty-state { padding-block: var(--s9); }
+.activity-item {
+  --row-inset: calc(var(--s3) + 40px + var(--s4));
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  align-items: start;
+  gap: var(--s4);
+  padding-block: var(--s4);
+}
+.activity-item > .activity-go { align-self: center; }
+.activity-symbol {
+  position: relative;
+  display: grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--accent-bg); color: var(--accent);
+}
+.activity-symbol .icon { width: 20px; height: 20px; }
+.activity-item.kind-note .activity-symbol { background: var(--fill); color: var(--ink-2); }
+.activity-item.kind-delivery .activity-symbol { background: var(--ok-bg); color: var(--ok); }
+.activity-item.kind-review .activity-symbol { background: var(--review-bg); color: var(--review); }
+/* Unread: a blue dot on the glyph, like Mail, and a heavier subject */
+.activity-item.unread .activity-symbol::after {
+  content: "";
+  position: absolute; top: -1px; right: -1px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2.5px var(--surface);
+}
+.activity-body { display: grid; gap: 2px; min-width: 0; }
+.activity-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2);
+  font-size: var(--t-foot); line-height: 1.35; color: var(--ink-3);
+}
+.activity-meta strong { font-size: var(--t-callout); font-weight: 600; color: var(--ink); }
+.activity-time { color: var(--ink-3); }
+.activity-item.unread .activity-time { color: var(--accent); font-weight: 600; }
+.internal-label {
+  display: inline-flex; align-items: center; gap: 3px;
+  min-height: 20px; padding: 0 var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--fill); color: var(--ink-2);
+  font-size: var(--t-cap); font-weight: 600; line-height: 1;
+}
+.internal-label .icon { width: 12px; height: 12px; }
+.activity-title {
+  font-size: var(--t-foot); line-height: 1.35; font-weight: 550; color: var(--ink-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.activity-item.unread .activity-title { color: var(--ink); font-weight: 650; }
+.activity-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 620px) {
+  .activity-item { --row-inset: calc(var(--s3) + 36px + var(--s3)); grid-template-columns: 36px minmax(0, 1fr) 16px; gap: var(--s3); }
+  .activity-symbol { width: 36px; height: 36px; }
+  .activity-symbol .icon { width: 18px; height: 18px; }
+}
+
+/* ---------------------------------------------------------
+   Agenda
+   --------------------------------------------------------- */
+.agenda-panel {
+  /* Calendar red: white text stays AA (5.6:1) in both themes */
+  --cal-top: #c0311f;
+  padding-bottom: var(--s3);
+}
+.agenda-panel > .panel-heading { margin-bottom: 0; }
+.agenda-panel > .empty-state { padding-block: var(--s9); }
+.agenda-row {
+  --row-inset: calc(var(--s3) + 52px + var(--s4));
+  grid-template-columns: 52px minmax(0, 1fr) auto 16px;
+  grid-template-areas: "tile body state go";
+  gap: var(--s4);
+}
+.date-tile {
+  grid-area: tile;
+  display: grid;
+  width: 52px;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-2), var(--sh-1);
+  text-align: center;
+}
+html[data-theme="dark"] .date-tile { background: var(--surface-2); }
+.date-tile small {
+  padding: 3px 0 2px;
+  background: var(--cal-top); color: #fff;
+  font-size: 10.5px; line-height: 1.2; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.date-tile strong {
+  padding: 3px 0 6px;
+  font-size: 1.5rem; line-height: 1.1; font-weight: 700; letter-spacing: -.03em;
+  color: var(--ink);
+}
+.agenda-row.is-today .date-tile { box-shadow: 0 0 0 2px var(--accent), var(--sh-1); }
+.agenda-body { grid-area: body; display: grid; gap: 1px; min-width: 0; }
+.agenda-kind {
+  display: inline-flex; align-items: center; gap: var(--s1);
+  font-size: var(--t-cap); line-height: 1.3; font-weight: 600;
+  color: var(--accent);
+}
+.agenda-kind .icon { width: 14px; height: 14px; }
+.agenda-row.kind-tranche .agenda-kind { color: var(--ok); }
+.agenda-title {
+  font-size: var(--t-callout); line-height: 1.35; font-weight: 600; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.agenda-project {
+  font-size: var(--t-foot); line-height: 1.35; color: var(--ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.agenda-state {
+  grid-area: state;
+  display: inline-flex; align-items: center; gap: var(--s1);
+  font-size: var(--t-foot); line-height: 1; font-weight: 500; color: var(--ink-3);
+  white-space: nowrap;
+}
+.agenda-row.is-overdue .agenda-state {
+  min-height: 24px; padding: 0 var(--s3) 0 var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--bad-bg); color: var(--bad);
+  font-weight: 600;
+}
+.agenda-state .icon { width: 14px; height: 14px; }
+.agenda-go { grid-area: go; }
+
+@media (max-width: 620px) {
+  .agenda-row {
+    grid-template-columns: 52px minmax(0, 1fr) 16px;
+    grid-template-areas: "tile body go" "tile state go";
+    row-gap: var(--s2);
+  }
+  .agenda-state { justify-self: start; }
+}
+
+/* ---------------------------------------------------------
+   Clienti
+   --------------------------------------------------------- */
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 272px), 1fr));
+  gap: var(--pages-gap);
+  min-height: 1px;
+}
+.customer-card { display: flex; flex-direction: column; gap: var(--s5); }
+.customer-head { display: flex; align-items: center; gap: var(--s3); min-width: 0; }
+.customer-head > div { min-width: 0; }
+.customer-head h2 {
+  font-size: var(--t-title3); line-height: 1.25; letter-spacing: var(--tr-title3); font-weight: 650;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.customer-head p { margin-top: 2px; font-size: var(--t-foot); color: var(--ink-3); }
+.customer-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4); margin: 0; }
+.customer-metrics > div { min-width: 0; }
+.customer-metrics dt { font-size: var(--t-foot); line-height: 1.3; font-weight: 500; color: var(--ink-3); }
+.customer-metrics dd {
+  margin: 2px 0 0;
+  font-size: var(--t-title3); line-height: 1.2; font-weight: 650; letter-spacing: -.02em; color: var(--ink);
+  white-space: nowrap;
+}
+.customer-card progress { height: 4px; margin-top: calc(-1 * var(--s2)); }
+.customer-link { align-self: flex-start; margin-top: auto; font-size: var(--t-callout); }
+.customer-grid > .customer-empty { grid-column: 1 / -1; }
+
+/* ---------------------------------------------------------
+   Pagamenti
+   --------------------------------------------------------- */
+.payment-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pages-gap);
+  margin-bottom: var(--pages-gap);
+}
+.stat-card { display: flex; flex-direction: column; min-height: 156px; }
+.stat-label {
+  display: flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 500; color: var(--ink-3);
+}
+.stat-label .icon { width: 16px; height: 16px; }
+.stat-value {
+  margin-top: var(--s3);
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); line-height: 1.05; font-weight: 700; letter-spacing: -.032em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.stat-card progress { height: 4px; margin-top: var(--s4); }
+.stat-sub { margin-top: auto; padding-top: var(--s3); font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+.stat-sub b { font-weight: 600; color: var(--ink-2); }
+
+:is(.ledger-panel, .events-panel, .checkouts-panel) + :is(.ledger-panel, .events-panel, .checkouts-panel) { margin-top: var(--pages-gap); }
+:is(.ledger-panel, .checkouts-panel) > .panel-heading { align-items: flex-start; }
+.checkouts-panel > .panel-heading { flex-wrap: nowrap; }
+.checkouts-panel > .panel-heading > div { flex: 1 1 auto; min-width: 0; }
+.panel-sub { margin-top: 2px; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+
+/* Keyboard focus on the scroll region stays inside the clipped panel */
+:is(.ledger-panel, .events-panel, .checkouts-panel) .table-scroll:focus-visible { outline-offset: -2px; border-radius: var(--r-sm); }
+.ledger-panel .table-scroll, .checkouts-panel .table-scroll { border-radius: 0; }
+
+:is(.ledger, .events, .checkouts) td { padding-block: var(--s4); }
+:is(.ledger, .events, .checkouts) .subtext {
+  display: block; margin-top: 2px;
+  font-size: var(--t-foot); line-height: 1.35; font-weight: 400; color: var(--ink-3);
+}
+.ledger-project { display: block; min-width: 0; }
+.ledger-project > a { color: var(--ink); font-weight: 600; }
+@media (hover: hover) and (pointer: fine) {
+  .ledger-project > a:hover { color: var(--accent); }
+}
+.ledger-reversal-title { color: var(--ink-2); font-weight: 500; }
+.ledger .subtext.ledger-flag {
+  display: inline-flex; align-items: center;
+  min-height: 20px; margin-top: var(--s1); padding: 0 var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--bad-bg); color: var(--bad);
+  font-size: var(--t-cap); font-weight: 600; line-height: 1;
+}
+.ledger td.number.muted { color: var(--ink-3); font-weight: 500; }
+.ledger td.number.danger { color: var(--bad); }
+.ledger-reversal td { background: color-mix(in srgb, var(--bad-bg) 55%, transparent); }
+.ledger-empty td { padding: 0; }
+.ledger-empty td.muted { padding: var(--s5) var(--panel-pad); }
+.ledger-empty .empty-state { padding-block: var(--s8); }
+
+.reference {
+  font-family: var(--mono); font-size: var(--t-foot); line-height: 1.4; color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.reference .subtext { font-family: var(--mono); }
+
+/* Payment events: a quiet disclosure, open when something needs reconciling */
+.events-panel { padding-block: 0; }
+.events-panel > details > summary { min-height: 64px; }
+.events-panel > details > summary > .icon:first-child { width: 20px; height: 20px; color: var(--ink-3); }
+.events-panel > details[open] > summary > .icon:first-child { transform: none; } /* only the chevron turns */
+.events-panel > details > summary > span:not(.pill) { flex: 1 1 auto; }
+.events-panel > details > summary > .pill { font-weight: 600; }
+.pill.warn-pill { background: var(--warn-bg); color: var(--warn); }
+.events-panel .table-scroll { margin-bottom: var(--s4); }
+.event-status {
+  display: inline-flex; align-items: center;
+  min-height: 22px; padding: 0 var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--fill); color: var(--ink-2);
+  font-size: var(--t-cap); font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.event-status.status-da_riconciliare { background: var(--warn-bg); color: var(--warn); }
+
+/* Open PayPal checkouts (staff) */
+.checkout-action { text-align: right; white-space: nowrap; }
+.checkout-action form { display: inline-flex; }
+.checkouts-note {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  padding: var(--s4) var(--panel-pad) var(--panel-pad);
+  border-top: 1px solid var(--line);
+}
+.checkouts-note .icon { width: 16px; height: 16px; margin-top: 1px; color: var(--ink-3); }
+
+@media (max-width: 900px) {
+  .payment-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .payment-stats > :first-child { grid-column: 1 / -1; }
+  .stat-card { min-height: 0; }
+}
+@media (max-width: 620px) {
+  .stat-card { --panel-pad: var(--s4); }
+  .stat-value { font-size: 1.625rem; }
+  .payment-stats > :not(:first-child) .stat-value { font-size: 1.375rem; }
+  :is(.ledger, .events, .checkouts) td { padding-block: var(--s1); }
+  .ledger-empty td, .ledger-empty td.muted { padding: 0; }
+  .data-table.stack .ledger-empty { padding: 0; background: none; }
+  .data-table.stack tr.ledger-empty td { display: block; text-align: center; }
+  .data-table.stack tr.ledger-empty td.muted { padding: var(--s3) 0; }
+  .ledger-reversal td { background: none; }
+  :is(.ledger, .events, .checkouts) td[data-label]::before { font-family: var(--font); letter-spacing: var(--tr-text); }
+  .data-table.stack tr.ledger-reversal { background: var(--bad-bg); }
+  .events-panel .table-scroll { margin-bottom: var(--s4); }
+  .events-panel .data-table.stack tbody { padding: 0; }
+  .checkout-action { padding-top: var(--s2); }
+  .data-table.stack td.checkout-action { justify-content: stretch; }
+  .checkout-action form, .checkout-action .button { width: 100%; }
+}
+
+/* ---------------------------------------------------------
+   Impostazioni: grouped lists, like Settings on iOS and macOS
+   --------------------------------------------------------- */
+.settings-stack { display: grid; gap: var(--s6); max-width: 760px; }
+.settings-group { min-width: 0; }
+.settings-caption {
+  padding: 0 var(--s5) var(--s2);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 600; letter-spacing: var(--tr-text);
+  color: var(--ink-3);
+}
+.settings-list { padding: 0; overflow: hidden; }
+.settings-row, .settings-disclosure > summary {
+  position: relative;
+  display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center;
+  gap: var(--s4);
+  min-height: 64px;
+  padding: var(--s3) var(--s5);
+}
+.settings-row + .settings-row::before {
+  content: "";
+  position: absolute; top: 0; right: 0; left: calc(var(--s5) + 32px + var(--s4));
+  height: 1px;
+  background: var(--line);
+}
+.settings-icon {
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  border-radius: var(--r-xs);
+  background: var(--ink-3); color: #fff;
+  box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .12), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+.settings-icon .icon { width: 18px; height: 18px; }
+.settings-icon.is-discord { background: #5865f2; }
+.settings-icon.is-paypal { background: #0a5bb5; }
+.settings-icon.is-shield { background: #1f7a3d; }
+.settings-icon.is-ledger { background: #8e8e93; }
+.settings-text { min-width: 0; }
+.settings-text strong { display: block; font-size: var(--t-callout); line-height: 1.3; font-weight: 600; color: var(--ink); }
+.settings-text p { margin-top: 2px; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+.settings-url { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.settings-lock { display: grid; place-items: center; color: var(--ink-4); }
+.settings-lock .icon { width: 16px; height: 16px; }
+.settings-row > .badge { justify-self: end; }
+
+.settings-disclosure > summary {
+  grid-template-columns: 32px minmax(0, 1fr) 16px;
+  font-size: var(--t-callout); font-weight: 600; color: var(--ink);
+}
+.settings-disclosure > summary > .icon:last-child { margin-left: 0; }
+.settings-disclosure > .fineprint {
+  padding: 0 var(--s5) var(--s5) calc(var(--s5) + 32px + var(--s4));
+  max-width: 64ch;
+  font-size: var(--t-callout); line-height: 1.55;
+}
+@media (hover: hover) and (pointer: fine) {
+  .settings-disclosure > summary:hover { background: var(--surface-2); color: var(--ink); }
+}
+@media (max-width: 620px) {
+  .settings-caption { padding-inline: var(--s4); }
+  .settings-row, .settings-disclosure > summary { padding-inline: var(--s4); gap: var(--s3); }
+  .settings-row + .settings-row::before { left: calc(var(--s4) + 32px + var(--s3)); }
+  .settings-disclosure > .fineprint { padding: 0 var(--s4) var(--s4); }
+}
+
+/* ---------------------------------------------------------
+   Preferences
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :is(.activity-item, .agenda-row), :is(.activity-go, .agenda-go) { transition: none; }
+  :is(.activity-item, .agenda-row):active { transform: none; }
+  @media (hover: hover) and (pointer: fine) {
+    :is(.activity-item, .agenda-row):hover :is(.activity-go, .agenda-go) { transform: none; }
+  }
+}
+@media (prefers-contrast: more) {
+  :is(.activity-list, .agenda-list) > li + li > :is(.activity-item, .agenda-row)::before,
+  .settings-row + .settings-row::before { background: var(--line-2); }
+  .date-tile { box-shadow: inset 0 0 0 1px var(--line-2); }
+}

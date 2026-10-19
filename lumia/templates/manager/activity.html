@@ -1,2 +1,33 @@
-<section class="page-heading"><div><p class="eyebrow">Restiamo allineati</p><h1>Attività.</h1><p>Conversazioni, consegne e revisioni dei tuoi progetti.</p></div><form action="/activity/read" method="post">{{ csrf(user) }}<button class="button secondary" {% if demo %}disabled{% endif %}>{{ icon('check') }} Segna come lette</button></form></section>
-<section class="panel activity-feed" data-tour="activity">{% for item in activity %}<a class="activity-item {{ 'unread' if item.created>read_at and item.author!=user.id else '' }}" href="/orders/{{ item.order_id }}{{ suffix }}#{{ 'conversation' if item.kind in ['message','note'] else 'deliveries' }}"><span class="activity-symbol">{{ icon('messages' if item.kind=='message' else 'lock' if item.kind=='note' else 'box') }}</span><div><div class="activity-meta"><strong>{{ item.author_name }}</strong><span>{{ item.created|date }}</span>{% if item.kind=='note' %}<span class="internal-label">Nota interna</span>{% endif %}</div><h2>{{ item.title }}</h2><p>{{ item.text }}</p></div>{{ icon('arrow') }}</a>{% else %}<div class="calm-empty">{{ icon('bell') }}<h3>Qui arriva ciò che conta.</h3><p>Troverai i nuovi messaggi e gli aggiornamenti delle consegne.</p></div>{% endfor %}</section>
+{% set today_label = today[8:] ~ '/' ~ today[5:7] ~ '/' ~ today[:4] %}
+{% set month_names = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'] %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{% if unread %}{{ unread }} novità da leggere{% else %}Sei in pari{% endif %}</p>
+    <h1>Attività</h1>
+    <p class="lede">Conversazioni, consegne e revisioni dei tuoi progetti, in ordine di arrivo.</p>
+  </div>
+  {% if activity %}<div class="page-actions">
+    <form action="/activity/read" method="post">{{ csrf(user) }}<button type="submit" class="button secondary" {% if demo %}disabled{% endif %}>{{ icon('check') }}<span>Segna come lette</span></button></form>
+  </div>{% endif %}
+</section>
+
+<section class="panel activity-feed" data-tour="activity" aria-labelledby="activity-title">
+  <h2 class="sr-only" id="activity-title">Ultime attività</h2>
+  {% for item in activity %}
+    {% set day = (item.created|date)[:10] %}
+    {% set fresh = item.created > read_at and item.author != user.id %}
+    {% if loop.changed(day) %}{% if not loop.first %}</ol>{% endif %}<h3 class="activity-day">{% if day == today_label %}Oggi{% else %}{{ day[:2]|int }} {{ month_names[day[3:5]|int - 1] }}{% if day[6:] != today[:4] %} {{ day[6:] }}{% endif %}{% endif %}</h3><ol class="activity-list">{% endif %}
+    <li><a class="activity-item {{ 'unread' if fresh else '' }} kind-{{ item.kind }}" href="/orders/{{ item.order_id }}{{ suffix }}#{{ 'conversation' if item.kind in ['message','note'] else 'deliveries' }}">
+      <span class="activity-symbol">{{ icon('messages' if item.kind=='message' else 'lock' if item.kind=='note' else 'box') }}</span>
+      <span class="activity-body">
+        <span class="activity-meta"><strong>{{ item.author_name }}</strong><span class="activity-time tnum">{{ (item.created|date)[12:] }}</span>{% if item.kind=='note' %}<span class="internal-label">{{ icon('lock') }}Nota interna</span>{% endif %}{% if fresh %}<span class="sr-only">, non letta</span>{% endif %}</span>
+        <span class="activity-title">{{ item.title }}</span>
+        <span class="activity-text">{{ item.text }}</span>
+      </span>
+      {{ icon('chevron', 'activity-go') }}
+    </a></li>
+    {% if loop.last %}</ol>{% endif %}
+  {% else %}
+    <div class="empty-state">{{ icon('bell') }}<h3>Qui arriva ciò che conta.</h3><p>Troverai i nuovi messaggi e gli aggiornamenti delle consegne, appena succedono.</p></div>
+  {% endfor %}
+</section>

@@ -1,2 +1,32 @@
-<section class="page-heading"><div><p class="eyebrow">Il tempo, organizzato</p><h1>Agenda.</h1><p>Milestone e tranche con una data concordata.</p></div><a class="button secondary" href="/orders{{ suffix }}">Apri i progetti {{ icon('arrow') }}</a></section>
-<section class="panel agenda-panel" data-tour="agenda"><div class="panel-heading"><h2>Prossimi impegni</h2><span class="pill">{{ agenda|length }} date</span></div>{% for item in agenda %}<a class="agenda-row {{ 'is-overdue' if item.overdue else '' }}" href="{{ item.url }}"><span class="date-tile"><strong>{{ item.date[8:] }}</strong><small>{{ item.date[5:7] }}/{{ item.date[:4] }}</small></span><div><span class="eyebrow">{{ item.kind }}</span><strong>{{ item.title }}</strong><p>{{ item.project }}</p></div><span class="agenda-state">{{ 'Data trascorsa' if item.overdue else 'In programma' }}</span>{{ icon('arrow') }}</a>{% else %}<div class="calm-empty">{{ icon('calendar') }}<h3>Nessuna data in programma.</h3><p>Le milestone e le tranche datate appariranno qui.</p></div>{% endfor %}</section>
+{% set months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'] %}
+{% set month_names = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'] %}
+{% set overdue_count = agenda|selectattr('overdue')|list|length %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{% if overdue_count %}{{ overdue_count }} {{ 'data trascorsa' if overdue_count == 1 else 'date trascorse' }}{% else %}Il tempo, organizzato{% endif %}</p>
+    <h1>Agenda</h1>
+    <p class="lede">Milestone e tranche con una data concordata, dalla più vicina.</p>
+  </div>
+  <div class="page-actions"><a class="button secondary" href="/orders{{ suffix }}">Apri i progetti {{ icon('arrow') }}</a></div>
+</section>
+
+<section class="panel agenda-panel" data-tour="agenda" aria-labelledby="agenda-title">
+  <div class="panel-heading"><h2 id="agenda-title">Prossimi impegni</h2><span class="pill">{{ agenda|length }} {{ 'data' if agenda|length == 1 else 'date' }}</span></div>
+  {% for item in agenda %}
+    {% set month = item.date[5:7]|int %}
+    {% if loop.changed(item.date[:7]) %}{% if not loop.first %}</ol>{% endif %}<h3 class="agenda-month">{{ month_names[month - 1] }} <span class="tnum">{{ item.date[:4] }}</span></h3><ol class="agenda-list">{% endif %}
+    <li><a class="agenda-row {{ 'is-overdue' if item.overdue else 'is-today' if item.date == today else '' }} kind-{{ item.kind|lower }}" href="{{ item.url }}">
+      <span class="date-tile" aria-hidden="true"><small>{{ months[month - 1] }}</small><strong class="tnum">{{ item.date[8:]|int }}</strong></span>
+      <span class="agenda-body">
+        <span class="agenda-kind">{{ icon('flag' if item.kind == 'Milestone' else 'euro') }}{{ item.kind }}<span class="sr-only">, {{ item.date[8:] }}/{{ item.date[5:7] }}/{{ item.date[:4] }}</span></span>
+        <span class="agenda-title">{{ item.title }}</span>
+        <span class="agenda-project">{{ item.project }}</span>
+      </span>
+      <span class="agenda-state">{% if item.overdue %}{{ icon('clock') }}Data trascorsa{% else %}In programma{% endif %}</span>
+      {{ icon('chevron', 'agenda-go') }}
+    </a></li>
+    {% if loop.last %}</ol>{% endif %}
+  {% else %}
+    <div class="empty-state">{{ icon('calendar') }}<h3>Nessuna data in programma.</h3><p>Le milestone e le tranche con una data appariranno qui, in ordine di scadenza.</p></div>
+  {% endfor %}
+</section>

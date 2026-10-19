@@ -1,1 +1,21 @@
-{% if user.staff and paypal_checkouts %}<section class="panel panel-spaced"><div class="panel-heading"><h2>Checkout PayPal aperti</h2></div><div class="table-scroll" tabindex="0" role="region" aria-label="Pagamenti PayPal da verificare"><table><thead><tr><th>Progetto</th><th>Importo</th><th>Riferimento</th><th>Verifica</th></tr></thead><tbody>{% for c in paypal_checkouts %}<tr><td><a href="/orders/{{ c.order_id }}">{{ c.title }}</a></td><td>{{ c.amount_cents|money }}</td><td class="reference">{{ c.session_id }}</td><td><form method="post" action="/payments/paypal/{{ c.session_id }}/verify">{{ csrf(user) }}<button class="button secondary small" {% if demo %}disabled{% endif %}>Verifica con PayPal</button></form></td></tr>{% endfor %}</tbody></table></div><p class="panel-body fineprint">La verifica recupera gli incassi confermati e chiude i tentativi annullati da PayPal. Non avvia addebiti o rimborsi.</p></section>{% endif %}
+{% if user.staff and paypal_checkouts %}
+<section class="panel flush checkouts-panel" aria-labelledby="checkouts-title">
+  <div class="panel-heading"><div><h2 id="checkouts-title">Checkout PayPal aperti</h2><p class="panel-sub">Tentativi di pagamento avviati e non ancora chiusi.</p></div><span class="pill">{{ paypal_checkouts|length }}</span></div>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Pagamenti PayPal da verificare">
+    <table class="data-table stack checkouts">
+      <thead><tr><th scope="col">Progetto</th><th scope="col" class="number">Importo</th><th scope="col">Riferimento</th><th scope="col"><span class="sr-only">Verifica</span></th></tr></thead>
+      <tbody>
+      {% for c in paypal_checkouts %}
+        <tr>
+          <td><a href="/orders/{{ c.order_id }}">{{ c.title }}</a></td>
+          <td data-label="Importo" class="number">{{ c.amount_cents|money }}</td>
+          <td data-label="Riferimento" class="reference">{{ c.session_id }}</td>
+          <td class="checkout-action"><form method="post" action="/payments/paypal/{{ c.session_id }}/verify">{{ csrf(user) }}<button type="submit" class="button secondary small" {% if demo %}disabled{% endif %}>{{ icon('shield') }}<span>Verifica con PayPal</span></button></form></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="fineprint checkouts-note">{{ icon('lock') }}<span>La verifica recupera gli incassi confermati e chiude i tentativi annullati da PayPal. Non avvia addebiti o rimborsi.</span></p>
+</section>
+{% endif %}

@@ -1,2 +1,43 @@
-
-<section class="page-heading"><div><h1>Impostazioni.</h1><p>Servizi e accessi.</p></div></section><div class="settings-stack"><section class="panel"><div class="settings-row"><div><strong>Discord</strong><p>Accesso e ruoli del server.</p></div><span class="badge completato">{{ 'Demo' if demo else 'Attivo' }}</span></div><div class="settings-row"><div><strong>PayPal</strong><p>Pagamento unico o per tranche.</p></div><span class="badge {{ 'completato' if paypal else 'bozza' }}">{{ 'Demo' if demo else ('Sandbox' if paypal_environment=='sandbox' else 'Live') if paypal else 'Da configurare' }}</span></div><div class="settings-row"><div><strong>Indirizzo manager</strong><p>{{ public_url }}</p></div>{{ icon('shield') }}</div></section><section class="panel"><details class="expandable"><summary>Registro e riconciliazione</summary><p class="fineprint">Gli incassi conservano lo storico. Rimborsi e contestazioni PayPal richiedono riconciliazione; i totali non rappresentano il netto fiscale. Il manager non emette fatture. Le credenziali restano nel file di ambiente del server.</p></details></section></div>
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Gestione</p>
+    <h1>Impostazioni</h1>
+    <p class="lede">Servizi collegati e accessi del manager. Si leggono qui, si configurano sul server.</p>
+  </div>
+</section>
+<div class="settings-stack">
+  <section class="settings-group" aria-labelledby="settings-services">
+    <h2 class="settings-caption" id="settings-services">Servizi</h2>
+    <div class="panel settings-list">
+      <div class="settings-row">
+        <span class="settings-icon is-discord">{{ icon('discord') }}</span>
+        <div class="settings-text"><strong>Discord</strong><p>Accesso e ruoli del server.</p></div>
+        <span class="badge completato"><span class="badge-dot"></span>{{ 'Demo' if demo else 'Attivo' }}</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-icon is-paypal">{{ icon('wallet') }}</span>
+        <div class="settings-text"><strong>PayPal</strong><p>Pagamento unico o per tranche.</p></div>
+        <span class="badge {{ 'completato' if paypal else 'bozza' }}"><span class="badge-dot"></span>{{ 'Demo' if demo else ('Sandbox' if paypal_environment=='sandbox' else 'Live') if paypal else 'Da configurare' }}</span>
+      </div>
+    </div>
+  </section>
+  <section class="settings-group" aria-labelledby="settings-access">
+    <h2 class="settings-caption" id="settings-access">Accesso</h2>
+    <div class="panel settings-list">
+      <div class="settings-row">
+        <span class="settings-icon is-shield">{{ icon('shield') }}</span>
+        <div class="settings-text"><strong>Indirizzo manager</strong><p class="settings-url">{{ public_url }}</p></div>
+        <span class="settings-lock">{{ icon('lock') }}<span class="sr-only">Sola lettura</span></span>
+      </div>
+    </div>
+  </section>
+  <section class="settings-group" aria-labelledby="settings-ledger">
+    <h2 class="settings-caption" id="settings-ledger">Contabilità</h2>
+    <div class="panel settings-list">
+      <details class="disclosure settings-disclosure">
+        <summary><span class="settings-icon is-ledger">{{ icon('list') }}</span><span>Registro e riconciliazione</span>{{ icon('chevron') }}</summary>
+        <p class="fineprint">Gli incassi conservano lo storico. Rimborsi e contestazioni PayPal richiedono riconciliazione; i totali non rappresentano il netto fiscale. Il manager non emette fatture. Le credenziali restano nel file di ambiente del server.</p>
+      </details>
+    </div>
+  </section>
+</div>
