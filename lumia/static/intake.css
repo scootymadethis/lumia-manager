@@ -290,6 +290,10 @@ html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 .5px rgba(255, 255, 255,
 
 /* ---------- Phones ---------- */
 @media (max-width: 620px) {
+  /* Room the fixed action bar takes (60px bar, its bottom offset, a 12px gap above it).
+     Focus, Tab, valid() and the #brief-error banner all scroll clear of the bar.
+     No scroll-margin on the fields: it would add to this padding and double the gap. */
+  html { scroll-padding-bottom: calc(60px + 2 * var(--s3) + env(safe-area-inset-bottom, 0px)); }
   .intake-main { padding-bottom: calc(60px + var(--s3) + env(safe-area-inset-bottom, 0px) + var(--s8)); }
   .brief-sculpture, .sculpture-tile { width: 48px; height: 48px; }
   .brief-sculpture { margin-bottom: var(--s5); }
