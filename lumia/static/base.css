@@ -115,7 +115,7 @@
     --d-press: 140ms; --d-fast: 180ms; --d-base: 240ms; --d-slow: 520ms; --d-hero: 1500ms;
 
     /* Native control artwork (data: images are allowed by both CSPs) */
-    --select-chevrons: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 9.5 4-4 4 4M8 14.5l4 4 4-4'/%3E%3C/svg%3E");
+    --select-chevrons: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 9.5 4-4 4 4M8 14.5l4 4 4-4'/%3E%3C/svg%3E");
     --check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E");
   }
 
@@ -157,8 +157,8 @@
     --segment-on: #636366;
     --scrim: rgba(0, 0, 0, .55);
 
-    --sh-1: 0 0 0 1px rgba(255, 255, 255, .06);
-    --sh-2: 0 0 0 1px rgba(255, 255, 255, .07), 0 12px 32px -12px rgba(0, 0, 0, .7);
+    --sh-1: 0 0 0 1px rgba(255, 255, 255, .06), 0 1px 3px rgba(0, 0, 0, .4);
+    --sh-2: 0 0 0 1px rgba(255, 255, 255, .07), 0 2px 6px rgba(0, 0, 0, .35), 0 12px 32px -12px rgba(0, 0, 0, .7);
     --sh-3: 0 0 0 1px rgba(255, 255, 255, .08), 0 30px 60px -20px rgba(0, 0, 0, .8);
 
     --glass-bg: rgba(30, 30, 32, .55);
@@ -167,9 +167,9 @@
     --glass-border: rgba(0, 0, 0, .45);
     --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -1px 0 rgba(255, 255, 255, .05), inset 0 0 0 1px rgba(255, 255, 255, .06);
     --glass-sheen: rgba(255, 255, 255, .1);
-    --glass-shadow: 0 12px 32px -12px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .35);
+    /* --glass-shadow stays var(--sh-2) (spec §4.4): it resolves to the dark --sh-2 here */
 
-    --select-chevrons: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398989d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 9.5 4-4 4 4M8 14.5l4 4 4-4'/%3E%3C/svg%3E");
+    --select-chevrons: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398989d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 9.5 4-4 4 4M8 14.5l4 4 4-4'/%3E%3C/svg%3E");
     --check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23001a33' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12.5 4 4 8-9'/%3E%3C/svg%3E");
   }
 
@@ -283,8 +283,14 @@
   .t-hero, .t-display { color: var(--ink); font-weight: 700; text-wrap: balance; font-feature-settings: var(--font-features-display); }
   .t-hero { font-size: var(--t-hero); line-height: .98; letter-spacing: var(--tr-hero); }
   .t-display { font-size: var(--t-display); line-height: 1.02; letter-spacing: var(--tr-display); }
+  .t-title1 { font-size: var(--t-title1); line-height: 1.08; letter-spacing: var(--tr-title1); font-weight: 700; color: var(--ink); text-wrap: balance; }
+  .t-title2 { font-size: var(--t-title2); line-height: 1.16; letter-spacing: var(--tr-title2); font-weight: 650; color: var(--ink); text-wrap: balance; }
+  .t-title3 { font-size: var(--t-title3); line-height: 1.26; letter-spacing: var(--tr-title3); font-weight: 600; color: var(--ink); text-wrap: balance; }
+  .t-callout { font-size: var(--t-callout); line-height: 1.45; letter-spacing: var(--tr-text); }
+  .t-foot { font-size: var(--t-foot); line-height: 1.4; letter-spacing: var(--tr-text); }
+  .t-cap { font-size: var(--t-cap); line-height: 1.33; letter-spacing: var(--tr-text); }
   .eyebrow { font-size: var(--t-foot); line-height: 1.35; font-weight: 600; letter-spacing: var(--tr-text); color: var(--ink-3); }
-  .lede { font-size: var(--t-lede); line-height: 1.38; letter-spacing: -.018em; font-weight: 450; color: var(--ink-3); max-width: 46ch; text-wrap: pretty; }
+  .lede { font-size: var(--t-lede); line-height: 1.38; letter-spacing: var(--tr-text); font-weight: 450; color: var(--ink-3); max-width: 46ch; text-wrap: pretty; }
   .muted { color: var(--ink-3); }
   .fineprint { font-size: var(--t-foot); line-height: 1.45; letter-spacing: var(--tr-text); color: var(--ink-3); text-wrap: pretty; }
 
@@ -295,10 +301,11 @@
     min-height: 44px; padding: 0 20px;
     border: 0; border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink);
-    font-family: inherit; font-size: var(--t-callout); font-weight: 600; line-height: 1.2; letter-spacing: -.01em;
+    font-family: inherit; font-size: var(--t-callout); font-weight: 600; line-height: 1.2; letter-spacing: var(--tr-text);
     text-align: center; text-decoration: none; white-space: nowrap;
     cursor: pointer; -webkit-user-select: none; user-select: none;
-    transition: transform var(--d-press) var(--ease-out), background-color var(--d-fast) ease, color var(--d-fast) ease, opacity var(--d-fast) ease;
+    /* Only transform and opacity move (spec §4.5); colour states switch instantly */
+    transition: transform var(--d-press) var(--ease-out), opacity var(--d-fast) ease;
   }
   .button .icon { width: 18px; height: 18px; }
   .button:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) { transform: scale(.97); }
@@ -353,9 +360,9 @@
     border: 0; border-radius: 50%;
     background: transparent; color: var(--ink-2);
     cursor: pointer;
-    transition: transform var(--d-press) var(--ease-out), background-color var(--d-fast) ease, color var(--d-fast) ease;
+    transition: transform var(--d-press) var(--ease-out);
   }
-  .icon-button:active:not(:disabled) { transform: scale(.94); }
+  .icon-button:active:not(:disabled) { transform: scale(.97); }
   .icon-button:disabled { opacity: .42; cursor: not-allowed; }
   @media (hover: hover) and (pointer: fine) {
     .icon-button:not(.glass):hover:not(:disabled) { background: var(--fill); color: var(--ink); }
@@ -367,16 +374,20 @@
 
   /* Text link */
   .text-link {
+    position: relative;
     display: inline-flex; align-items: center; gap: 4px;
     color: var(--accent); font-weight: 500;
     text-decoration: underline; text-decoration-color: transparent;
     text-decoration-thickness: 1px; text-underline-offset: .2em;
-    transition: text-decoration-color var(--d-fast) ease, color var(--d-fast) ease;
   }
-  .text-link .icon { width: 16px; height: 16px; stroke-width: 1.9; transition: transform var(--d-fast) var(--ease-out); }
+  .text-link .icon { width: 16px; height: 16px; transition: transform var(--d-fast) var(--ease-out); }
   @media (hover: hover) and (pointer: fine) {
     .text-link:hover { text-decoration-color: currentColor; }
     .text-link:hover .icon:last-child { transform: translateX(2px); }
+  }
+  @media (pointer: coarse) {
+    /* Standalone link: 44 px tap target without changing the layout */
+    .text-link::after { content: ""; position: absolute; inset: -12px -4px; }
   }
 
   /* ---------- Fields ---------- */
@@ -387,7 +398,6 @@
     background-color: var(--field); color: var(--ink);
     font-family: inherit; font-size: max(16px, 1rem); line-height: 1.35; letter-spacing: var(--tr-text);
     -webkit-appearance: none; appearance: none;
-    transition: border-color var(--d-fast) ease, background-color var(--d-fast) ease;
   }
   :where(textarea) { min-height: 112px; padding-block: 12px; line-height: 1.5; resize: vertical; }
   :where(select:not([multiple], [size])) {
@@ -420,9 +430,9 @@
     border: 1.5px solid var(--control-edge);
     background: var(--field) no-repeat center / 16px 16px;
     cursor: pointer;
-    transition: background-color var(--d-fast) ease, border-color var(--d-fast) ease, transform var(--d-press) var(--ease-out);
+    transition: transform var(--d-press) var(--ease-out);
   }
-  :where(input[type="checkbox"]) { border-radius: 7px; }
+  :where(input[type="checkbox"]) { border-radius: var(--r-xs); }
   :where(input[type="radio"]) { border-radius: 50%; }
   :where(input[type="checkbox"]):checked {
     border-color: var(--accent); background-color: var(--accent); background-image: var(--check-mark);
@@ -431,7 +441,7 @@
     border-color: var(--accent); background-color: var(--on-accent);
     box-shadow: inset 0 0 0 5px var(--accent);
   }
-  :where(input[type="checkbox"], input[type="radio"]):active:not(:disabled) { transform: scale(.92); }
+  :where(input[type="checkbox"], input[type="radio"]):active:not(:disabled) { transform: scale(.97); }
   :where(input[type="checkbox"], input[type="radio"]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   :where(input[type="checkbox"], input[type="radio"]):disabled { opacity: .45; cursor: not-allowed; }
 
@@ -444,7 +454,7 @@
   .check:has(input:disabled) { cursor: not-allowed; color: var(--ink-3); }
 
   .field { display: grid; gap: 6px; align-content: start; min-width: 0; }
-  .field-label { font-size: var(--t-callout); line-height: 1.3; font-weight: 550; letter-spacing: -.008em; color: var(--ink); }
+  .field-label { font-size: var(--t-callout); line-height: 1.3; font-weight: 550; letter-spacing: var(--tr-text); color: var(--ink); }
   .field-hint { font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
 
   .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; align-items: start; }
@@ -462,7 +472,7 @@
     min-height: 24px; padding: 0 10px;
     border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink-2);
-    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: -.003em;
+    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
     white-space: nowrap; vertical-align: middle;
   }
   .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
@@ -500,7 +510,7 @@
     gap: 8px 16px;
     margin-bottom: var(--s4);
   }
-  .panel-heading h2 { font-size: var(--t-title3); line-height: 1.26; letter-spacing: -.018em; font-weight: 650; }
+  .panel-heading h2 { font-size: var(--t-title3); line-height: 1.26; letter-spacing: var(--tr-title3); font-weight: 650; }
   .panel-heading > :not(:first-child) { flex: none; }
   .panel-heading .eyebrow + h2 { margin-top: 2px; }
   .panel-body { display: flow-root; min-width: 0; }
@@ -555,17 +565,25 @@
   .panel.flush .data-table :is(th, td):first-child { padding-left: var(--panel-pad); }
   .panel.flush .data-table :is(th, td):last-child { padding-right: var(--panel-pad); }
 
+  /* Phones: each row becomes a card (spec §4.5). Inside a panel the card
+     radius is concentric: panel radius − panel padding, never below 8 px. */
   @media (max-width: 620px) {
     .data-table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .data-table.stack, .data-table.stack tbody, .data-table.stack tr, .data-table.stack td { display: block; }
-    .data-table.stack tr { padding: 14px 0; border-bottom: 1px solid var(--line); }
-    .data-table.stack tbody tr:last-child { border-bottom: 0; }
-    .data-table.stack td { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 3px 0; border: 0; text-align: right; }
-    .data-table.stack td:first-child { justify-content: flex-start; padding-bottom: 6px; text-align: left; color: var(--ink); font-weight: 600; }
+    .data-table.stack tbody { display: grid; gap: var(--s2); }
+    .data-table.stack tr {
+      padding: var(--s3) var(--s4);
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+    }
+    .panel .data-table.stack tr { border-radius: max(var(--r-xs), calc(var(--r-lg) - var(--panel-pad))); }
+    .data-table.stack td { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); padding: var(--s1) 0; border: 0; text-align: right; }
+    .data-table.stack :is(th, td):is(:first-child, :last-child) { padding-inline: 0; }
+    .data-table.stack td:first-child { justify-content: flex-start; padding-bottom: var(--s2); text-align: left; color: var(--ink); font-weight: 600; }
     .data-table.stack td[data-label]::before { content: attr(data-label); flex: none; text-align: left; font-size: var(--t-foot); font-weight: 500; color: var(--ink-3); }
     .data-table.stack td:first-child[data-label]::before { display: none; }
-    .panel.flush .data-table.stack tr { padding-inline: var(--panel-pad); }
-    .panel.flush .data-table.stack td { padding-inline: 0; }
+    .panel.flush .data-table.stack tbody { padding: 0 var(--panel-pad) var(--panel-pad); }
+    .panel.flush .data-table.stack :is(th, td):is(:first-child, :last-child) { padding-inline: 0; }
   }
 
   /* ---------- Empty state ---------- */
@@ -610,10 +628,10 @@
     font-size: var(--t-foot); line-height: 1.4; font-weight: 500; text-align: center;
   }
   .demo-banner strong {
-    display: inline-flex; align-items: center; min-height: 20px; padding: 0 7px;
+    display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px;
     border-radius: var(--r-pill);
     background: var(--warn); color: var(--canvas);
-    font-size: var(--t-cap); font-weight: 700; letter-spacing: .04em;
+    font-size: var(--t-cap); font-weight: 700; letter-spacing: var(--tr-text);
   }
 
   /* ---------- Pill, chip, kbd ---------- */
@@ -622,7 +640,7 @@
     min-height: 26px; padding: 0 10px;
     border-radius: var(--r-pill);
     background: var(--fill); color: var(--ink-2);
-    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: -.003em;
+    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
     font-variant-numeric: tabular-nums; font-feature-settings: var(--font-features-num); white-space: nowrap;
   }
   .pill .icon { width: 14px; height: 14px; }
@@ -636,12 +654,12 @@
     box-shadow: inset 0 0 0 1px var(--line-2);
     font-size: var(--t-foot); line-height: 1; font-weight: 550; white-space: nowrap;
     text-decoration: none;
-    transition: background-color var(--d-fast) ease, color var(--d-fast) ease, transform var(--d-press) var(--ease-out);
+    transition: transform var(--d-press) var(--ease-out);
   }
   .chip .icon { width: 16px; height: 16px; }
   :is(button, a).chip { cursor: pointer; }
   :is(button, a).chip::after { content: ""; position: absolute; inset: -5px 0; }
-  :is(button, a).chip:active { transform: scale(.96); }
+  :is(button, a).chip:active { transform: scale(.97); }
   .chip:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
     background: var(--btn); color: var(--btn-ink); box-shadow: none;
   }
@@ -652,10 +670,10 @@
   .kbd {
     display: inline-grid; place-items: center;
     min-width: 22px; height: 22px; padding: 0 6px;
-    border-radius: 6px;
+    border-radius: var(--r-xs);
     background: var(--surface); color: var(--ink-3);
     box-shadow: inset 0 0 0 1px var(--line-2), 0 1px 0 var(--line-2);
-    font: 600 11px/1 var(--font); letter-spacing: 0;
+    font: 600 var(--t-cap)/1 var(--font); letter-spacing: var(--tr-text);
     white-space: nowrap;
   }
 
@@ -680,14 +698,12 @@
     display: flex; align-items: center; gap: 12px;
     min-height: 48px; padding: 10px 0;
     list-style: none;
-    font-size: var(--t-callout); font-weight: 600; letter-spacing: -.01em; color: var(--ink);
+    font-size: var(--t-callout); font-weight: 600; letter-spacing: var(--tr-text); color: var(--ink);
     cursor: pointer;
-    transition: color var(--d-fast) ease;
   }
   details.disclosure > summary::-webkit-details-marker { display: none; }
-  details.disclosure > summary::marker { content: none; }
   details.disclosure > summary > .icon {
-    width: 16px; height: 16px; stroke-width: 2; color: var(--ink-3);
+    width: 16px; height: 16px; color: var(--ink-3);
     transition: transform var(--d-base) var(--ease-out);
   }
   details.disclosure > summary > .icon:last-child { margin-left: auto; }
@@ -698,7 +714,9 @@
     details.disclosure > summary:hover { color: var(--accent); }
   }
 
-  /* ---------- Segmented control (glass) ---------- */
+  /* ---------- Segmented control (Liquid Glass, spec §4.4 "controlli") ----------
+     Same material as .glass, plus a light tonal fill so the track reads
+     on white; the selected segment is a raised solid pill. */
   .segmented {
     position: relative; isolation: isolate;
     display: inline-flex; align-items: center; gap: 2px;
@@ -707,20 +725,22 @@
     background: linear-gradient(var(--fill), var(--fill)), var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border);
+    backdrop-filter: url(#lg-refract) blur(var(--glass-blur)) saturate(180%);
+    box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border), var(--sh-1);
   }
   .segmented > :is(button, a) {
+    position: relative;
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     min-height: 32px; padding: 0 14px;
     border: 0; border-radius: var(--r-pill);
     background: transparent; color: var(--ink-2);
-    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: -.005em;
+    font-size: var(--t-foot); line-height: 1; font-weight: 600; letter-spacing: var(--tr-text);
     white-space: nowrap; text-decoration: none;
     cursor: pointer;
-    transition: background-color var(--d-fast) ease, color var(--d-fast) ease, transform var(--d-press) var(--ease-out);
+    transition: transform var(--d-press) var(--ease-out);
   }
   .segmented > :is(button, a) .icon { width: 16px; height: 16px; }
-  .segmented > :is(button, a):active { transform: scale(.96); }
+  .segmented > :is(button, a):active { transform: scale(.97); }
   .segmented > :is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
     background: var(--segment-on); color: var(--ink);
     box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 2px 8px -2px rgba(0, 0, 0, .08), 0 0 0 .5px rgba(0, 0, 0, .05);
@@ -730,7 +750,7 @@
   }
   @media (pointer: coarse) {
     /* 40px visivi + hit-slop verticale: con il padding di 3px del contenitore il bersaglio è 46px (spec §4.5, ≥ 44px). */
-    .segmented > :is(button, a) { position: relative; min-height: 40px; }
+    .segmented > :is(button, a) { min-height: 40px; }
     .segmented > :is(button, a)::after { content: ""; position: absolute; inset: -3px 0; }
   }
 
@@ -752,18 +772,25 @@
     background: var(--glass-bg-thin);
     box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border), var(--sh-1);
   }
-  /* Specular sheen: top-left by default; scripts may steer it with --glass-x / --glass-y */
-  .glass::before, .glass-strong::before, .glass-thin::before, .toast::before {
+  /* Specular sheen: a light radial gradient at the top left (spec §4.4.3). */
+  .glass::before, .glass-strong::before, .glass-thin::before, .toast::before, .segmented::before {
     content: "";
     position: absolute; inset: 0; z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    background: radial-gradient(120% 90% at var(--glass-x, 12%) var(--glass-y, 0%), var(--glass-sheen), transparent 58%);
+    background: radial-gradient(120% 90% at 12% 0%, var(--glass-sheen), transparent 58%);
     opacity: .9;
     transition: opacity var(--d-base) ease;
   }
+  /* Spec §4.4.5: the sheen follows the touched point only with a fine pointer.
+     Scripts write --glass-x / --glass-y on the glass element; touch keeps it still. */
+  @media (hover: hover) and (pointer: fine) {
+    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before, .segmented::before {
+      background: radial-gradient(120% 90% at var(--glass-x, 12%) var(--glass-y, 0%), var(--glass-sheen), transparent 58%);
+    }
+  }
   @supports (mix-blend-mode: plus-lighter) {
-    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before { mix-blend-mode: plus-lighter; opacity: .55; }
+    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before, .segmented::before { mix-blend-mode: plus-lighter; opacity: .55; }
   }
   .glass-strong::before, .toast::before { opacity: .4; }
   :is(button, a, summary):is(.glass, .glass-strong, .glass-thin) {
@@ -842,10 +869,12 @@
 @media (prefers-reduced-motion: reduce) {
   @layer components {
     .skip-link { transition: none; }
-    .button, .icon-button, .chip, .segmented > :is(button, a),
+    /* No travel or scale: only opacity may still cross-fade */
+    .button { transition: opacity var(--d-fast) ease; }
+    .icon-button, .chip, .segmented > :is(button, a),
     :is(button, a, summary):is(.glass, .glass-strong, .glass-thin),
     :where(input[type="checkbox"], input[type="radio"]) {
-      transition-property: background-color, border-color, color, opacity;
+      transition: none;
     }
     .button:active:not(:disabled), .icon-button:active:not(:disabled), :is(button, a).chip:active,
     .segmented > :is(button, a):active, :is(button, a, summary):is(.glass, .glass-strong, .glass-thin):active,
@@ -869,7 +898,7 @@
       backdrop-filter: none;
       box-shadow: 0 0 0 1px var(--line-2), var(--sh-2);
     }
-    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before { display: none; }
+    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before, .segmented::before { display: none; }
     .segmented {
       background: var(--surface-2);
       -webkit-backdrop-filter: none;
@@ -905,7 +934,7 @@
       backdrop-filter: none;
       box-shadow: 0 0 0 1px var(--line-2), var(--sh-2);
     }
-    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before { display: none; }
+    .glass::before, .glass-strong::before, .glass-thin::before, .toast::before, .segmented::before { display: none; }
     .segmented {
       background: var(--surface-2);
       -webkit-backdrop-filter: none;
