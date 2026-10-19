@@ -4,6 +4,7 @@
   const read = () => { try { return localStorage.getItem('lumia:theme'); } catch { return null; } };
   const apply = theme => { root.dataset.theme = theme === 'dark' ? 'dark' : 'light'; };
   apply(read());
+  if (navigator.userAgentData) root.classList.add('lg-refract'); // Only Chromium renders SVG refraction in backdrop-filter; others keep the plain blur.
   document.addEventListener('DOMContentLoaded', () => {
     const sync = () => document.querySelectorAll('[data-theme-toggle]').forEach(button => {
       const dark = root.dataset.theme === 'dark';

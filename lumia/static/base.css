@@ -752,7 +752,6 @@
     background: linear-gradient(var(--fill), var(--fill)), var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    backdrop-filter: url(#lg-refract) blur(var(--glass-blur)) saturate(180%);
     box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border), var(--sh-1);
   }
   .segmented > :is(button, a) {
@@ -791,9 +790,15 @@
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    backdrop-filter: url(#lg-refract) blur(var(--glass-blur)) saturate(180%);
     box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border), var(--glass-shadow);
     color: var(--ink);
+  }
+  /* Refraction (spec §4.4.4): only where the root carries .lg-refract, which
+     theme.js sets when navigator.userAgentData exists (Chromium). Elsewhere a
+     url() backdrop-filter may parse yet render nothing and drop the blur too.
+     The reduced-transparency and high-contrast overrides repeat this prefix. */
+  html.lg-refract :is(.segmented, .glass, .glass-strong, .glass-thin, .toast) {
+    backdrop-filter: url(#lg-refract) blur(var(--glass-blur)) saturate(180%);
   }
   .glass-strong, .toast { background: var(--glass-bg-strong); }
   .glass-thin {
@@ -930,6 +935,8 @@
       backdrop-filter: none;
       box-shadow: inset 0 0 0 1px var(--line-2);
     }
+    /* Same specificity as the html.lg-refract rule above, and later: it wins. */
+    html.lg-refract :is(.segmented, .glass, .glass-strong, .glass-thin, .toast) { backdrop-filter: none; }
   }
 }
 
@@ -966,6 +973,7 @@
       backdrop-filter: none;
       box-shadow: inset 0 0 0 1px var(--line-2);
     }
+    html.lg-refract :is(.segmented, .glass, .glass-strong, .glass-thin, .toast) { backdrop-filter: none; }
     .segmented > :is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) { box-shadow: 0 0 0 1px var(--line-2); }
     :where(input:not([type="checkbox"], [type="radio"], [type="hidden"]), select, textarea) { border-color: var(--line-2); }
     .button.ghost { text-decoration: underline; text-underline-offset: .2em; }
