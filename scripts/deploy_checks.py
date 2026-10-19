@@ -14,6 +14,8 @@ import zipfile
 PROTECTED=('compose.yaml','compose.yml','compose.override.yaml','compose.override.yml',
            'docker-compose.yaml','docker-compose.yml','docker-compose.override.yml',
            'Caddyfile','server_texts.json')
+DEPLOY_INFRA=('.gitattributes','GITHUB-ACTIONS.md','.github/workflows/deploy.yml',
+              'scripts/deploy.sh','scripts/deploy_checks.py','tests/test_deploy_checks.py')
 
 
 def git(*args):
@@ -44,7 +46,7 @@ def worktree():
     if git('diff','--cached','--name-only').strip():
         raise ValueError('Ci sono file in staging: completa il commit prima del deploy.')
     changed=set(filter(None,git('diff','--name-only','-z').decode('utf-8').split('\0')))
-    if changed-set(PROTECTED):
+    if changed-set(PROTECTED)-set(DEPLOY_INFRA):
         raise ValueError('Modifiche locali al codice non committate. Salvale prima del deploy.')
 
 

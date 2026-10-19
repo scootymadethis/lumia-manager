@@ -53,6 +53,10 @@ class DeploymentGitTests(unittest.TestCase):
     def test_local_operator_configuration_can_remain_modified(self):
         (self.root/'compose.yaml').write_text('operator customization');worktree()
 
+    def test_local_deploy_tooling_can_remain_modified(self):
+        path=self.root/'scripts';path.mkdir()
+        (path/'deploy.sh').write_text('#!/usr/bin/env bash\n');worktree()
+
     def test_uncommitted_code_or_staging_blocks_deploy(self):
         (self.root/'bot.py').write_text('work in progress')
         with self.assertRaisesRegex(ValueError,'codice'):worktree()
