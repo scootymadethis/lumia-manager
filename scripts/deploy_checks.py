@@ -11,9 +11,10 @@ from urllib.parse import urlsplit
 from urllib.request import Request,urlopen
 import zipfile
 
-PROTECTED=('compose.yaml','compose.yml','compose.override.yaml','compose.override.yml',
-           'docker-compose.yaml','docker-compose.yml','docker-compose.override.yml',
-           'Caddyfile','server_texts.json')
+PROTECTED_LOCAL=('compose.yaml','compose.yml','compose.override.yaml','compose.override.yml',
+                 'docker-compose.yaml','docker-compose.yml','docker-compose.override.yml',
+                 'Caddyfile','server_texts.json')
+PROTECTED_REMOTE=tuple(path for path in PROTECTED_LOCAL if path!='server_texts.json')
 
 
 def git(*args):
@@ -31,7 +32,7 @@ def guard(before,after):
                     or p.parts[0] in ('data','backups','.venv','venv')
                     or p.suffix in ('.sqlite','.sqlite3','.db'))
             if secret:raise ValueError(f'File privato tracciato in Git: {path}. Deploy interrotto.')
-    changed=git('diff','--name-only',before,after,'--',*PROTECTED).decode().strip()
+    changed=git('diff','--name-only',before,after,'--',*PROTECTED_REMOTE).decode().strip()
     if changed:
         raise ValueError('Il commit modifica configurazioni operative da applicare manualmente: '+', '.join(changed.splitlines()))
     mandatory={'.env','config.json','data','backups','.git'}
@@ -44,7 +45,7 @@ def worktree():
     if git('diff','--cached','--name-only').strip():
         raise ValueError('Ci sono file in staging: completa il commit prima del deploy.')
     changed=set(filter(None,git('diff','--name-only','-z').decode('utf-8').split('\0')))
-    if changed-set(PROTECTED):
+    if changed-set(PROTECTED_LOCAL):
         raise ValueError('Modifiche locali al codice non committate. Salvale prima del deploy.')
 
 

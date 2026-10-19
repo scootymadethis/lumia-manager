@@ -22,7 +22,7 @@ Se un passaggio fallisce dopo l'aggiornamento dei sorgenti, tenta di ripristinar
 
 Il backup e il riavvio comportano un fermo dell'app. La build e i test vengono completati prima del fermo. `cloudflared`, Ollama e gli altri servizi non vengono riavviati dal job.
 
-`.env`, `config.json`, dati e backup restano sulla VPS. Compose, Caddyfile e `server_texts.json` possono conservare le personalizzazioni locali: il deploy si ferma se un nuovo commit cerca di cambiarli. Per modificare queste configurazioni applica consapevolmente il cambiamento sulla VPS prima di riprendere i deploy. Se hai modifiche locali al codice o file in staging, completa prima il relativo commit.
+`.env`, `config.json`, dati e backup restano sulla VPS. Compose e Caddyfile possono conservare le personalizzazioni locali: il deploy si ferma se un nuovo commit cerca di cambiarli. `server_texts.json` invece viene aggiornato da Git durante il deploy. Se hai modifiche locali al codice o file in staging, completa prima il relativo commit.
 
 ## 1. Installa i file nella cartella già collegata a GitHub
 
