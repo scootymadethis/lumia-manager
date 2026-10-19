@@ -1,0 +1,32 @@
+name: Deploy Lumia sulla VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lumia-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, lumia-prod]
+    timeout-minutes: 30
+    env:
+      LUMIA_DEPLOY_DIR: ${{ vars.LUMIA_DEPLOY_DIR || '/home/scooty/lumia-manager' }}
+      GH_TOKEN: ${{ github.token }}
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - name: Aggiorna, verifica e riavvia app
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          script=$(mktemp "$RUNNER_TEMP/lumia-deploy.XXXXXX")
+          trap 'rm -f -- "$script"' EXIT
+          cp -- "$LUMIA_DEPLOY_DIR/scripts/deploy.sh" "$script"
+          bash "$script" "$LUMIA_DEPLOY_DIR"
