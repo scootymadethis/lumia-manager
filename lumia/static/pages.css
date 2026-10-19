@@ -88,14 +88,14 @@
 .activity-meta strong { font-size: var(--t-callout); font-weight: 600; color: var(--ink); }
 .activity-time { color: var(--ink-3); }
 .activity-item.unread .activity-time { color: var(--accent); font-weight: 600; }
-.internal-label {
+.activity-meta .internal-label {
   display: inline-flex; align-items: center; gap: 3px;
   min-height: 20px; padding: 0 var(--s2);
   border-radius: var(--r-pill);
   background: var(--fill); color: var(--ink-2);
   font-size: var(--t-cap); font-weight: 600; line-height: 1;
 }
-.internal-label .icon { width: 12px; height: 12px; }
+.activity-meta .internal-label .icon { width: 12px; height: 12px; }
 .activity-title {
   font-size: var(--t-foot); line-height: 1.35; font-weight: 550; color: var(--ink-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -131,7 +131,7 @@
   grid-template-areas: "tile body state go";
   gap: var(--s4);
 }
-.date-tile {
+.agenda-row .date-tile {
   grid-area: tile;
   display: grid;
   width: 52px;
@@ -141,13 +141,13 @@
   box-shadow: inset 0 0 0 1px var(--line-2), var(--sh-1);
   text-align: center;
 }
-html[data-theme="dark"] .date-tile { background: var(--surface-2); }
-.date-tile small {
+html[data-theme="dark"] .agenda-row .date-tile { background: var(--surface-2); }
+.agenda-row .date-tile small {
   padding: 3px 0 2px;
   background: var(--cal-top); color: #fff;
   font-size: 10.5px; line-height: 1.2; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
 }
-.date-tile strong {
+.agenda-row .date-tile strong {
   padding: 3px 0 6px;
   font-size: 1.5rem; line-height: 1.1; font-weight: 700; letter-spacing: -.03em;
   color: var(--ink);
@@ -231,27 +231,27 @@ html[data-theme="dark"] .date-tile { background: var(--surface-2); }
   gap: var(--pages-gap);
   margin-bottom: var(--pages-gap);
 }
-.stat-card { display: flex; flex-direction: column; min-height: 156px; }
-.stat-label {
+.payment-stats .stat-card { display: flex; flex-direction: column; min-height: 156px; }
+.payment-stats .stat-label {
   display: flex; align-items: center; gap: var(--s2);
   font-size: var(--t-foot); line-height: 1.3; font-weight: 500; color: var(--ink-3);
 }
-.stat-label .icon { width: 16px; height: 16px; }
-.stat-value {
+.payment-stats .stat-label .icon { width: 16px; height: 16px; }
+.payment-stats .stat-value {
   margin-top: var(--s3);
   font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem); line-height: 1.05; font-weight: 700; letter-spacing: -.032em;
   color: var(--ink);
   white-space: nowrap;
 }
-.stat-card progress { height: 4px; margin-top: var(--s4); }
-.stat-sub { margin-top: auto; padding-top: var(--s3); font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
-.stat-sub b { font-weight: 600; color: var(--ink-2); }
+.payment-stats .stat-card progress { height: 4px; margin-top: var(--s4); }
+.payment-stats .stat-sub { margin-top: auto; padding-top: var(--s3); font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+.payment-stats .stat-sub b { font-weight: 600; color: var(--ink-2); }
 
 :is(.ledger-panel, .events-panel, .checkouts-panel) + :is(.ledger-panel, .events-panel, .checkouts-panel) { margin-top: var(--pages-gap); }
 :is(.ledger-panel, .checkouts-panel) > .panel-heading { align-items: flex-start; }
 .checkouts-panel > .panel-heading { flex-wrap: nowrap; }
 .checkouts-panel > .panel-heading > div { flex: 1 1 auto; min-width: 0; }
-.panel-sub { margin-top: 2px; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+.checkouts-panel .panel-sub { margin-top: 2px; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
 
 /* Keyboard focus on the scroll region stays inside the clipped panel */
 :is(.ledger-panel, .events-panel, .checkouts-panel) .table-scroll:focus-visible { outline-offset: -2px; border-radius: var(--r-sm); }
@@ -282,11 +282,11 @@ html[data-theme="dark"] .date-tile { background: var(--surface-2); }
 .ledger-empty td.muted { padding: var(--s5) var(--panel-pad); }
 .ledger-empty .empty-state { padding-block: var(--s8); }
 
-.reference {
+:is(.events, .checkouts) .reference {
   font-family: var(--mono); font-size: var(--t-foot); line-height: 1.4; color: var(--ink-2);
   overflow-wrap: anywhere;
 }
-.reference .subtext { font-family: var(--mono); }
+:is(.events, .checkouts) .reference .subtext { font-family: var(--mono); }
 
 /* Payment events: a quiet disclosure, open when something needs reconciling */
 .events-panel { padding-block: 0; }
@@ -295,20 +295,20 @@ html[data-theme="dark"] .date-tile { background: var(--surface-2); }
 .events-panel > details[open] > summary > .icon:first-child { transform: none; } /* only the chevron turns */
 .events-panel > details > summary > span:not(.pill) { flex: 1 1 auto; }
 .events-panel > details > summary > .pill { font-weight: 600; }
-.pill.warn-pill { background: var(--warn-bg); color: var(--warn); }
+.events-panel .pill.warn-pill { background: var(--warn-bg); color: var(--warn); }
 .events-panel .table-scroll { margin-bottom: var(--s4); }
-.event-status {
+.events .event-status {
   display: inline-flex; align-items: center;
   min-height: 22px; padding: 0 var(--s2);
   border-radius: var(--r-pill);
   background: var(--fill); color: var(--ink-2);
   font-size: var(--t-cap); font-weight: 600; line-height: 1; white-space: nowrap;
 }
-.event-status.status-da_riconciliare { background: var(--warn-bg); color: var(--warn); }
+.events .event-status.status-da_riconciliare { background: var(--warn-bg); color: var(--warn); }
 
 /* Open PayPal checkouts (staff) */
-.checkout-action { text-align: right; white-space: nowrap; }
-.checkout-action form { display: inline-flex; }
+.checkouts .checkout-action { text-align: right; white-space: nowrap; }
+.checkouts .checkout-action form { display: inline-flex; }
 .checkouts-note {
   display: flex; align-items: flex-start; gap: var(--s2);
   padding: var(--s4) var(--panel-pad) var(--panel-pad);
@@ -319,11 +319,11 @@ html[data-theme="dark"] .date-tile { background: var(--surface-2); }
 @media (max-width: 900px) {
   .payment-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .payment-stats > :first-child { grid-column: 1 / -1; }
-  .stat-card { min-height: 0; }
+  .payment-stats .stat-card { min-height: 0; }
 }
 @media (max-width: 620px) {
-  .stat-card { --panel-pad: var(--s4); }
-  .stat-value { font-size: 1.625rem; }
+  .payment-stats .stat-card { --panel-pad: var(--s4); }
+  .payment-stats .stat-value { font-size: 1.625rem; }
   .payment-stats > :not(:first-child) .stat-value { font-size: 1.375rem; }
   :is(.ledger, .events, .checkouts) td { padding-block: var(--s1); }
   .ledger-empty td, .ledger-empty td.muted { padding: 0; }
@@ -417,5 +417,5 @@ html[data-theme="dark"] .date-tile { background: var(--surface-2); }
 @media (prefers-contrast: more) {
   :is(.activity-list, .agenda-list) > li + li > :is(.activity-item, .agenda-row)::before,
   .settings-row + .settings-row::before { background: var(--line-2); }
-  .date-tile { box-shadow: inset 0 0 0 1px var(--line-2); }
+  .agenda-row .date-tile { box-shadow: inset 0 0 0 1px var(--line-2); }
 }
