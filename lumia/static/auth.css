@@ -40,19 +40,8 @@ html[data-theme="dark"] body.auth-page {
   width: 88px; height: 88px; margin-bottom: var(--s5);
   border-radius: 24px;
 }
-.brand-tile {
-  position: relative; display: block; flex: none;
-  width: 64px; height: 64px; border-radius: 15px; overflow: hidden;
-  background: #000;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 10px 22px -8px rgba(0, 0, 0, .3), 0 22px 40px -20px rgba(10, 40, 80, .35);
-}
-.brand-tile img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.24); }
-.tile-edge {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(155deg, rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, .07) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .6);
-}
-html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 1px rgba(255, 255, 255, .1), 0 12px 30px -10px rgba(var(--glow), .3); }
+/* The tile itself is base.css's .brand-tile.is-large */
+.auth-mark > .brand-tile { display: block; }
 
 /* PayPal return: an arc circles the tile while the payment is checked */
 .auth-mark.is-busy::after {

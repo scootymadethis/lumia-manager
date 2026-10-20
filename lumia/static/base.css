@@ -44,6 +44,7 @@
     --fill: rgba(118, 118, 128, .12);    /* tonal controls, on any surface */
     --fill-2: rgba(118, 118, 128, .2);
     --control-edge: #8e8e93;             /* checkbox and radio rims: 3:1 on white */
+    --field-edge: #86868b;               /* text field edges: 3.6:1 on white, 3.3:1 on canvas-alt (WCAG 1.4.11) */
     --field: #ffffff;
 
     --accent: #0a5bb5;         /* logo ice-blue, deepened: 6.6:1 on white */
@@ -139,6 +140,7 @@
     --fill: rgba(118, 118, 128, .24);
     --fill-2: rgba(118, 118, 128, .36);
     --control-edge: #8e8e93;
+    --field-edge: #7c7c80;               /* 3.5:1 on a dark field */
     --field: rgba(118, 118, 128, .14);
 
     --accent: #6cb4ff;
@@ -406,11 +408,34 @@
     .text-link::after { content: ""; position: absolute; inset: min(0px, calc((100% - var(--target)) / 2)) calc(-1 * var(--s1)); }
   }
 
+  /* ---------- Brand tile: the logo on its black tile ----------
+     Small by default (headers); .is-large is the sculpted 64 px tile of the
+     public pages, with .tile-edge for the lit rim. Pages only resize it. */
+  .brand-tile {
+    position: relative; display: inline-block; flex: none;
+    width: 30px; height: 30px; border-radius: 8px; overflow: hidden;
+    background: #000;
+    box-shadow: 0 0 0 .5px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .18);
+  }
+  .brand-tile > img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.22); }
+  html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 .5px rgba(255, 255, 255, .2); }
+  .brand-tile.is-large {
+    width: 64px; height: 64px; border-radius: 15px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 10px 22px -8px rgba(0, 0, 0, .3), 0 22px 40px -20px rgba(10, 40, 80, .35);
+  }
+  .brand-tile.is-large > img { transform: scale(1.24); }
+  html[data-theme="dark"] .brand-tile.is-large { box-shadow: 0 0 0 1px rgba(255, 255, 255, .1), 0 12px 30px -10px rgba(var(--glow), .3); }
+  .tile-edge {
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(155deg, rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, .07) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .6);
+  }
+
   /* ---------- Fields ---------- */
   :where(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="range"], [type="file"], [type="color"], [type="submit"], [type="button"], [type="reset"], [type="image"]), select, textarea) {
     display: block; width: 100%;
     min-height: var(--target); padding: var(--s2) var(--s4);
-    border: 1px solid var(--line-2); border-radius: var(--r-sm);
+    border: 1px solid var(--field-edge); border-radius: var(--r-sm);
     background-color: var(--field); color: var(--ink);
     font-family: inherit; font-size: max(16px, 1rem); line-height: 1.35; letter-spacing: var(--tr-text);
     -webkit-appearance: none; appearance: none;
@@ -540,6 +565,8 @@
   .panel.flush { padding: 0; overflow: hidden; }
   .panel.flush > .panel-heading { margin: 0; padding: var(--panel-pad) var(--panel-pad) var(--s4); }
   .panel.flush > .panel-body { padding: 0; }
+  /* The panel clips its content: focus rings on edge-to-edge regions go inside */
+  .panel.flush .table-scroll:focus-visible { outline-offset: -2px; border-radius: var(--r-sm); }
 
   /* ---------- Page heading ---------- */
   .page-heading {
@@ -627,6 +654,9 @@
   .empty-state h3 { font-size: var(--t-title3); }
   .empty-state p { max-width: 40ch; font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3); }
   .empty-state :is(.button, .text-link) { margin-top: var(--s3); }
+  /* Compact: inside a panel or above a short list (home, favourites) */
+  .empty-state.is-compact { padding: var(--s7) var(--s4); }
+  .empty-state.is-compact > .icon { width: 48px; height: 48px; padding: 13px; margin-bottom: var(--s1); }
 
   /* ---------- Notice and demo banner ---------- */
   .notice {
@@ -948,6 +978,7 @@
       --line-2: rgba(0, 0, 0, .4);
       --fill: rgba(118, 118, 128, .2);
       --control-edge: #6e6e73;
+      --field-edge: #6e6e73;
       --accent-ring: rgba(10, 91, 181, .4);
     }
     html[data-theme="dark"] {
@@ -956,6 +987,7 @@
       --line-2: rgba(255, 255, 255, .42);
       --fill: rgba(118, 118, 128, .4);
       --control-edge: #aeaeb2;
+      --field-edge: #aeaeb2;
     }
   }
   @layer components {
@@ -975,7 +1007,7 @@
     }
     html.lg-refract :is(.segmented, .glass, .glass-strong, .glass-thin, .toast) { backdrop-filter: none; }
     .segmented > :is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) { box-shadow: 0 0 0 1px var(--line-2); }
-    :where(input:not([type="checkbox"], [type="radio"], [type="hidden"]), select, textarea) { border-color: var(--line-2); }
+    :where(input:not([type="checkbox"], [type="radio"], [type="hidden"]), select, textarea) { border-color: var(--field-edge); }
     .button.ghost { text-decoration: underline; text-underline-offset: .2em; }
     .text-link { text-decoration-color: currentColor; }
   }

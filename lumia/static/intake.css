@@ -20,14 +20,6 @@ body.intake { background: var(--canvas); }
   min-height: var(--target);
   color: var(--ink); font-size: 1.0625rem; font-weight: 650; letter-spacing: -.025em;
 }
-.brand-tile {
-  position: relative; display: inline-block; flex: none;
-  width: 30px; height: 30px; border-radius: 8px; overflow: hidden;
-  background: #000;
-  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .18);
-}
-.brand-tile img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.22); }
-html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 .5px rgba(255, 255, 255, .2); }
 
 /* ---------- Header ---------- */
 .intake-header {
@@ -54,24 +46,17 @@ html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 .5px rgba(255, 255, 255,
 }
 .sculpture-glow {
   position: absolute; z-index: -1; left: 50%; top: 50%;
-  width: 360px; height: 360px; margin: -180px 0 0 -180px;
+  /* A tight halo that belongs to the tile (160 px at rest, 256 px when the
+     request is complete), not a wide wash spilling out of the column */
+  width: 200px; height: 200px; margin: -100px 0 0 -100px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(var(--glow), .24), rgba(var(--glow), .08) 52%, rgba(var(--glow), 0));
+  background: radial-gradient(closest-side, rgba(var(--glow), .3), rgba(var(--glow), .1) 55%, rgba(var(--glow), 0));
   pointer-events: none;
-  transform: scale(calc(.6 + var(--phase) * .08));
+  transform: scale(calc(.8 + var(--phase) * .08));
   opacity: calc(.5 + var(--phase) * .1);
   transition: transform var(--d-slow) var(--ease-out), opacity var(--d-slow) var(--ease-out);
 }
-.sculpture-tile {
-  width: 64px; height: 64px; border-radius: 15px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 10px 22px -8px rgba(0, 0, 0, .3), 0 22px 40px -20px rgba(10, 40, 80, .35);
-}
-.sculpture-tile img { transform: scale(1.24); }
-.tile-edge {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(155deg, rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, .07) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .6);
-}
+/* The tile is base.css's .brand-tile.is-large with its .tile-edge */
 
 .brief-intro h1 {
   font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); line-height: 1.02;
@@ -299,7 +284,7 @@ html[data-theme="dark"] .brand-tile { box-shadow: 0 0 0 .5px rgba(255, 255, 255,
   .brief-sculpture { margin-bottom: var(--s5); }
   .intake-main { padding-top: var(--s5); }
   .sculpture-tile { border-radius: 11px; }
-  .sculpture-glow { width: 280px; height: 280px; margin: -140px 0 0 -140px; }
+  .sculpture-glow { width: 160px; height: 160px; margin: -80px 0 0 -80px; }
 
   /* Segments only; the labels stay for assistive tech */
   .brief-progress { margin-bottom: var(--s7); }
