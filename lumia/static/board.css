@@ -310,7 +310,16 @@ html[data-theme="dark"] .workspace {
 /* On the board the column already names the stage: the badge stays only where
    it tells cards apart (bozza or preventivo, confermato, annullato) */
 .board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-top .badge { display: none; }
-.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-top { justify-content: flex-end; }
+/* Without the badge the top row would be an empty band, so the star leaves the
+   flow and sits in the corner, centred on the code line. The title is clear of
+   it: the code is one short line and the star's icon ends above the title. */
+.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-top {
+  position: absolute; z-index: 2;
+  top: calc(var(--s4) - 10px); right: calc(var(--s4) - 8px);
+  min-height: 0;
+}
+.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .favorite-button { margin: 0; }
+.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-code { margin-top: 0; }
 .favorite-button {
   position: relative; z-index: 2;
   display: grid; place-items: center; flex: none;
