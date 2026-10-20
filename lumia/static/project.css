@@ -69,6 +69,7 @@
    "Il prossimo passo": the payment callout, the one loud card
    --------------------------------------------------------- */
 .payment-callout {
+  --callout-pad: clamp(24px, 3.4vw, 40px);
   position: relative; isolation: isolate;
   display: grid; grid-template-columns: minmax(0, 1fr);
   border-radius: var(--r-xl);
@@ -82,7 +83,7 @@
     radial-gradient(70% 120% at 0% 0%, rgba(var(--glow), .16), rgba(var(--glow), 0) 62%),
     radial-gradient(40% 60% at 100% 100%, rgba(var(--glow), .06), rgba(var(--glow), 0) 70%);
 }
-.callout-main, .callout-pay { padding: clamp(24px, 3.4vw, 40px); min-width: 0; }
+.callout-main, .callout-pay { padding: var(--callout-pad); min-width: 0; }
 .callout-eyebrow {
   display: inline-flex; align-items: center; gap: var(--s2);
   font-size: var(--t-callout); font-weight: 600; color: var(--accent);
@@ -115,12 +116,18 @@
 .callout-facts li { display: inline-flex; align-items: center; gap: var(--s2); }
 .callout-facts .icon { width: 16px; height: 16px; color: var(--ink-3); }
 
+/* Help links close the card: after the amount and the button when they
+   stack, under the text (left column) when the card splits in two */
 .support-options {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s5);
-  margin-top: var(--s6); padding-top: var(--s4);
+  min-width: 0;
+  margin-inline: var(--callout-pad);
+  padding-block: var(--s4) var(--callout-pad);
   border-top: 1px solid var(--line);
   font-size: var(--t-callout);
 }
+.payment-callout:not(.has-pay) .callout-main { padding-bottom: var(--s6); }
+.payment-callout.has-pay .support-options { margin-inline: 0; padding-inline: var(--callout-pad); padding-top: var(--s5); }
 .support-options .text-link .icon:first-child { width: 18px; height: 18px; }
 .support-note { flex: 1 1 100%; font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
 
@@ -149,8 +156,14 @@
 .callout-settled .icon { color: var(--ok); }
 
 @container project (min-width: 720px) {
-  .payment-callout.has-pay { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
-  .payment-callout.has-pay .callout-pay { border-top: 0; border-left: 1px solid var(--line); }
+  .payment-callout.has-pay {
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas: "main pay" "help pay";
+  }
+  .payment-callout.has-pay .callout-main { grid-area: main; padding-bottom: var(--s6); }
+  .payment-callout.has-pay .callout-pay { grid-area: pay; border-top: 0; border-left: 1px solid var(--line); }
+  .payment-callout.has-pay .support-options { grid-area: help; margin-inline: var(--callout-pad); padding-inline: 0; padding-top: var(--s4); }
 }
 
 /* ---------------------------------------------------------
@@ -230,27 +243,25 @@
 .project-meter span { flex: none; font-size: var(--t-foot); color: var(--ink-3); }
 
 /* ---------------------------------------------------------
-   Columns: main story on the left, people and tools on the right.
-   On narrow widths the two columns dissolve into one ordered flow.
+   Columns. The DOM is the single-column reading order (brief, project,
+   team tools, milestones, money, deliveries, conversation, support,
+   history), so focus and screen readers follow what the eye sees.
+   From 880px the side group (tools, milestones) moves to a right column
+   that spans both left groups; nothing is reordered.
    --------------------------------------------------------- */
 .project-columns { display: flex; flex-direction: column; gap: var(--project-gap); min-width: 0; }
-.project-main, .project-side { display: contents; }
-.project-main > * { order: 1; }
-.project-manage { order: 2; }
-#milestones { order: 3; }
-#payment-plan { order: 4; }
-#payments { order: 5; }
-#deliveries { order: 6; }
-#conversation { order: 7; }
-#support { order: 8; }
-.project-history { order: 9; }
+.project-lead, .project-side, .project-flow { display: contents; }
 
 @container project (min-width: 880px) {
   .project-columns {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(296px, 352px);
-    align-items: start;
+    grid-template-rows: auto 1fr;
+    gap: var(--project-gap); align-items: start;
   }
-  .project-main, .project-side { display: flex; flex-direction: column; gap: var(--project-gap); min-width: 0; }
+  .project-lead, .project-side, .project-flow { display: flex; flex-direction: column; gap: var(--project-gap); min-width: 0; }
+  .project-lead { grid-column: 1; grid-row: 1; }
+  .project-flow { grid-column: 1; grid-row: 2; }
+  .project-side { grid-column: 2; grid-row: 1 / span 2; }
 }
 
 /* ---------------------------------------------------------
@@ -578,7 +589,7 @@ html[data-theme="dark"] .compose-field textarea { background-color: var(--field)
   width: 40px; height: 40px; border-radius: var(--r-sm);
   background: var(--accent-bg); color: var(--accent);
 }
-.support-copy { font-size: var(--t-callout); line-height: 1.5; color: var(--ink-3); }
+.support-copy { max-width: 64ch; font-size: var(--t-callout); line-height: 1.5; color: var(--ink-3); }
 .support-request { border-top: 1px solid var(--line); }
 .support-request .form-actions { justify-content: space-between; }
 
@@ -608,10 +619,13 @@ html[data-theme="dark"] .compose-field textarea { background-color: var(--field)
    Phones
    --------------------------------------------------------- */
 @container project (max-width: 620px) {
+  .payment-callout { --callout-pad: var(--s5); }
   .callout-main, .callout-pay { padding: var(--s6) var(--s5); }
   .support-options { gap: var(--s1) var(--s5); }
-  .project-eta { padding: 0; background: none; box-shadow: none; }
-  .project-eta > .icon { width: 32px; height: 32px; padding: 7px; }
+  .project-eta { gap: var(--s2); padding: 0; background: none; box-shadow: none; }
+  .project-eta > .icon { width: 28px; height: 28px; padding: 6px; }
+  .project-eta > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s2); }
+  .project-eta-label, .project-eta time { font-size: var(--t-foot); }
   .milestone-row { grid-template-columns: 32px minmax(0, 1fr); }
   .milestone-row > form { grid-column: 2; }
   .project-stats { gap: var(--s4) var(--s3); }
