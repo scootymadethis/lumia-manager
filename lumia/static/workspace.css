@@ -531,11 +531,12 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
   box-shadow: 0 0 0 1.5px rgba(var(--glow), .95), 0 0 28px 4px rgba(var(--glow), .35), 0 0 0 9999px var(--guide-dim);
 }
 
+/* Progress dots get their own row: next to three buttons they overflowed into "Indietro". */
 .guide-card {
   position: absolute; left: 0; top: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "top top" "icon icon" "title title" "desc desc" "link link" "dots actions" "status status";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "top" "icon" "title" "desc" "link" "dots" "actions" "status";
   align-items: center;
   width: min(384px, calc(100vw - 2 * var(--s4)));
   padding: var(--s5);
@@ -563,11 +564,11 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 .guide-card h2 { grid-area: title; font-size: var(--t-title3); line-height: 1.25; letter-spacing: var(--tr-title3); font-weight: 650; }
 .guide-card #guide-description { grid-area: desc; margin-top: var(--s2); font-size: var(--t-callout); line-height: 1.45; color: var(--ink-2); }
 .guide-tutorial { grid-area: link; justify-self: start; margin-top: var(--s3); font-size: var(--t-callout); }
-.guide-dots { grid-area: dots; display: flex; align-items: center; gap: 5px; margin-top: var(--s5); }
+.guide-dots { grid-area: dots; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: var(--s4); }
 .guide-dots i { flex: none; width: 6px; height: 6px; border-radius: var(--r-pill); background: var(--fill-2); }
 .guide-dots i.active { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 .guide-dots i.active:not(:has(+ i.active)) { width: 18px; background: var(--accent); }
-.guide-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: var(--s1); margin-top: var(--s5); }
+.guide-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: var(--s1); margin-top: var(--s3); }
 .guide-actions [data-guide-next] { margin-left: var(--s1); }
 .guide-save-status { grid-area: status; margin-top: var(--s3); font-size: var(--t-foot); color: var(--ink-3); }
 .guide-save-status:empty { display: none; }
@@ -589,15 +590,6 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 .guide-dialog.is-welcome .guide-actions { flex-direction: column-reverse; align-items: stretch; gap: var(--s1); margin-top: var(--s6); }
 .guide-dialog.is-welcome .guide-actions [data-guide-next] { min-height: 52px; margin: 0; font-size: var(--t-body); }
 @keyframes ws-sheet { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-/* Narrow cards: progress dots on their own row, actions below */
-@media (max-width: 480px) {
-  .guide-card {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "top" "icon" "title" "desc" "link" "dots" "actions" "status";
-  }
-  .guide-dots { margin-top: var(--s4); }
-  .guide-actions { margin-top: var(--s3); }
-}
 
 /* ---------------------------------------------------------
    Rail (tablet and small laptops): icons only
