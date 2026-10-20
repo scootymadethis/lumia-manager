@@ -1,5 +1,5 @@
 SVG forniti dall’utente il 17 ottobre 2026, copiati senza modifiche ai tracciati.
-discord.svg: discord-svgrepo-com.svg
+discord.svg: discord-svgrepo-com.svg (tolto solo il riquadro bianco di sfondo, così il marchio si posa sul fondo della tessera anche in scuro)
 fivem.svg: FiveM_(4).svg
 minecraft.svg: minecraft-seeklogo.svg
 I nomi dei marchi identificano le rispettive piattaforme.

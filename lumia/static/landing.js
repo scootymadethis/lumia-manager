@@ -56,11 +56,23 @@ if (navigator.userAgentData) document.documentElement.classList.add("lg-refract"
     };
     const stop = () => { cancelAnimationFrame(raf); raf = 0; };
     const rest = () => { s.tx = 0; s.ty = 0; kick(); };
+    // The centre is read from the untilted parent and cached: one layout read
+    // after each scroll, resize or entry animation, not one per pointer event,
+    // and the tile's own tilt never moves the point it leans toward.
+    const frame = tilt.parentElement;
+    let centre = null;
+    const forget = () => { centre = null; };
+    window.addEventListener('scroll', forget, { passive: true });
+    window.addEventListener('resize', forget, { passive: true });
+    frame.addEventListener('animationend', forget);
     window.addEventListener('pointermove', event => {
       if (!inView || event.pointerType === 'touch' || !fine.matches || reduce.matches) return;
-      const box = tilt.getBoundingClientRect();
-      s.tx = Math.max(-1, Math.min(1, (event.clientX - box.left - box.width / 2) / (innerWidth / 2)));
-      s.ty = Math.max(-1, Math.min(1, (event.clientY - box.top - box.height / 2) / (innerHeight / 2)));
+      if (!centre) {
+        const box = frame.getBoundingClientRect();
+        centre = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+      }
+      s.tx = Math.max(-1, Math.min(1, (event.clientX - centre.x) / (innerWidth / 2)));
+      s.ty = Math.max(-1, Math.min(1, (event.clientY - centre.y) / (innerHeight / 2)));
       kick();
     }, { passive: true });
     root.addEventListener('pointerleave', rest);
