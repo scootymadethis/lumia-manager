@@ -1,0 +1,67 @@
+{% extends 'guides/article.html' %}
+{% from 'macros.html' import icon %}
+{% set toc = [
+  ('cosa-chiedere', 'Cosa puoi chiederci'),
+  ('informazioni', 'Le informazioni che ci servono'),
+  ('modalita', 'Come descrivere la modalità'),
+  ('percorso', 'Dalla richiesta alla consegna'),
+  ('domande', 'Domande frequenti'),
+] %}
+{% block h1 %}Plugin Minecraft, fatti per il tuo server.{% endblock %}
+{% block lede %}Plugin e modalità che danno ai giocatori un motivo per tornare. Come descrivere l’idea, quali informazioni tecniche ci servono e che cosa succede dopo la richiesta.{% endblock %}
+{% block prose %}
+          <section aria-labelledby="cosa-chiedere">
+            <h2 id="cosa-chiedere">Cosa puoi chiederci</h2>
+            <p>Un plugin può aggiungere un singolo comando oppure cambiare il modo in cui si gioca sul tuo server. Valutiamo ogni richiesta prima del preventivo; ecco alcuni esempi del genere di lavori di cui puoi parlarci:</p>
+            <ul class="checks">
+              <li>{{ icon('check') }}<span><strong>Una modalità di gioco.</strong> Un minigioco o un’intera esperienza, con le sue regole e la sua progressione.</span></li>
+              <li>{{ icon('check') }}<span><strong>Sistemi per la community.</strong> Ricompense, missioni, classifiche ed eventi.</span></li>
+              <li>{{ icon('check') }}<span><strong>Menu nel gioco.</strong> Per rendere le funzioni facili da trovare, anche per chi entra per la prima volta.</span></li>
+              <li>{{ icon('check') }}<span><strong>Strumenti per lo staff.</strong> Comandi e controlli per gestire il server con meno lavoro manuale.</span></li>
+              <li>{{ icon('check') }}<span><strong>Un plugin da migliorare.</strong> Una funzione che hai già e che vuoi adattare al tuo server.</span></li>
+              <li>{{ icon('check') }}<span><strong>Collegamenti con Discord.</strong> Per tenere il server e la community allineati.</span></li>
+            </ul>
+            <p>Puoi chiedere un singolo plugin, una funzione da aggiungere a un progetto che esiste già oppure un progetto completo.</p>
+          </section>
+
+          <section aria-labelledby="informazioni">
+            <h2 id="informazioni">Le informazioni che ci servono</h2>
+            <p>Un plugin vive dentro un server preciso: più conosciamo la tua configurazione, più il preventivo sarà accurato. Se puoi, indica nella richiesta:</p>
+            <dl class="facts">
+              <div><dt>Il software del server</dt><dd>Per esempio Paper, Spigot o Purpur, e se usi un proxy come Velocity o BungeeCord per collegare più server.</dd></div>
+              <div><dt>La versione di Minecraft</dt><dd>Quella su cui gira il server oggi e, se pensi di aggiornare, quella che vuoi usare in futuro.</dd></div>
+              <div><dt>I plugin già installati</dt><dd>Soprattutto quelli con cui il nuovo lavoro dovrà dialogare, come permessi, economia o protezioni.</dd></div>
+              <div><dt>Chi gioca da Bedrock</dt><dd>Se sul server entrano anche giocatori da console o telefono, dillo: menu e comandi vanno pensati anche per loro.</dd></div>
+            </dl>
+            <p>Se qualcosa non lo sai, lascia vuoto. Lo chiariamo insieme nella conversazione del progetto.</p>
+          </section>
+
+          <section aria-labelledby="modalita">
+            <h2 id="modalita">Come descrivere la modalità</h2>
+            <p>Il modo più semplice è seguire il percorso di un giocatore, dal primo accesso in poi:</p>
+            <ol class="numbered">
+              <li><strong>Il primo minuto.</strong> Che cosa vede appena entra? Che cosa deve fare per iniziare?</li>
+              <li><strong>Il ciclo di gioco.</strong> Che cosa fa di partita in partita, o di giorno in giorno? Che cosa guadagna?</li>
+              <li><strong>Il motivo per tornare.</strong> Progressi, ricompense, sfide con gli amici: che cosa lo fa rientrare domani?</li>
+              <li><strong>Il lavoro dello staff.</strong> Che cosa dovete poter configurare o controllare voi, giorno per giorno?</li>
+            </ol>
+            <p>Testi, messaggi e colori che hai già in mente si possono incollare nella richiesta. Anche un video o un server che ti piace è un ottimo riferimento.</p>
+            <div class="notice">{{ icon('lock') }}<div><p>Non inserire password, token o dati di pagamento nella richiesta. Bastano la descrizione del progetto e le informazioni sul server.</p></div></div>
+          </section>
+
+          <section aria-labelledby="percorso">
+            <h2 id="percorso">Dalla richiesta alla consegna</h2>
+            <p>Compili la richiesta sul sito in sei passaggi, scegliendo Minecraft come piattaforma. Il team valuta l’idea e prepara un preventivo con il lavoro compreso, il prezzo, i tempi e le condizioni.</p>
+            <p>Dopo l’accettazione il lavoro procede per milestone. Ogni consegna arriva nell’area clienti con le istruzioni per provarla: se va bene la approvi, se serve un intervento chiedi le modifiche. I pagamenti avvengono con PayPal, anche a rate quando il preventivo lo prevede.</p>
+            <a class="text-link" href="/guide/come-funziona-un-progetto-con-lumia">Leggi come funziona un progetto{{ icon('chevron') }}</a>
+          </section>
+
+          <section aria-labelledby="domande">
+            <h2 id="domande">Domande frequenti</h2>
+            <div class="faq">
+              <details><summary>Quanto costa un plugin su misura?{{ icon('plus') }}</summary><p>Dipende dalle funzionalità e dall’ambito del lavoro. Il prezzo viene definito nel preventivo, prima di iniziare. Il budget che indichi nella richiesta resta un’indicazione.</p></details>
+              <details><summary>Il plugin funzionerà con il mio server?{{ icon('plus') }}</summary><p>Prima del preventivo valutiamo la tua configurazione: software, versione e plugin con cui il lavoro dovrà convivere. Per questo è utile indicarli già nella richiesta.</p></details>
+              <details><summary>Posso chiedere modifiche dopo una consegna?{{ icon('plus') }}</summary><p>Ogni consegna si può approvare oppure rimandare con una richiesta di modifiche. Revisioni e assistenza successive vengono specificate nel preventivo.</p></details>
+            </div>
+          </section>
+{% endblock %}

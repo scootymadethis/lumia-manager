@@ -1,4 +1,5 @@
 {% from 'macros.html' import icon, glass_defs %}
+{% from 'site-parts.html' import social_card, site_nav, site_footer with context %}
 <!DOCTYPE html>
 <html lang="it" data-theme="light">
 <head>
@@ -13,34 +14,19 @@
   <meta property="og:description" content="FiveM, Minecraft e Discord. Dall’idea al server, insieme.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ public_url }}/">
-  <meta property="og:image" content="{{ public_url }}/static/lumia-logo-completo.png">
-  <meta name="twitter:card" content="summary_large_image">
+  {{ social_card() }}
   <link rel="icon" href="/static/lumia-logo-discord.png">
   <link rel="preload" href="/static/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/lumia-logo-discord.png" as="image" fetchpriority="high">
   <link rel="stylesheet" href="/static/base.css?v=20261019">
-  <link rel="stylesheet" href="/static/site.css?v=20261019">
+  <link rel="stylesheet" href="/static/site.css?v=20261020">
   <script src="/static/landing.js?v=20261019" defer></script>
 </head>
 <body class="landing">
   {{ glass_defs() }}
   <a class="skip-link" href="#main">Vai al contenuto</a>
 
-  <header class="site-nav glass-strong" data-site-nav>
-    <a class="brand" href="/" aria-label="Lumia Development, pagina iniziale">
-      <span class="brand-tile"><img src="/static/lumia-logo-discord.png" alt="" width="28" height="28"></span>
-      <span class="brand-word">Lumia<span class="brand-sub">Development</span></span>
-    </a>
-    <nav class="nav-links" aria-label="Sezioni">
-      <a href="#servizi">Servizi</a>
-      <a href="#metodo">Il percorso</a>
-      <a href="#domande">Domande</a>
-    </nav>
-    <div class="nav-actions">
-      <a class="nav-quiet" href="{{ manager_url }}/login">Area clienti</a>
-      <a class="button primary small" href="/ordina">Inizia</a>
-    </div>
-  </header>
+  {{ site_nav() }}
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title" data-hero>
@@ -263,19 +249,6 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <div class="footer-top">
-        <div class="footer-brand">
-          <a class="brand" href="/"><span class="brand-tile"><img src="/static/lumia-logo-discord.png" alt="" width="28" height="28" loading="lazy"></span><span class="brand-word">Lumia<span class="brand-sub">Development</span></span></a>
-          <p>Server, plugin e strumenti su misura per la tua community.</p>
-        </div>
-        <nav aria-label="Servizi"><h2>Servizi</h2><ul><li><a href="/ordina?platform=fivem">FiveM</a></li><li><a href="/ordina?platform=minecraft">Minecraft</a></li><li><a href="/ordina?platform=discord">Discord e web</a></li></ul></nav>
-        <nav aria-label="Studio"><h2>Studio</h2><ul><li><a href="#metodo">Il percorso</a></li><li><a href="#domande">Domande</a></li><li><a href="/ordina">Inizia un progetto</a></li></ul></nav>
-        <nav aria-label="Clienti"><h2>Clienti</h2><ul><li><a href="{{ manager_url }}/login">Area clienti</a></li><li><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Assistenza su Discord</a></li></ul></nav>
-      </div>
-      <div class="footer-bottom"><span>Lumia Development</span><span>Fatto su misura, in Italia.</span></div>
-    </div>
-  </footer>
+  {{ site_footer() }}
 </body>
 </html>

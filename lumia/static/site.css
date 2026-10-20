@@ -521,7 +521,7 @@
 .site-footer { padding: 0 0 calc(var(--s10) + env(safe-area-inset-bottom, 0px)); background: var(--canvas-alt); font-size: var(--t-foot); color: var(--ink-3); }
 .site-footer .wrap { position: relative; padding-top: var(--s9); }
 .site-footer .wrap::before { content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter); height: 1px; background: var(--line-2); }
-.footer-top { display: grid; grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr)); gap: var(--s7); padding-bottom: var(--s7); border-bottom: 1px solid var(--line-2); }
+.footer-top { display: grid; grid-template-columns: 1.3fr repeat(4, minmax(0, 1fr)); gap: var(--s7); padding-bottom: var(--s7); border-bottom: 1px solid var(--line-2); }
 .footer-brand p { margin-top: 10px; max-width: 28ch; }
 .site-footer h2 { margin-bottom: var(--s2); font-size: var(--t-foot); line-height: 1.35; letter-spacing: 0; font-weight: 600; color: var(--ink); }
 .site-footer ul a { display: inline-flex; align-items: center; min-height: 32px; color: var(--ink-2); text-decoration: none; }
@@ -589,6 +589,138 @@
   .worlds-art { scale: .84; margin-block: -27px calc(var(--s6) - 27px); }
 }
 
+/* ---------- Guides (/guide): the same chrome around a reading page ---------- */
+.guide-page { --t-prose: clamp(1.0625rem, 1rem + .2vw, 1.1875rem); --prose-line: calc(var(--t-prose) * 1.6); }
+.guide-page :is(main, [id]) { scroll-margin-top: calc(var(--nav-space) + var(--s5)); }
+.nav-links a:is([aria-current="page"], .is-current) { color: var(--ink); }
+
+.article-head { padding-top: calc(var(--nav-space) + clamp(40px, 7vw, 88px)); padding-bottom: clamp(40px, 5vw, 64px); }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--s2); font-size: var(--t-foot); line-height: 1.35; color: var(--ink-3); }
+.crumbs li { display: inline-flex; align-items: center; gap: var(--s2); }
+.crumbs li + li::before { /* a drawn chevron, decorative */
+  content: ""; width: 5px; height: 5px; margin-right: 2px;
+  border-top: 1.5px solid var(--ink-4); border-right: 1.5px solid var(--ink-4);
+  transform: rotate(45deg);
+}
+.crumbs a {
+  display: inline-flex; align-items: center; min-height: 32px;
+  color: var(--ink-2);
+  text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: .2em;
+}
+.article-eyebrow { margin-top: var(--s6); font-size: var(--t-title3); font-weight: 600; letter-spacing: var(--tr-title3); color: var(--accent); }
+.article-title {
+  margin-top: var(--s2); max-width: 15ch;
+  font-size: var(--t-display); line-height: 1.02; letter-spacing: var(--tr-display); font-weight: 700;
+  font-feature-settings: var(--font-features-display);
+}
+.article-lede { margin-top: 20px; max-width: 40ch; }
+.article-actions { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s7); }
+
+/* The reading column, with the contents (and on wide screens a sticky CTA) beside it */
+.article-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s8); padding-bottom: clamp(72px, 9vw, 120px); }
+.article-aside { display: grid; gap: var(--s4); align-content: start; align-self: start; }
+.toc { padding: var(--s5) var(--s5) var(--s3); border-radius: var(--r-lg); background: var(--canvas-alt); }
+.toc-title { font-size: var(--t-foot); font-weight: 600; color: var(--ink); }
+.toc ol { margin-top: var(--s2); }
+.toc li + li { border-top: 1px solid var(--line); }
+.toc a { display: flex; align-items: center; min-height: 40px; padding: 6px 0; font-size: var(--t-callout); line-height: 1.3; color: var(--ink-2); text-decoration: none; }
+.aside-cta { display: none; }
+
+.prose { min-width: 0; max-width: 720px; }
+.prose > section + section { margin-top: clamp(56px, 7vw, 88px); }
+.prose h2 { font-size: var(--t-title1); line-height: 1.08; letter-spacing: var(--tr-title1); font-weight: 700; }
+.prose section > * + * { margin-top: var(--s5); }
+.prose section > p + p { margin-top: var(--s4); }
+.prose section > p, .prose :is(.checks, .bullets, .numbered) > li, .prose .facts dd {
+  font-size: var(--t-prose); line-height: 1.6; color: var(--ink-2);
+}
+.prose strong { color: var(--ink); font-weight: 600; }
+
+/* Lists: a check in a tinted disc, an accent dot, a numbered disc */
+.prose :is(.checks, .numbered) { display: grid; gap: var(--s4); }
+.prose .checks > li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--s3); align-items: start; }
+.prose .checks > li > .icon {
+  width: 28px; height: 28px; padding: 6px; margin-top: calc((var(--prose-line) - 28px) / 2);
+  border-radius: 50%; background: var(--accent-bg); color: var(--accent); stroke-width: 2.2;
+}
+/* Each step is running text (a bold lead, then the sentence): the number sits in the gutter */
+.prose .numbered { counter-reset: step; }
+.prose .numbered > li { position: relative; padding-left: 40px; counter-increment: step; }
+.prose .numbered > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: calc((var(--prose-line) - 28px) / 2);
+  display: grid; place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 50%; background: var(--ink); color: var(--canvas);
+  font-size: var(--t-foot); line-height: 1; font-weight: 650; font-variant-numeric: tabular-nums;
+}
+.prose .bullets { display: grid; gap: var(--s2); }
+.prose .bullets > li { position: relative; padding-left: 22px; }
+.prose .bullets > li::before {
+  content: ""; position: absolute; left: 4px; top: calc(var(--prose-line) / 2 - 3px);
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+}
+.prose .facts { border-top: 1px solid var(--line-2); }
+.prose .facts > div { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); gap: var(--s1) var(--s6); padding: var(--s4) 0; border-bottom: 1px solid var(--line); }
+.prose .facts dt { font-size: var(--t-prose); line-height: 1.6; font-weight: 600; color: var(--ink); }
+.prose .notice { padding: var(--s4) var(--s5); }
+.prose .notice p { font-size: var(--t-callout); }
+.prose .faq { max-width: none; }
+
+/* The process guide: numbered phases and the states of a project */
+.phase h2 { display: flex; flex-direction: column; gap: var(--s2); }
+.phase-num { font-size: var(--t-foot); line-height: 1.2; letter-spacing: 0; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.stages-figure { padding: var(--s5); border-radius: var(--r-lg); background: var(--canvas-alt); }
+.stages { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s1); }
+.stages li { display: inline-flex; align-items: center; gap: var(--s1); }
+.stages li + li::before {
+  content: ""; width: 5px; height: 5px; margin: 0 6px 0 2px;
+  border-top: 1.5px solid var(--ink-4); border-right: 1.5px solid var(--ink-4);
+  transform: rotate(45deg);
+}
+.stages-figure figcaption { margin-top: var(--s3); font-size: var(--t-foot); color: var(--ink-3); }
+
+/* Guide cards: the next read, and the index */
+.more-guides { padding-top: 0; }
+.more-guides h2 { margin-bottom: var(--s6); }
+.guides-list { padding-top: 0; }
+.guide-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: clamp(12px, 1.6vw, 20px); }
+.guide-card {
+  display: flex; flex-direction: column; gap: var(--s2);
+  height: 100%; min-height: 228px;
+  padding: clamp(24px, 2.6vw, 32px);
+  border-radius: var(--r-xl);
+  background: var(--canvas-alt); color: var(--ink);
+  transition: transform var(--d-press) var(--ease-out);
+}
+.guide-card-eyebrow { font-size: var(--t-foot); font-weight: 600; color: var(--accent); }
+.guide-card-title { font-size: var(--t-title2); line-height: 1.16; letter-spacing: var(--tr-title2); font-weight: 650; text-wrap: balance; }
+.guide-card-text { max-width: 40ch; font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3); text-wrap: pretty; }
+.guide-card-more { display: inline-flex; align-items: center; gap: var(--s1); margin-top: auto; padding-top: var(--s4); font-size: var(--t-callout); font-weight: 500; color: var(--accent); }
+.guide-card-more .icon { width: 16px; height: 16px; transition: transform var(--d-fast) var(--ease-out); }
+.guide-card:active { transform: scale(.98); }
+
+@media (hover: hover) and (pointer: fine) {
+  .crumbs a:hover { color: var(--ink); text-decoration-color: currentColor; }
+  .toc a:hover { color: var(--accent); }
+  .guide-card:hover { background: color-mix(in srgb, var(--canvas-alt) 55%, var(--surface-3)); }
+  .guide-card:hover .guide-card-more .icon { transform: translateX(2px); }
+}
+@media (pointer: coarse) {
+  .crumbs a, .toc a { min-height: var(--target); }
+}
+@media (min-width: 1100px) {
+  .article-body { grid-template-columns: minmax(0, 720px) minmax(0, 280px); justify-content: space-between; column-gap: var(--s10); }
+  .article-aside { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--nav-space) + var(--s6)); }
+  .aside-cta { display: grid; gap: var(--s4); justify-items: start; padding: var(--s5); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-2), 0 0 0 .5px var(--line); }
+  .aside-cta p { font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3); }
+  .aside-cta strong { display: block; margin-bottom: 2px; font-size: var(--t-body); }
+}
+@media (max-width: 760px) {
+  .article-actions { flex-direction: column; align-items: stretch; max-width: 340px; }
+  .prose .facts > div { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- Motion ---------- */
 @keyframes site-fade { from { opacity: 0; } }
 @keyframes tile-rise { from { transform: translateY(64px) scale(.9) rotateX(24deg); } }
@@ -626,6 +758,11 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after { animati
   .story.is-live .step :is(h3, .step-kicker) { transition: none; }
   .story.is-live .step:not(.is-active) .step-kicker { color: var(--accent); }
   .story.is-live .step:not(.is-active) h3 { color: var(--ink); }
+  .guide-card, .guide-card-more .icon { transition: none; }
+  .guide-card:active { transform: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .guide-card:hover .guide-card-more .icon { transform: none; }
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -639,4 +776,6 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after { animati
   .site-nav.is-quiet { background: var(--surface); }
   .story.is-live .step:not(.is-active) .step-kicker { color: var(--accent); }
   .story.is-live .step:not(.is-active) h3 { color: var(--ink); }
+  .toc, .stages-figure, .guide-card { box-shadow: inset 0 0 0 1px var(--line-2); }
+  .aside-cta { box-shadow: 0 0 0 1px var(--line-2); }
 }

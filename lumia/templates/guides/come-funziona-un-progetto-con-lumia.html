@@ -1,0 +1,75 @@
+{% extends 'guides/article.html' %}
+{% from 'macros.html' import icon %}
+{% set toc = [
+  ('richiesta', 'La richiesta'),
+  ('preventivo', 'Valutazione e preventivo'),
+  ('milestone', 'Milestone e avanzamento'),
+  ('consegne', 'Le consegne'),
+  ('pagamenti', 'Pagamenti a rate con PayPal'),
+  ('assistenza', 'Assistenza su Discord'),
+  ('domande', 'Domande frequenti'),
+] %}
+{% block h1 %}Come funziona un progetto con Lumia.{% endblock %}
+{% block lede %}Dalla prima idea all’ultima consegna, ogni passaggio resta visibile nella tua area clienti. Ecco che cosa succede, in ordine, e che cosa ti serve in ogni fase.{% endblock %}
+{% block prose %}
+          <section class="phase" aria-labelledby="richiesta">
+            <h2 id="richiesta"><span class="phase-num">01</span>La richiesta</h2>
+            <p>Tutto parte da una richiesta guidata sul sito, in sei passaggi: piattaforma, idea, dettagli, materiali, tempi e riepilogo. Ogni domanda è facoltativa: rispondi a ciò che sai e usa «Salta per ora» per il resto. Budget e tempi possono restare «Da concordare».</p>
+            <p>La bozza resta salvata in quella scheda del browser per sette giorni. Per inviarla accedi con il tuo account Discord: serve a ritrovare il progetto nell’area clienti, e non devi entrare nel server.</p>
+            <div class="notice">{{ icon('shield') }}<div><p>Inviare la richiesta non è un acquisto. Chiedi una valutazione e un preventivo: il lavoro inizia solo dopo l’accordo con il team.</p></div></div>
+          </section>
+
+          <section class="phase" aria-labelledby="preventivo">
+            <h2 id="preventivo"><span class="phase-num">02</span>Valutazione e preventivo</h2>
+            <p>Dopo l’invio trovi il progetto nell’area clienti, in valutazione. Il team verifica fattibilità, prezzo e tempi; se servono chiarimenti, ne parlate nella conversazione del progetto.</p>
+            <p>Quando la proposta è pronta, leggi il lavoro compreso, il prezzo, i tempi, le condizioni e il piano di pagamento. Fai le tue domande prima di procedere. Quando è tutto chiaro, confermi con «Accetta preventivo».</p>
+            <p>Una volta inviati, importo e proposta restano fissati. Se l’accordo deve cambiare in modo sostanziale, si concorda una nuova proposta.</p>
+          </section>
+
+          <section class="phase" aria-labelledby="milestone">
+            <h2 id="milestone"><span class="phase-num">03</span>Milestone e avanzamento</h2>
+            <p>Le milestone sono le tappe concordate nel preventivo. Il team ne aggiorna l’avanzamento, e tu vedi sempre a che punto è il lavoro e che cosa arriva dopo.</p>
+            <figure class="stages-figure">
+              <ol class="stages" aria-label="Gli stati di un progetto">
+                <li><span class="badge preventivo"><span class="badge-dot"></span>Preventivo</span></li>
+                <li><span class="badge confermato"><span class="badge-dot"></span>Confermato</span></li>
+                <li><span class="badge in_corso"><span class="badge-dot"></span>In corso</span></li>
+                <li><span class="badge in_revisione"><span class="badge-dot"></span>In revisione</span></li>
+                <li><span class="badge completato"><span class="badge-dot"></span>Completato</span></li>
+              </ol>
+              <figcaption>Gli stati che un progetto attraversa nell’area clienti.</figcaption>
+            </figure>
+            <p>Nell’agenda dell’area clienti trovi le milestone e le rate con una data. Domande e aggiornamenti restano nella conversazione del progetto, accanto al lavoro a cui si riferiscono.</p>
+          </section>
+
+          <section class="phase" aria-labelledby="consegne">
+            <h2 id="consegne"><span class="phase-num">04</span>Le consegne</h2>
+            <p>Quando una versione è pronta, la trovi tra le consegne del progetto, con un titolo, le istruzioni e un collegamento per aprirla o provarla.</p>
+            <p>Verifica le funzioni concordate. Se è tutto corretto, approvi la consegna. Se serve un intervento, scegli «Richiedi modifiche» e spiega che cosa ti aspettavi, che cosa succede e come riprodurlo: così il team sa esattamente dove intervenire.</p>
+          </section>
+
+          <section class="phase" aria-labelledby="pagamenti">
+            <h2 id="pagamenti"><span class="phase-num">05</span>Pagamenti a rate con PayPal</h2>
+            <p>Il piano di pagamento è scritto nel preventivo: un pagamento unico oppure più rate, cioè parti del totale collegate a date o milestone.</p>
+            <p>Le rate si pagano in ordine. Quando una rata è disponibile, nel progetto compare «Paga con PayPal»: il pulsante apre PayPal, dove confermi tu il pagamento. Una rata «In attesa» non richiede ancora nessun pagamento.</p>
+            <p>Nell’area clienti vedi sempre il totale, quanto hai già versato e il residuo; nella pagina Pagamenti trovi i movimenti registrati.</p>
+            <div class="notice">{{ icon('paypal-lock') }}<div><p>Approvare una consegna non avvia nessun pagamento. Ogni rata la confermi tu, su PayPal.</p></div></div>
+          </section>
+
+          <section class="phase" aria-labelledby="assistenza">
+            <h2 id="assistenza"><span class="phase-num">06</span>Assistenza su Discord</h2>
+            <p>Per gli aggiornamenti di tutti i giorni scrivi nella conversazione del progetto: la risposta arriva nello stesso posto. Per l’assistenza c’è il server Discord di Lumia.</p>
+            <p>Per un’assistenza privata su un ordine, entra nel server e completa la verifica, poi apri un ticket dalla sezione di assistenza del progetto, con lo stesso account Discord dell’area clienti. Il codice LM del progetto viene collegato al ticket.</p>
+            <a class="text-link" href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Apri il server Discord{{ icon('up') }}</a>
+          </section>
+
+          <section aria-labelledby="domande">
+            <h2 id="domande">Domande frequenti</h2>
+            <div class="faq">
+              <details><summary>Inviare una richiesta mi impegna?{{ icon('plus') }}</summary><p>No. È una richiesta di valutazione: non paghi nulla, e il lavoro inizia solo dopo che hai accettato il preventivo.</p></details>
+              <details><summary>Quanto costa un progetto?{{ icon('plus') }}</summary><p>Dipende dalle funzionalità e dall’ambito del lavoro. Il prezzo viene concordato nel preventivo, prima di iniziare.</p></details>
+              <details><summary>Posso pagare per fasi?{{ icon('plus') }}</summary><p>Sì, quando il preventivo lo prevede: il totale si divide in rate collegate a date o milestone, e paghi ogni rata con PayPal.</p></details>
+              <details><summary>Hosting e assistenza sono inclusi?{{ icon('plus') }}</summary><p>Servizi aggiuntivi, revisioni e assistenza vengono specificati nel preventivo.</p></details>
+            </div>
+          </section>
+{% endblock %}

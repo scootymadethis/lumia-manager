@@ -1,0 +1,73 @@
+{% extends 'guides/article.html' %}
+{% from 'macros.html' import icon %}
+{% set toc = [
+  ('su-misura', 'Cosa vuol dire su misura'),
+  ('cosa-chiedere', 'Cosa puoi chiederci'),
+  ('server-esistente', 'Hai già un server?'),
+  ('raccontare', 'Come raccontare l’idea'),
+  ('percorso', 'Dalla richiesta alla consegna'),
+  ('domande', 'Domande frequenti'),
+] %}
+{% block h1 %}Il tuo server FiveM, su misura.{% endblock %}
+{% block lede %}Script, sistemi e integrazioni pensati per il roleplay della tua community. Ecco cosa puoi chiederci, cosa ci serve sapere e come si arriva al preventivo.{% endblock %}
+{% block prose %}
+          <section aria-labelledby="su-misura">
+            <h2 id="su-misura">Cosa vuol dire «su misura»</h2>
+            <p>Un server FiveM prende carattere dalle sue regole: i lavori disponibili, l’economia, il modo in cui i giocatori si incontrano e si scontrano. Le risorse già pronte coprono le basi. Quando invece vuoi qualcosa che funzioni esattamente come l’hai immaginato, serve un lavoro costruito intorno al tuo server.</p>
+            <p>Su misura significa partire dalla tua idea e dalla tua configurazione, non da un pacchetto da adattare. Funzionalità, prezzo e tappe si definiscono prima di iniziare, nero su bianco, nel preventivo.</p>
+          </section>
+
+          <section aria-labelledby="cosa-chiedere">
+            <h2 id="cosa-chiedere">Cosa puoi chiederci</h2>
+            <p>Valutiamo ogni richiesta prima di preparare il preventivo. Per darti un’idea, ecco il genere di lavori di cui puoi parlarci:</p>
+            <ul class="checks">
+              <li>{{ icon('check') }}<span><strong>Un sistema di gioco nuovo.</strong> Un lavoro con le sue regole, un’attività per i giocatori, un evento ricorrente.</span></li>
+              <li>{{ icon('check') }}<span><strong>Una funzione che manca.</strong> Oppure una che hai già, ma che vuoi rifare da capo.</span></li>
+              <li>{{ icon('check') }}<span><strong>Interfacce nel gioco.</strong> Menu, pannelli e schermate che rendono le funzioni facili da usare.</span></li>
+              <li>{{ icon('check') }}<span><strong>Strumenti per lo staff.</strong> Per gestire il server con meno lavoro manuale.</span></li>
+              <li>{{ icon('check') }}<span><strong>Collegamenti con Discord.</strong> Per tenere server di gioco e community allineati.</span></li>
+              <li>{{ icon('check') }}<span><strong>Un server da zero.</strong> Se preferisci partire con un progetto completo.</span></li>
+            </ul>
+            <p>Se la tua idea non rientra in questo elenco, raccontacela lo stesso: nella richiesta puoi sempre scegliere «Altro».</p>
+          </section>
+
+          <section aria-labelledby="server-esistente">
+            <h2 id="server-esistente">Hai già un server?</h2>
+            <p>Possiamo lavorare anche su un server già avviato. Prima del preventivo valutiamo il progetto e la compatibilità con le risorse che usi, così sai in anticipo che cosa si può fare e come.</p>
+            <p>Per una valutazione più precisa, nella richiesta indica:</p>
+            <ul class="bullets">
+              <li>il framework su cui si basa il server, per esempio ESX, QBCore o Qbox, oppure se è standalone;</li>
+              <li>le risorse con cui il nuovo lavoro dovrà convivere, come inventario, telefono o lavori;</li>
+              <li>che cosa deve restare com’è e che cosa, invece, vuoi cambiare.</li>
+            </ul>
+            <p>Se parti da zero, dillo: è un’informazione utile quanto le altre, e il resto lo definiamo insieme.</p>
+          </section>
+
+          <section aria-labelledby="raccontare">
+            <h2 id="raccontare">Come raccontare l’idea</h2>
+            <p>Non serve un documento tecnico. Le richieste più chiare descrivono che cosa vivono i giocatori, non come è scritto il codice.</p>
+            <ol class="numbered">
+              <li><strong>Parti dall’esperienza.</strong> Che cosa fa un giocatore, passo dopo passo? Dove inizia, che cosa ottiene, che cosa può andare storto?</li>
+              <li><strong>Separa l’indispensabile.</strong> Distingui ciò che serve per partire da ciò che può arrivare dopo: aiuta a dividere il lavoro in milestone.</li>
+              <li><strong>Mostra degli esempi.</strong> Un video, un server o un’interfaccia che ti piace valgono più di molte parole. Puoi incollare i link nella richiesta.</li>
+              <li><strong>Prepara i testi, se li hai.</strong> Messaggi, nomi e descrizioni che i giocatori leggeranno.</li>
+            </ol>
+            <div class="notice">{{ icon('lock') }}<div><p>Non inserire password, token o dati di pagamento nella richiesta. Bastano la descrizione del progetto e le informazioni sul server.</p></div></div>
+          </section>
+
+          <section aria-labelledby="percorso">
+            <h2 id="percorso">Dalla richiesta alla consegna</h2>
+            <p>La richiesta si compila sul sito in sei brevi passaggi e ogni domanda è facoltativa. Non è un acquisto: il team valuta l’idea e prepara un preventivo con il lavoro compreso, il prezzo, i tempi e le condizioni.</p>
+            <p>Dopo l’accettazione segui le milestone dall’area clienti, provi le consegne e paghi con PayPal, in un’unica soluzione o a rate quando il preventivo lo prevede. Per l’assistenza c’è Discord.</p>
+            <a class="text-link" href="/guide/come-funziona-un-progetto-con-lumia">Leggi come funziona un progetto{{ icon('chevron') }}</a>
+          </section>
+
+          <section aria-labelledby="domande">
+            <h2 id="domande">Domande frequenti</h2>
+            <div class="faq">
+              <details><summary>Quanto costa un server FiveM su misura?{{ icon('plus') }}</summary><p>Dipende dalle funzionalità e dall’ambito del lavoro. Il prezzo viene definito nel preventivo, prima di iniziare. Il budget che indichi nella richiesta resta un’indicazione.</p></details>
+              <details><summary>Quanto tempo serve?{{ icon('plus') }}</summary><p>Dipende dal progetto. I tempi vengono concordati nel preventivo e divisi in milestone, che segui dall’area clienti. Se hai una data in mente, per esempio un’apertura, indicala nella richiesta.</p></details>
+              <details><summary>Devo entrare nel server Discord per ordinare?{{ icon('plus') }}</summary><p>No. Compili la richiesta sul sito e usi il tuo account Discord solo per accedere all’area clienti. Il server Discord serve per l’assistenza.</p></details>
+            </div>
+          </section>
+{% endblock %}

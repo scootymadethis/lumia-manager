@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+  Source of lumia/static/og-card.png, the 1200×630 social preview of lumiadevelopment.it.
+  Not served by the site: it is rendered once and the PNG is committed.
+
+  To render it again:
+  1. Serve the repository root over HTTP (Chrome will not load the font from file://):
+       python -m http.server 8790 --bind 127.0.0.1
+  2. Screenshot http://127.0.0.1:8790/docs/marketing/og-card.html in headless Chrome
+     at a 1200×630 viewport, device scale factor 1, after document.fonts is ready.
+  3. Shrink it (about 230 KB → 156 KB, visually identical):
+       python docs/marketing/pngpack.py screenshot.png lumia/static/og-card.png
+  A new image keeps the same URL, so platforms that cache previews may need a refresh
+  (for example with the Facebook Sharing Debugger).
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Lumia · anteprima social</title>
+<style>
+  @font-face {
+    font-family: "Inter";
+    src: url("../../lumia/static/fonts/InterVariable.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: block;
+  }
+  :root {
+    --ink: #000000;
+    --ink-3: #6e6e73;
+    --canvas-alt: #f5f5f7;
+    --glow: 90, 169, 240;
+    --tile: 216px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    color: var(--ink);
+  }
+
+  /* The landing's studio sweep: white at the top, the light gray floor below */
+  .card {
+    position: relative; isolation: isolate;
+    width: 1200px; height: 630px;
+    overflow: hidden;
+    background:
+      radial-gradient(58% 70% at 76% 38%, #ffffff 0%, rgba(255, 255, 255, 0) 72%),
+      linear-gradient(180deg, #ffffff 0%, #fbfbfd 56%, var(--canvas-alt) 100%);
+  }
+
+  /* ---------- Copy, left ---------- */
+  .copy {
+    position: absolute; left: 88px; top: 0; bottom: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    width: 720px;
+  }
+  .eyebrow {
+    margin: 0 0 22px;
+    font-size: 29px; line-height: 1.2; font-weight: 600; letter-spacing: -.018em;
+    color: var(--ink-3);
+  }
+  h1 {
+    margin: 0;
+    font-size: 72px; line-height: 1.02; font-weight: 700; letter-spacing: -.04em;
+    font-feature-settings: "cv11" 1, "ss01" 1;
+  }
+  h1 span { display: block; white-space: nowrap; }
+  .signature {
+    position: absolute; left: 88px; bottom: 58px;
+    display: flex; align-items: baseline; gap: 14px;
+    font-size: 24px; line-height: 1; letter-spacing: -.016em;
+  }
+  .signature b { font-weight: 650; color: var(--ink); }
+  .signature span { font-weight: 450; color: var(--ink-3); }
+
+  /* ---------- The mark, right ---------- */
+  .stage { position: absolute; left: 892px; top: 188px; width: var(--tile); height: calc(var(--tile) * 1.5); }
+  .stage-glow {
+    position: absolute; left: 50%; top: 42%;
+    width: calc(var(--tile) * 2.9); height: calc(var(--tile) * 2.2);
+    translate: -50% -50%;
+    background: radial-gradient(closest-side, rgba(var(--glow), .24), rgba(var(--glow), .08) 55%, rgba(var(--glow), 0));
+  }
+  .tile-shadow {
+    position: absolute; left: 7%; right: 7%; top: calc(var(--tile) - 14px);
+    height: 30px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));
+  }
+  .tile-wrap { position: absolute; left: 0; top: 0; width: var(--tile); height: var(--tile); }
+  /* the faint ice rim the hero tile rests with */
+  .tile-wrap::after {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    border-radius: 23%;
+    box-shadow: 0 0 0 1px rgba(var(--glow), .22), 0 0 34px 3px rgba(var(--glow), .2), 0 0 84px 8px rgba(var(--glow), .1);
+  }
+  .tile {
+    position: relative; isolation: isolate;
+    width: 100%; height: 100%;
+    border-radius: 23%; overflow: hidden;
+    background: #000;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1), 0 14px 30px -10px rgba(0, 0, 0, .32), 0 40px 70px -32px rgba(10, 40, 80, .4);
+  }
+  .tile img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.24); }
+  .tile-edge {
+    position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(155deg, rgba(255, 255, 255, .2) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, .07) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px rgba(255, 255, 255, .07), inset 0 -1px 0 rgba(0, 0, 0, .6);
+  }
+  /* the reflection on the floor, as under the landing's hero mark */
+  .tile-refl {
+    position: absolute; left: 0; top: calc(var(--tile) + 4px);
+    width: var(--tile); height: var(--tile);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .34), rgba(0, 0, 0, 0) 34%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .34), rgba(0, 0, 0, 0) 34%);
+  }
+  .tile-refl .tile { transform: scaleY(-1); box-shadow: none; }
+  .tile-refl img { filter: blur(.8px); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="copy">
+      <p class="eyebrow">FiveM · Minecraft · Discord</p>
+      <h1><span>Il tuo prossimo server.</span><span>Fatto su misura.</span></h1>
+    </div>
+    <p class="signature"><b>Lumia Development</b><span>lumiadevelopment.it</span></p>
+    <div class="stage" aria-hidden="true">
+      <div class="stage-glow"></div>
+      <div class="tile-refl"><div class="tile"><img src="../../lumia/static/lumia-logo-discord.png" alt=""></div></div>
+      <div class="tile-shadow"></div>
+      <div class="tile-wrap"><div class="tile"><img src="../../lumia/static/lumia-logo-discord.png" alt=""><span class="tile-edge"></span></div></div>
+    </div>
+  </main>
+</body>
+</html>
