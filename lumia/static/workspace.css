@@ -20,6 +20,11 @@ body.workspace {
   --guide-dim: rgba(0, 0, 0, .4);
   background: var(--canvas-alt);
 }
+/* Keyboard focus and anchor jumps stop clear of the sticky top bar
+   (and, on phones, of the floating tab bar): WCAG 2.4.11. The bar
+   heights are literal here because html cannot read body's tokens;
+   keep them in step with --topbar-h and --tabbar-h. */
+html:has(> body.workspace) { scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px) + var(--s2)); }
 html[data-theme="dark"] body.workspace {
   --sidebar-bg: color-mix(in srgb, var(--surface) 42%, var(--canvas));
   --guide-dim: rgba(0, 0, 0, .66);
@@ -232,7 +237,7 @@ html[data-theme="dark"] .guide-launch { background: var(--surface-2); }
   padding: 0 var(--s1) 0 var(--s3);
   border-radius: var(--r-pill);
   background: var(--fill);
-  color: var(--ink-3);
+  color: var(--ink-2); /* ink-3 drops below AA on a --fill pill */
   font-size: var(--t-foot); font-weight: 500; text-align: left;
   transition: transform var(--d-press) var(--ease-out);
 }
@@ -242,7 +247,7 @@ html[data-theme="dark"] .guide-launch { background: var(--surface-2); }
 html[data-theme="dark"] .workspace-search .kbd { background: var(--surface-2); }
 .workspace-search:active { transform: scale(.98); }
 @media (hover: hover) and (pointer: fine) {
-  .workspace-search:hover { background: var(--fill-2); color: var(--ink-2); }
+  .workspace-search:hover { background: var(--fill-2); color: var(--ink); }
 }
 
 .notification-dot {
@@ -621,6 +626,10 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
    (the same links, so the tour finds them on every size).
    --------------------------------------------------------- */
 @media (max-width: 760px) {
+  html:has(> body.workspace) {
+    scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px) + var(--s2));
+    scroll-padding-bottom: calc(64px + max(var(--s3), env(safe-area-inset-bottom, 0px)) + var(--s2));
+  }
   body.workspace { --sidebar-w: 0px; --topbar-h: 56px; }
   .app-shell { display: block; }
   .app-main { min-height: 100vh; min-height: 100dvh; padding-bottom: calc(var(--tabbar-h) + var(--s3) + env(safe-area-inset-bottom, 0px)); }
@@ -666,6 +675,10 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 
   .topbar { gap: var(--s1); padding-right: var(--s2); padding-left: var(--s4); }
   .topbar-brand { display: block; margin-right: var(--s2); border-radius: 8px; }
+  /* Touch: a 44 px target around the 28 px tile, without moving the tile */
+  @media (pointer: coarse) {
+    .topbar-brand { display: inline-grid; place-items: center; width: var(--target); height: var(--target); margin: 0 calc(var(--s2) - 8px) 0 -8px; border-radius: 12px; }
+  }
   .topbar-back { display: inline-grid; margin-left: calc(-1 * var(--s3)); }
   .topbar:has(.topbar-back) .topbar-brand { display: none; }
   .topbar-breadcrumb :is(.crumb-area, .crumb-parent), .topbar-breadcrumb li::before { display: none; }
@@ -711,8 +724,11 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 
 @media (prefers-reduced-transparency: reduce) {
   .topbar::before { background: var(--canvas-alt); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Solid surfaces with a visible edge (spec §4.4.6): these rules redeclare the
+     glass shadow unlayered, so base.css's layered fallback cannot reach them */
+  .command-dialog, .guide-card { box-shadow: 0 0 0 1px var(--line-2), var(--sh-3); }
   @media (max-width: 760px) {
-    .tabbar, html.lg-refract .tabbar { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .tabbar, html.lg-refract .tabbar { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px var(--line-2), var(--sh-2); }
     .tabbar::before { display: none; }
   }
 }
@@ -720,6 +736,7 @@ html:not([data-theme="dark"]) .theme-to-light, html[data-theme="dark"] .theme-to
 @media (prefers-contrast: more) {
   .topbar::before { background: var(--canvas-alt); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .topbar::after { background: var(--line-2); }
+  .command-dialog, .guide-card { box-shadow: 0 0 0 1px var(--line-2), var(--sh-3); }
   @media (max-width: 760px) {
     .tabbar, html.lg-refract .tabbar { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px var(--line-2), var(--sh-2); }
     .tabbar::before { display: none; }

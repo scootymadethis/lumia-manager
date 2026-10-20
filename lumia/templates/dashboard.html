@@ -67,7 +67,7 @@
         </ol>
       </nav>
       <div class="topbar-tools">
-        <button type="button" class="workspace-search" data-command-open data-tour="search" aria-label="Cerca e naviga" aria-keyshortcuts="Control+K Meta+K">{{ icon('search') }}<span class="workspace-search-label">Cerca o vai a…</span><kbd class="kbd">Ctrl K</kbd></button>
+        <button type="button" class="workspace-search" data-command-open data-tour="search" aria-label="Cerca o vai a una pagina" aria-keyshortcuts="Control+K Meta+K">{{ icon('search') }}<span class="workspace-search-label">Cerca o vai a…</span><kbd class="kbd">Ctrl K</kbd></button>
         <button type="button" class="icon-button help-shortcut" data-guide-open aria-label="Apri la guida">{{ icon('help') }}</button>
         <a class="icon-button activity-shortcut" href="/activity{{ suffix }}" aria-label="Attività{% if unread %}, {{ unread }} nuove{% endif %}">{{ icon('bell') }}{% if unread %}<span class="notification-dot"></span>{% endif %}</a>
         <details class="account-menu">
@@ -79,7 +79,7 @@
               <li><a href="/payments{{ suffix }}">{{ icon('wallet') }}<span>Pagamenti</span></a></li>
               {% if user.staff %}<li><a href="/customers">{{ icon('users') }}<span>Clienti</span></a></li><li><a href="/settings">{{ icon('settings') }}<span>Impostazioni</span></a></li>{% else %}<li><a href="/tutorial{{ suffix }}">{{ icon('help') }}<span>Tutorial clienti</span></a></li>{% endif %}
               <li><button type="button" data-guide-open>{{ icon('spark') }}<span>Guida a questa pagina</span></button></li>
-              <li><button type="button" data-theme-toggle aria-pressed="false" aria-label="Usa il tema scuro">{{ icon('moon', 'icon-moon') }}{{ icon('sun', 'icon-sun') }}<span class="theme-to-dark">Usa il tema scuro</span><span class="theme-to-light">Usa il tema chiaro</span></button></li>
+              <li><button type="button" data-theme-toggle aria-label="Usa il tema scuro">{{ icon('moon', 'icon-moon') }}{{ icon('sun', 'icon-sun') }}<span class="theme-to-dark">Usa il tema scuro</span><span class="theme-to-light">Usa il tema chiaro</span></button></li>
             </ul>
             <ul class="account-links">
               <li><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">{{ icon('discord') }}<span>Supporto Discord</span>{{ icon('external', 'account-external') }}</a></li>
