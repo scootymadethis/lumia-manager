@@ -1,0 +1,44 @@
+{% extends 'guides/layout.html' %}
+{#- One guide: set `toc` to [(id, label), ...] matching the section ids, then fill h1, lede and prose. -#}
+{% from 'macros.html' import icon %}
+{% block main %}
+    <article class="article" aria-labelledby="article-title">
+      <header class="article-head wrap">
+        <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Lumia</a></li><li><a href="/guide">Guide</a></li><li aria-current="page">{{ page.label }}</li></ol></nav>
+        <p class="article-eyebrow">{{ page.eyebrow }}</p>
+        <h1 class="article-title" id="article-title">{% block h1 %}{% endblock %}</h1>
+        <p class="lede article-lede">{% block lede %}{% endblock %}</p>
+        <div class="article-actions">
+          <a class="button primary large" href="{{ page.order }}">{{ page.cta }}</a>
+          {% if slug != 'come-funziona-un-progetto-con-lumia' %}<a class="button ghost large" href="/guide/come-funziona-un-progetto-con-lumia">Come funziona un progetto</a>{% else %}<a class="button ghost large" href="#richiesta">Leggi le sei fasi</a>{% endif %}
+        </div>
+      </header>
+
+      <div class="article-body wrap">
+        <div class="article-aside">
+          <nav class="toc" aria-labelledby="toc-title">
+            <p class="toc-title" id="toc-title">In questa guida</p>
+            <ol>{% for id, label in toc %}<li><a href="#{{ id }}">{{ label }}</a></li>{% endfor %}</ol>
+          </nav>
+          <div class="aside-cta">
+            <p><strong>Hai già un’idea?</strong> Raccontacela in pochi passaggi. Nessun pagamento adesso.</p>
+            <a class="button primary" href="{{ page.order }}">Inizia la richiesta</a>
+          </div>
+        </div>
+        <div class="prose">
+          {% block prose %}{% endblock %}
+        </div>
+      </div>
+    </article>
+
+    <section class="band more-guides" aria-labelledby="more-title">
+      <div class="wrap">
+        <h2 class="t-title1" id="more-title">Continua a leggere</h2>
+        <ul class="guide-cards">
+          {% for other, guide in guides.items() if other != slug %}
+          <li><a class="guide-card" href="/guide/{{ other }}"><span class="guide-card-eyebrow">{{ guide.eyebrow }}</span><span class="guide-card-title">{{ guide.label }}</span><span class="guide-card-text">{{ guide.summary }}</span><span class="guide-card-more">Leggi la guida{{ icon('chevron') }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+{% endblock %}

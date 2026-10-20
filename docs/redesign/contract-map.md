@@ -35,6 +35,8 @@ Every authenticated workspace page renders `dashboard.html` through `page(reques
 |---|---|---|---|
 | `landing.html` | site `GET /` | public, no auth or cookies | Italian marketing page with a cinematic scroll experience: hero, services, ecosystem, journey, principles, FAQ, CTA. |
 | _(no template)_ | site `GET /ordina?platform=` | public | Redirects 303 to `{manager}/start`. The `?platform=` param is kept only for `fivem\|minecraft\|discord\|web\|other`. |
+| `guides/index.html` | site `GET /guide` | public | Index of the Italian guides, listed from `GUIDES` in `site.py`. |
+| `guides/<slug>.html` (extends `guides/article.html` → `guides/layout.html`) | site `GET /guide/{slug}` | public | One guide per `GUIDES` key; any other slug is a FastAPI JSON 404. Same nav, footer, closing CTA and social card as the landing (`site-parts.html`). Listed in `sitemap.xml`. |
 | `intake.html` | `GET /start` | public, plus customer and staff | 6-step request wizard. Anonymous users can fill it in; submitting requires a Discord login. |
 | `login.html` | `GET /login` | public | Single "Continua con Discord" CTA. It is also the 303 target for an expired session and for `/logout`. |
 | _(no template)_ | `/auth/discord`, `/auth/callback` | public | OAuth. `?customer=1` requests scope `identify`; `&return=start` sends the user back to `/start?connected=1`. |
@@ -132,7 +134,7 @@ Other server rules:
 Images referenced from templates:
 
 - `/static/lumia-logo-discord.png` (favicon and brand)
-- `/static/lumia-logo-completo.png` (og:image)
+- `/static/og-card.png` (og:image and twitter:image on the landing and the guides; 1200×630, source in `docs/marketing/og-card.html`). `/static/lumia-logo-completo.png` is no longer referenced by any template.
 - `/static/logos/{fivem,minecraft,discord}.svg`. Intake builds this path from the platform key.
 - `static/brand.svg` exists but no template references it **[?]**.
 
@@ -861,6 +863,7 @@ Run the suite from the repository root with `python -m unittest discover -s test
 - [ ] The site host returns 404 for `/orders`, `/customers`, `/auth/discord`, `/webhooks/paypal` and `/workspace/version`.
 - [ ] Anonymous `/start` contains `Non devi entrare nel server.` and the header `cache-control: no-store` (`test_intake.py:49-50`). Logged-in `/start` has its first `data-csrf="…"` equal to the session token (`test_intake.py:41`).
 - [ ] All 4xx/5xx assertions (400/403/404/409/413/415/429/502/503) depend on error.html rendering with only `{status, detail}`.
+- [ ] Guides (`tests/test_site_guides.py`): every `GUIDES` page has one `h1`, its own title and description, a canonical and `og:url` equal to its URL, the og-card meta, links to `/ordina` and to the other guides; the landing footer links every guide; `sitemap.xml` lists `/`, `/guide` and each guide; `og-card.png` is a 1200×630 PNG under 200 KB.
 
 These test files have **no** template, asset or header assertions: `test_ticket_delete_button`, `test_verification_gate`, `test_orders`, `test_presentation`, `test_integration`, `test_deploy_checks`, `test_tickets`, `test_onboarding`, `test_events`, `test_channel_migration`, `test_setup`, `test_role_reuse`, `test_core`, `test_base`, `test_installments`, `test_operations`, `test_verification`, `test_ai_configuration`.
 

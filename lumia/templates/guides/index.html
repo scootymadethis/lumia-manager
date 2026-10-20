@@ -1,0 +1,20 @@
+{% extends 'guides/layout.html' %}
+{% from 'macros.html' import icon %}
+{% block main %}
+    <header class="article-head guides-head wrap">
+      <nav class="crumbs" aria-label="Percorso"><ol><li><a href="/">Lumia</a></li><li aria-current="page">Guide</li></ol></nav>
+      <p class="article-eyebrow">Guide</p>
+      <h1 class="article-title">Dall’idea al server, passo per passo.</h1>
+      <p class="lede article-lede">Che cosa possiamo costruire, quali informazioni ci servono e come si lavora insieme, dalla richiesta alla consegna.</p>
+    </header>
+
+    <section class="band guides-list" aria-label="Tutte le guide">
+      <div class="wrap">
+        <ul class="guide-cards is-index">
+          {% for slug, guide in guides.items() %}
+          <li><a class="guide-card" href="/guide/{{ slug }}"><span class="guide-card-eyebrow">{{ guide.eyebrow }}</span><span class="guide-card-title">{{ guide.label }}</span><span class="guide-card-text">{{ guide.summary }}</span><span class="guide-card-more">Leggi la guida{{ icon('chevron') }}</span></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+{% endblock %}

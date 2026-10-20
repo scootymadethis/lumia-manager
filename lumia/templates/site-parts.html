@@ -1,0 +1,52 @@
+{#- Public site chrome shared by the landing and the guides.
+    Import with context: the macros read public_url, manager_url, discord_url and guides. -#}
+
+{% macro social_card() -%}
+  <meta property="og:site_name" content="Lumia Development">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:image" content="{{ public_url }}/static/og-card.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Il marchio Lumia, una L in titanio su una tessera nera, accanto al titolo «Il tuo prossimo server. Fatto su misura.» per FiveM, Minecraft e Discord.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{ public_url }}/static/og-card.png">
+  <meta name="twitter:image:alt" content="Il marchio Lumia, una L in titanio su una tessera nera, accanto al titolo «Il tuo prossimo server. Fatto su misura.» per FiveM, Minecraft e Discord.">
+{%- endmacro %}
+
+{#- home is '' on the landing (in-page anchors) and '/' everywhere else. -#}
+{% macro site_nav(home='', current='') -%}
+  <header class="site-nav glass-strong" data-site-nav>
+    <a class="brand" href="/" aria-label="Lumia Development, pagina iniziale">
+      <span class="brand-tile"><img src="/static/lumia-logo-discord.png" alt="" width="28" height="28"></span>
+      <span class="brand-word">Lumia<span class="brand-sub">Development</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Sezioni">
+      <a href="{{ home }}#servizi">Servizi</a>
+      <a href="{{ home }}#metodo">Il percorso</a>
+      {% if home %}<a href="/guide"{% if current == 'guide' %} aria-current="page"{% elif current %} class="is-current"{% endif %}>Guide</a>{% else %}<a href="#domande">Domande</a>{% endif %}
+    </nav>
+    <div class="nav-actions">
+      <a class="nav-quiet" href="{{ manager_url }}/login">Area clienti</a>
+      <a class="button primary small" href="/ordina">Inizia</a>
+    </div>
+  </header>
+{%- endmacro %}
+
+{% macro site_footer(home='') -%}
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="brand" href="/"><span class="brand-tile"><img src="/static/lumia-logo-discord.png" alt="" width="28" height="28" loading="lazy"></span><span class="brand-word">Lumia<span class="brand-sub">Development</span></span></a>
+          <p>Server, plugin e strumenti su misura per la tua community.</p>
+        </div>
+        <nav aria-label="Servizi"><h2>Servizi</h2><ul><li><a href="/ordina?platform=fivem">FiveM</a></li><li><a href="/ordina?platform=minecraft">Minecraft</a></li><li><a href="/ordina?platform=discord">Discord e web</a></li></ul></nav>
+        <nav aria-label="Guide"><h2>Guide</h2><ul>{% for slug, guide in guides.items() %}<li><a href="/guide/{{ slug }}">{{ guide.label }}</a></li>{% endfor %}<li><a href="/guide">Tutte le guide</a></li></ul></nav>
+        <nav aria-label="Studio"><h2>Studio</h2><ul><li><a href="{{ home }}#metodo">Il percorso</a></li><li><a href="{{ home }}#domande">Domande</a></li><li><a href="/ordina">Inizia un progetto</a></li></ul></nav>
+        <nav aria-label="Clienti"><h2>Clienti</h2><ul><li><a href="{{ manager_url }}/login">Area clienti</a></li><li><a href="{{ discord_url }}" target="_blank" rel="noopener noreferrer">Assistenza su Discord</a></li></ul></nav>
+      </div>
+      <div class="footer-bottom"><span>Lumia Development</span><span>Fatto su misura, in Italia.</span></div>
+    </div>
+  </footer>
+{%- endmacro %}
