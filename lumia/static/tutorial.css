@@ -114,11 +114,12 @@
   position: relative;
   min-height: 28px;
   padding-left: calc(28px + var(--s3));
-  font-size: var(--t-callout); line-height: 1.6; color: var(--ink-2);
+  --step-lh: calc(var(--t-callout) * 1.6);
+  font-size: var(--t-callout); line-height: var(--step-lh); color: var(--ink-2);
 }
 .tutorial-steps li::before {
   content: counter(tutorial-step);
-  position: absolute; top: calc((1lh - 28px) / 2); left: 0;
+  position: absolute; top: calc((var(--step-lh) - 28px) / 2); left: 0;
   display: grid; place-items: center;
   width: 28px; height: 28px;
   border-radius: 50%;
