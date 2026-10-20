@@ -22,7 +22,7 @@
         <span class="agenda-title">{{ item.title }}</span>
         <span class="agenda-project">{{ item.project }}</span>
       </span>
-      <span class="agenda-state">{% if item.overdue %}{{ icon('clock') }}Data trascorsa{% else %}In programma{% endif %}</span>
+      {% if item.overdue %}<span class="agenda-state">{{ icon('clock') }}Data trascorsa</span>{% else %}<span class="sr-only">In programma</span>{% endif %}
       {{ icon('chevron', 'agenda-go') }}
     </a></li>
     {% if loop.last %}</ol>{% endif %}

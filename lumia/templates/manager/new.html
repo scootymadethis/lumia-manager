@@ -7,7 +7,7 @@
     <fieldset class="form-section">
       <legend class="form-section-title"><span class="form-section-icon">{{ icon('orders') }}</span>Progetto</legend>
       <label class="field"><span class="field-label">Titolo</span><input name="title" required maxlength="200" placeholder="Es. FiveM · Sistema lavori" autocomplete="off"></label>
-      <label class="field"><span class="field-label">Totale concordato</span><span class="amount-field"><input name="total" required inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" placeholder="1250,00" autocomplete="off" aria-describedby="total-hint"><span class="amount-unit" aria-hidden="true">€</span></span><span class="field-hint" id="total-hint">Con al massimo due decimali, per esempio 1250,00.</span></label>
+      <div class="field"><label class="field-label" for="order-total">Totale concordato</label><span class="amount-field"><input id="order-total" name="total" required inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" placeholder="1250,00" autocomplete="off" aria-describedby="total-hint"><span class="amount-unit" aria-hidden="true">€</span></span><span class="field-hint" id="total-hint">Con al massimo due decimali, per esempio 1250,00.</span></div>
     </fieldset>
     <fieldset class="form-section">
       <legend class="form-section-title"><span class="form-section-icon">{{ icon('users') }}</span>Cliente</legend>

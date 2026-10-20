@@ -26,13 +26,13 @@
 
 {% macro attention_panel(extra_class='') %}
 <section class="panel attention-panel {{ extra_class }}" data-tour="attention" aria-labelledby="attention-title">
-  <div class="panel-heading"><h2 id="attention-title">{{ 'In primo piano' if user.staff else 'Tocca a te' }}</h2>{% if attention %}<span class="section-count tnum">{{ attention|length }}</span>{% endif %}</div>
+  <div class="panel-heading"><h2 id="attention-title">{{ 'In primo piano' if user.staff else 'Tocca a te' }}</h2>{% if attention %}<span class="pill tnum">{{ attention|length }}</span>{% endif %}</div>
   {% if attention %}<ul class="attention-list">{% for item in attention[:5] %}<li><a href="{{ item.url }}" class="attention-item">
     <span class="action-symbol {{ item.kind }}">{{ icon('wallet' if item.kind=='payment' else 'box' if item.kind=='delivery' else 'layers' if item.kind=='quote' else 'orders') }}</span>
     {% if user.staff %}<span class="attention-copy"><strong>{{ item.title }}</strong><span>{{ item.text }}</span></span>{% elif item.kind == 'payment' %}{% set part = item.text.rsplit(' · ', 1) %}<span class="attention-copy"><strong>Tranche «{{ part[0] }}»</strong><span>{{ item.title }}</span></span>{% else %}<span class="attention-copy"><strong>{{ item.text }}</strong><span>{{ item.title }}</span></span>{% endif %}
-    <span class="attention-go">{% if item.kind == 'payment' and not user.staff and item.text.rsplit(' · ', 1)|length == 2 %}<span class="attention-amount"><strong class="tnum">{{ item.text.rsplit(' · ', 1)[1] }}</strong><small>da saldare</small></span>{% endif %}<span class="attention-open" aria-hidden="true">Apri</span>{{ icon('chevron') }}</span>
+    <span class="attention-go">{% if item.kind == 'payment' and not user.staff and item.text.rsplit(' · ', 1)|length == 2 %}<span class="attention-amount"><strong class="tnum">{{ item.text.rsplit(' · ', 1)[1] }}</strong><small>da saldare</small></span>{% endif %}<span class="pill attention-open" aria-hidden="true">Apri</span>{{ icon('chevron') }}</span>
   </a></li>{% endfor %}</ul>
-  {% else %}<div class="calm-empty"><span class="calm-mark">{{ icon('check') }}</span><h3>Sei in pari.</h3><p>Le prossime azioni appariranno qui.</p></div>{% endif %}
+  {% else %}<div class="empty-state is-compact">{{ icon('check') }}<h3>Sei in pari.</h3><p>Le prossime azioni appariranno qui.</p></div>{% endif %}
 </section>
 {% endmacro %}
 
@@ -49,7 +49,7 @@
         </a></li>{% endfor %}
       </ul>
     </li>{% endfor %}</ol>
-  {% else %}<div class="calm-empty"><span class="calm-mark">{{ icon('calendar') }}</span><h3>Spazio al lavoro.</h3><p>Le date concordate saranno visibili qui.</p></div>{% endif %}
+  {% else %}<div class="empty-state is-compact">{{ icon('calendar') }}<h3>Spazio al lavoro.</h3><p>Le date concordate saranno visibili qui.</p></div>{% endif %}
 </section>
 {% endmacro %}
 
@@ -62,13 +62,13 @@
   </a>
   <a class="metric-card" href="/payments{{ suffix }}">
     <span class="metric-label">{{ icon('euro') }}{{ 'Incassato' if user.staff else 'Pagato' }}</span>
-    <strong class="metric-value tnum">{{ (totals.paid|money)[:-2] }}<small>€</small></strong>
+    <strong class="metric-value tnum">{{ (totals.paid|money)|replace('€', '')|trim }}<small> €</small></strong>
     <progress class="metric-progress ok" max="100" value="{{ paid_share }}" aria-label="{{ paid_share }}% del valore confermato"></progress>
     <span class="metric-note"><b class="tnum">{{ paid_share }}%</b> di <span class="tnum">{{ confirmed|money }}</span> confermati</span>
   </a>
   <a class="metric-card" href="/payments{{ suffix }}">
     <span class="metric-label">{{ icon('clock') }}{{ 'Da ricevere' if user.staff else 'Da saldare' }}</span>
-    <strong class="metric-value tnum">{{ (totals.due|money)[:-2] }}<small>€</small></strong>
+    <strong class="metric-value tnum">{{ (totals.due|money)|replace('€', '')|trim }}<small> €</small></strong>
     <span class="metric-note">Sui progetti confermati</span>
   </a>
   <a class="metric-card" href="/orders?focus=deliveries{{ '&view=client' if demo and not user.staff else '' }}">
@@ -83,7 +83,7 @@
 <section class="recent-projects" data-tour="projects" aria-labelledby="projects-title">
   <div class="workspace-section-heading"><h2 id="projects-title">{{ 'Progetti recenti' if user.staff else 'I tuoi progetti' }}</h2><a class="text-link" href="/orders{{ suffix }}">Tutti i progetti {{ icon('chevron') }}</a></div>
   <div class="project-card-grid{{ ' is-quad' if user.staff and orders[:6]|length == 4 else '' }}">{% for o in orders[:6] %}{% include 'manager/project-card.html' %}{% else %}
-    <div class="panel calm-empty projects-empty"><span class="calm-mark">{{ icon('orders') }}</span><h3>Il prossimo progetto parte da qui.</h3><p>{{ 'Crea il primo ordine per organizzare il lavoro.' if user.staff else 'Inizia una richiesta guidata: ritroverai qui il preventivo e tutti gli aggiornamenti.' }}</p>{% if user.staff %}<a class="button small secondary" href="/orders/new">{{ icon('plus') }}<span>Nuovo ordine</span></a>{% else %}<a class="button small secondary" href="/start{{ suffix }}">{{ icon('plus') }}<span>Nuova richiesta</span></a>{% endif %}</div>{% endfor %}
+    <div class="panel empty-state is-compact projects-empty">{{ icon('orders') }}<h3>Il prossimo progetto parte da qui.</h3><p>{{ 'Crea il primo ordine per organizzare il lavoro.' if user.staff else 'Inizia una richiesta guidata: ritroverai qui il preventivo e tutti gli aggiornamenti.' }}</p>{% if user.staff %}<a class="button small secondary" href="/orders/new">{{ icon('plus') }}<span>Nuovo ordine</span></a>{% else %}<a class="button small secondary" href="/start{{ suffix }}">{{ icon('plus') }}<span>Nuova richiesta</span></a>{% endif %}</div>{% endfor %}
   </div>
 </section>
 {% endmacro %}
@@ -97,12 +97,13 @@
 </div>
 {{ projects() }}
 {% else %}
+{#- Same top-to-bottom order as the guided tour: welcome, summary, next step, projects -#}
+{{ metrics() }}
 <div class="dashboard-grid home-grid">
   {{ attention_panel('span-8 is-client') }}
   {{ agenda_panel('span-4') }}
 </div>
 {{ projects() }}
-{{ metrics() }}
 {% endif %}
 
 <nav class="workspace-quicklinks" data-tour="quicklinks" aria-label="Accesso rapido">

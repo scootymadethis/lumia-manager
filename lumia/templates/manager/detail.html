@@ -12,14 +12,14 @@
     <p class="project-meta"><span class="project-code tnum">LM-{{ '%04d'|format(order.id) }}</span>{% if user.staff %}<a class="project-customer" href="https://discord.com/users/{{ order.customer }}" target="_blank" rel="noopener noreferrer">{{ avatar(order.customer_name, order.customer_avatar, 'avatar-mini') }}<span>{{ order.customer_name }}</span>{{ icon('external') }}</a>{% endif %}</p>
     <div class="detail-title"><h1>{{ order.title }}</h1>{{ badge(order.stage,{'bozza':'In valutazione'}) if order.intake and order.stage=='bozza' else badge(order.stage,stages) }}</div>
   </div>
-  {% if delivery %}<p class="project-eta{% if not delivery.done and delivery.due<today %} is-late{% endif %}">{{ icon('calendar') }}<span><span class="project-eta-label">{{ 'Ultima milestone' if delivery.done else 'Consegna prevista' }}</span><time class="tnum" datetime="{{ delivery.due }}">{{ delivery.due[8:10]|int }} {{ months[delivery.due[5:7]|int-1] }} {{ delivery.due[:4] }}</time></span></p>{% endif %}
+  {% if delivery %}{% set eta_late = not delivery.done and delivery.due<today %}<p class="project-eta{% if eta_late %} is-late{% endif %}">{{ icon('calendar') }}<span><span class="project-eta-label">{{ 'Ultima milestone' if delivery.done else 'Consegna prevista' }}{% if eta_late %}<span class="project-eta-late"> · in ritardo</span>{% endif %}</span><time class="tnum" datetime="{{ delivery.due }}">{{ delivery.due[8:10]|int }} {{ months[delivery.due[5:7]|int-1] }} {{ delivery.due[:4] }}</time></span></p>{% endif %}
 </header>
 {% if checkout_success %}<div class="notice ok project-notice">{{ icon('check') }}<div><p>Ritorno da PayPal completato. Qui trovi gli incassi verificati; un pagamento in attesa verrà aggiornato alla conferma di PayPal.</p><a class="text-link" href="/orders/{{ order.id }}{{ suffix }}">Aggiorna</a></div></div>{% endif %}
 {% if checkout_cancelled %}<div class="notice warn project-notice">{{ icon('clock') }}<div><p>Hai interrotto il checkout. Nessun nuovo pagamento è stato registrato; puoi riprenderlo da qui.</p></div></div>{% endif %}
 
 <aside class="payment-callout{% if pay_now %} has-pay{% elif not awaiting and not order.due_cents %} has-pay is-settled{% endif %}" data-tour="payment" aria-labelledby="next-step-title">
   <div class="callout-main">
-    {% if order.stage=='annullato' %}<p class="callout-eyebrow is-muted">Progetto annullato</p>{% else %}<p class="callout-eyebrow"><span class="callout-pulse" aria-hidden="true"></span>Il prossimo passo</p>{% endif %}
+    {% if order.stage=='annullato' %}<p class="callout-eyebrow is-muted">Progetto annullato</p>{% elif not awaiting and not order.due_cents %}<p class="callout-eyebrow is-muted">Pagamenti</p>{% else %}<p class="callout-eyebrow"><span class="callout-pulse" aria-hidden="true"></span>Il prossimo passo</p>{% endif %}
     <h2 id="next-step-title">{% if order.intake and not order.intake.quote %}Importo da definire.{% elif not order.due_cents %}Tutto saldato.{% elif order.payable.amount_cents %}{{ order.payable.title }}{% else %}Una fase alla volta.{% endif %}</h2>
     {% if order.intake and not order.intake.quote %}<p class="callout-text">Il team sta valutando la richiesta. Potrai pagare solo dopo aver ricevuto e accettato il preventivo.</p>
     {% elif not order.due_cents %}<p class="callout-text">I pagamenti di questo ordine sono completi.</p>
@@ -30,14 +30,14 @@
   {% if pay_now %}{% set due_label = order.payable.amount_cents|money %}
   <div class="callout-pay">
     <p class="callout-pay-label">Da pagare ora</p>
-    <strong class="callout-amount tnum">{{ due_label[:-2] }}<small> €</small></strong>
+    <strong class="callout-amount tnum">{{ due_label|replace('€', '')|trim }}<small> €</small></strong>
     {% if paypal %}<form class="checkout-form" action="/orders/{{ order.id }}/checkout" method="post">{{ csrf(user) }}{% if order.payable.installment_id %}<input type="hidden" name="installment_id" value="{{ order.payable.installment_id }}">{% endif %}<button type="submit" class="button primary large" {% if demo %}disabled{% endif %}>Paga con PayPal · {{ due_label }}</button></form><p class="callout-fine">{{ icon('lock') }}<span>Completi il pagamento in sicurezza su PayPal, poi torni qui.</span></p>
     {% else %}<p class="callout-fine callout-unavailable">{{ icon('clock') }}<span>PayPal sarà disponibile appena il team completa la configurazione. Scrivici dal progetto per assistenza.</span></p>{% endif %}
   </div>
   {% elif not awaiting and not order.due_cents %}
   <div class="callout-pay">
     <p class="callout-pay-label">Ricevuto in totale</p>
-    <strong class="callout-amount tnum">{{ (order.paid_cents|money)[:-2] }}<small> €</small></strong>
+    <strong class="callout-amount tnum">{{ (order.paid_cents|money)|replace('€', '')|trim }}<small> €</small></strong>
     <p class="callout-fine callout-settled">{{ icon('check') }}<span>Nessun importo in sospeso.</span></p>
   </div>
   {% endif %}
@@ -65,14 +65,14 @@
 {% include 'manager/brief.html' %}
 <section class="panel project-about" id="project-details"><div class="panel-heading"><h2>Il progetto</h2></div><div class="panel-body"><p class="project-details">{{ order.details or 'Scrivi al team nella conversazione per definire i dettagli del progetto.' }}</p>{% if order.stage=='preventivo' and order.customer==user.id %}<form class="accept-quote" id="accept-quote" action="/orders/{{ order.id }}/accept" method="post">{{ csrf(user) }}<div><strong>Tutto chiaro?</strong><p>Conferma il progetto, il prezzo e il piano di pagamento indicati.</p></div><button type="submit" class="button primary" {% if demo %}disabled{% endif %}>Accetta preventivo {{ icon('check') }}</button></form>{% endif %}</div></section>
 </div>
-<div class="project-side">
+{% if user.staff or not awaiting or order.milestones %}<div class="project-side">
 {% if user.staff %}<section class="panel staff-panel project-manage" aria-labelledby="manage-title"><div class="panel-heading"><h2 id="manage-title">Gestione</h2><span class="staff-tag">{{ icon('lock') }}Solo team</span></div><form class="manage-stage" action="/orders/{{ order.id }}/stage" method="post">{{ csrf(user) }}<label class="field-label" for="order-stage">Fase del progetto</label><div class="manage-stage-row"><select name="stage" id="order-stage">{% for key,label in stages.items() %}<option value="{{ key }}" {% if order.stage==key %}selected{% endif %} {% if order.intake and ((not order.intake.quote and key not in ['bozza','annullato']) or (order.intake.quote and key=='bozza')) %}disabled{% endif %}>{{ label }}</option>{% endfor %}</select><button type="submit" class="button secondary" {% if demo %}disabled{% endif %}>Salva stato</button></div></form><ul class="manage-links" aria-label="Strumenti del team">{% if order.intake and not order.intake.quote and order.stage=='bozza' %}<li><a class="manage-link" href="#prepare-quote">{{ icon('orders') }}<span>Preventivo</span>{{ icon('chevron') }}</a></li>{% endif %}<li><a class="manage-link" href="#milestones">{{ icon('flag') }}<span>Milestone</span>{{ icon('chevron') }}</a></li>{% if not awaiting %}<li><a class="manage-link" href="#payment-plan">{{ icon('layers') }}<span>Tranche</span>{{ icon('chevron') }}</a></li><li><a class="manage-link" href="#payments">{{ icon('wallet') }}<span>Pagamenti e storni</span>{{ icon('chevron') }}</a></li>{% endif %}<li><a class="manage-link" href="#deliveries">{{ icon('box') }}<span>Consegne</span>{{ icon('chevron') }}</a></li><li><a class="manage-link" href="#conversation">{{ icon('lock') }}<span>Nota interna</span>{{ icon('chevron') }}</a></li></ul></section>{% endif %}
 {% if not awaiting or order.milestones or user.staff %}<section class="panel" id="milestones" data-tour="milestones"><div class="panel-heading"><h2>Milestone</h2>{% if order.milestones %}<span class="pill tnum">{{ order.milestones|selectattr('done')|list|length }}/{{ order.milestones|length }}</span>{% endif %}</div>
 {% if order.milestones %}<ol class="milestone-list">{% for m in order.milestones %}{% set late = not m.done and m.due<today %}<li class="milestone-row{% if m.done %} is-done{% elif late %} is-late{% endif %}"><span class="milestone-marker tnum" aria-hidden="true">{% if m.done %}{{ icon('check') }}{% else %}{{ loop.index }}{% endif %}</span><div class="milestone-info"><strong>{{ m.title }}</strong><small><time class="tnum" datetime="{{ m.due }}">{{ m.due[8:10] }}/{{ m.due[5:7] }}/{{ m.due[:4] }}</time> · {{ 'Completata' if m.done else 'Da completare' }}{% if late %} · in ritardo{% endif %}</small></div>{% if user.staff %}<form action="/orders/{{ order.id }}/milestones/{{ m.id }}" method="post">{{ csrf(user) }}<input type="hidden" name="done" value="{{ 0 if m.done else 1 }}"><button type="submit" class="button {{ 'ghost' if m.done else 'secondary' }} small" {% if demo %}disabled{% endif %}>{{ 'Riapri' if m.done else 'Completa' }}</button></form>{% endif %}</li>{% endfor %}</ol>
 {% else %}<div class="section-empty">{{ icon('flag') }}<p>Nessuna milestone definita.</p></div>{% endif %}
 {% if user.staff %}<details class="disclosure staff-tool"><summary>{{ icon('plus') }}Aggiungi milestone<span class="staff-tag">{{ icon('lock') }}Solo team</span>{{ icon('chevron') }}</summary><form class="stack-form" action="/orders/{{ order.id }}/milestones" method="post">{{ csrf(user) }}<label class="field"><span class="field-label">Traguardo</span><input name="title" required maxlength="200" placeholder="Es. Prima versione" autocomplete="off"></label><label class="field"><span class="field-label">Scadenza</span><input type="date" name="due" required></label><div class="form-actions"><button type="submit" class="button secondary" {% if demo %}disabled{% endif %}>Aggiungi</button></div></form></details>{% endif %}
 </section>{% endif %}
-</div>
+</div>{% endif %}
 <div class="project-flow">
 {% if not awaiting %}
 <section class="panel" id="payment-plan" data-tour="plan"><div class="panel-heading"><h2>Piano di pagamento</h2>{% if order.installments %}<span class="pill tnum">{{ order.installments|length }} tranche</span>{% endif %}</div>

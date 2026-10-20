@@ -64,6 +64,7 @@
 .project-eta-label { font-size: var(--t-cap); color: var(--ink-3); }
 .project-eta time { font-size: var(--t-callout); font-weight: 650; color: var(--ink); }
 .project-eta.is-late > .icon { background: var(--warn-bg); color: var(--warn); }
+.project-eta-late { color: var(--warn); font-weight: 600; } /* said in words, not by colour alone */
 
 /* ---------------------------------------------------------
    "Il prossimo passo": the payment callout, the one loud card
@@ -154,6 +155,20 @@
 .callout-unavailable { margin-top: var(--s5); padding: var(--s3); border-radius: var(--r-sm); background: var(--warn-bg); color: var(--ink-2); }
 .callout-unavailable .icon { color: var(--warn); }
 .callout-settled .icon { color: var(--ok); }
+
+/* Without an amount to pay, the help links take the right pane, so the
+   card keeps the same two-part shape instead of a half-empty wide row */
+@container project (min-width: 720px) {
+  .payment-callout:not(.has-pay) { grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); }
+  .payment-callout:not(.has-pay) .callout-main { padding-bottom: var(--callout-pad); }
+  .payment-callout:not(.has-pay) .support-options {
+    flex-direction: column; align-items: flex-start; justify-content: center; gap: var(--s3);
+    margin: 0; padding: var(--callout-pad);
+    border-top: 0; border-left: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  }
+  .payment-callout:not(.has-pay) .support-note { flex: none; margin-top: var(--s1); }
+}
 
 @container project (min-width: 720px) {
   .payment-callout.has-pay {
@@ -262,12 +277,15 @@
   .project-lead { grid-column: 1; grid-row: 1; }
   .project-flow { grid-column: 1; grid-row: 2; }
   .project-side { grid-column: 2; grid-row: 1 / span 2; }
+  /* A customer's unquoted request has no side group yet: keep one column */
+  .project-columns:not(:has(> .project-side)) { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------------------------------------------------------
    Shared bits inside the project panels
    --------------------------------------------------------- */
-.project .panel { scroll-margin-top: calc(var(--topbar-h, 64px) + var(--s4)); }
+/* html's scroll-padding already clears the top bar (workspace.css) */
+.project .panel { scroll-margin-top: var(--s2); }
 .project .pill { flex: none; }
 .section-empty {
   display: flex; align-items: center; gap: var(--s3);
@@ -291,7 +309,7 @@
   display: inline-flex; align-items: center; gap: var(--s1);
   min-height: 22px; padding: 0 var(--s2);
   border-radius: var(--r-pill);
-  background: var(--fill); color: var(--ink-3);
+  background: var(--fill); color: var(--ink-2); /* ink-3 is below AA on --fill */
   font-size: var(--t-cap); font-weight: 600; line-height: 1; white-space: nowrap;
 }
 .staff-tag .icon { width: 12px; height: 12px; }
@@ -365,7 +383,7 @@ details.staff-tool > :not(summary):last-child { padding-bottom: var(--s4); }
   padding: var(--s4) var(--s5);
   border-radius: var(--inset-radius);
   background: var(--accent-bg);
-  scroll-margin-top: calc(var(--topbar-h, 64px) + var(--s6));
+  scroll-margin-top: var(--s4);
 }
 .accept-quote > div { flex: 1 1 16rem; }
 .accept-quote p { margin-top: 2px; font-size: var(--t-foot); color: var(--ink-2); }
@@ -396,6 +414,8 @@ details.staff-tool > :not(summary):last-child { padding-bottom: var(--s4); }
 .project-side .milestone-row { grid-template-columns: 32px minmax(0, 1fr); align-items: start; }
 .project-side .milestone-row > .milestone-marker { margin-top: -4px; }
 .project-side .milestone-row > form { grid-column: 2; }
+/* A text button under the title: its label lines up with the title, not with its own padding */
+.project-side .milestone-row > form .button.ghost { margin-left: calc(-1 * var(--s4)); }
 .milestone-row.is-done strong { color: var(--ink-2); }
 
 .installment-row.is-due {
@@ -405,6 +425,7 @@ details.staff-tool > :not(summary):last-child { padding-bottom: var(--s4); }
   background: var(--accent-bg);
 }
 .installment-row.is-due + .installment-row { border-top-color: transparent; }
+.installment-row.is-due small { color: var(--ink-2); } /* on the accent tint */
 .installment-amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); text-align: right; }
 .installment-amount strong { font-size: var(--t-callout); font-weight: 650; white-space: nowrap; }
 .installment-amount small { color: var(--ink-3); white-space: nowrap; }
@@ -555,7 +576,7 @@ details.staff-tool > :not(summary):last-child { padding-bottom: var(--s4); }
 .conversation-empty { justify-content: flex-start; }
 
 .message-compose { margin-top: var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); }
-.compose-field textarea { min-height: 96px; border-radius: var(--r-md); background-color: var(--surface-2); border-color: transparent; }
+.compose-field textarea { min-height: 96px; border-radius: var(--r-md); background-color: var(--surface-2); }
 html[data-theme="dark"] .compose-field textarea { background-color: var(--field); }
 .compose-field textarea:focus { border-color: var(--accent); }
 .compose-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); margin-top: var(--s3); }
@@ -628,7 +649,10 @@ html[data-theme="dark"] .compose-field textarea { background-color: var(--field)
   .project-eta-label, .project-eta time { font-size: var(--t-foot); }
   .milestone-row { grid-template-columns: 32px minmax(0, 1fr); }
   .milestone-row > form { grid-column: 2; }
+  .milestone-row > form .button.ghost { margin-left: calc(-1 * var(--s4)); }
   .project-stats { gap: var(--s4) var(--s3); }
+  /* Three narrow columns: a long amount may wrap before the euro sign */
+  .project-stat strong { white-space: normal; }
   .message-content { max-width: calc(100% - 44px); }
   .manage-stage-row { flex-wrap: wrap; }
   .manage-stage-row .button { flex: 1 1 100%; }

@@ -19,7 +19,6 @@
   padding: var(--s3);
   border-radius: var(--r-sm);
   color: inherit;
-  -webkit-touch-callout: none;
   transition: transform var(--d-press) var(--ease-out);
 }
 :is(.activity-item, .agenda-row):active { transform: scale(.99); }
@@ -182,6 +181,8 @@ html[data-theme="dark"] .agenda-row .date-tile { background: var(--surface-2); }
   font-weight: 600;
 }
 .agenda-state .icon { width: 14px; height: 14px; }
+/* "In programma" is the default: read out, not shown on every row */
+.agenda-row:not(.is-overdue) { grid-template-columns: 52px minmax(0, 1fr) 16px; grid-template-areas: "tile body go"; }
 .agenda-go { grid-area: go; }
 
 @media (max-width: 620px) {
@@ -278,6 +279,7 @@ html[data-theme="dark"] .agenda-row .date-tile { background: var(--surface-2); }
 .ledger td.number.muted { color: var(--ink-3); font-weight: 500; }
 .ledger td.number.danger { color: var(--bad); }
 .ledger-reversal td { background: color-mix(in srgb, var(--bad-bg) 55%, transparent); }
+.ledger-reversal .subtext { color: var(--ink-2); } /* on the red tint */
 .ledger-empty td { padding: 0; }
 .ledger-empty td.muted { padding: var(--s5) var(--panel-pad); }
 .ledger-empty .empty-state { padding-block: var(--s8); }
@@ -333,6 +335,8 @@ html[data-theme="dark"] .agenda-row .date-tile { background: var(--surface-2); }
   .ledger-reversal td { background: none; }
   :is(.ledger, .events, .checkouts) td[data-label]::before { font-family: var(--font); letter-spacing: var(--tr-text); }
   .data-table.stack tr.ledger-reversal { background: var(--bad-bg); }
+  /* Stacked rows sit on a grey card: small subtext steps up to ink-2 */
+  :is(.ledger, .events, .checkouts) .subtext { color: var(--ink-2); }
   .events-panel .table-scroll { margin-bottom: var(--s4); }
   .events-panel .data-table.stack tbody { padding: 0; }
   .checkout-action { padding-top: var(--s2); }
@@ -351,6 +355,8 @@ html[data-theme="dark"] .agenda-row .date-tile { background: var(--surface-2); }
   color: var(--ink-3);
 }
 .settings-list { padding: 0; overflow: hidden; }
+/* The rows run edge to edge and the panel clips: draw focus inside them */
+.settings-list :focus-visible { outline-offset: -2px; border-radius: var(--r-lg); }
 .settings-row, .settings-disclosure > summary {
   position: relative;
   display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center;

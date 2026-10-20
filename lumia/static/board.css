@@ -47,22 +47,7 @@ html[data-theme="dark"] .workspace {
   :is(.metric-card, .workspace-quicklinks > *, .workspace-project):hover::before { opacity: 1; }
 }
 
-/* Shared calm empty state (home panels, favourites) */
-.calm-empty {
-  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
-  padding: var(--s7) var(--s4);
-  text-align: center;
-}
-.calm-mark {
-  display: grid; place-items: center;
-  width: 48px; height: 48px; margin-bottom: var(--s1);
-  border-radius: 50%;
-  background: var(--fill); color: var(--ink-3);
-}
-.calm-mark .icon { width: 22px; height: 22px; }
-.calm-empty h3 { font-size: var(--t-title3); }
-.calm-empty p { max-width: 36ch; font-size: var(--t-callout); line-height: 1.45; color: var(--ink-3); }
-.calm-empty .button { margin-top: var(--s3); }
+/* Empty home panels and favourites use base.css's .empty-state.is-compact */
 
 /* ---------------------------------------------------------
    Home: greeting
@@ -124,7 +109,6 @@ html[data-theme="dark"] .workspace {
   font-feature-settings: var(--font-features-num);
 }
 .metric-value small {
-  margin-left: .14em;
   font-size: .52em; font-weight: 600; letter-spacing: -.01em;
   color: var(--ink-3);
 }
@@ -215,16 +199,8 @@ html[data-theme="dark"] .workspace {
    Home: attention and the short agenda
    --------------------------------------------------------- */
 .home-grid { margin-top: var(--board-gap); }
-.recent-projects + .dashboard-metrics { margin-top: clamp(var(--s6), 3vw, var(--s8)); }
-.section-count {
-  display: inline-grid; place-items: center;
-  min-width: 26px; height: 26px; padding: 0 var(--s2);
-  border-radius: var(--r-pill);
-  background: var(--fill); color: var(--ink-2);
-  font-size: var(--t-foot); font-weight: 650;
-}
 .attention-panel.is-client .panel-heading h2 { font-size: var(--t-title2); letter-spacing: var(--tr-title2); }
-.attention-panel.is-client .section-count { background: var(--accent); color: var(--on-accent); }
+.attention-panel.is-client .panel-heading .pill { background: var(--accent); color: var(--on-accent); }
 
 .attention-list > li + li { border-top: 1px solid var(--line); margin-left: calc(40px + var(--s4)); }
 .attention-list > li + li > .attention-item { margin-left: calc(-40px - var(--s4)); }
@@ -261,13 +237,8 @@ html[data-theme="dark"] .workspace {
 .attention-amount strong { font-size: var(--t-callout); font-weight: 650; }
 .attention-amount small { font-size: var(--t-cap); color: var(--ink-3); }
 .attention-go .icon { display: none; width: 18px; height: 18px; }
-.attention-open {
-  display: inline-flex; align-items: center;
-  min-height: 32px; padding: 0 var(--s4);
-  border-radius: var(--r-pill);
-  background: var(--fill); color: var(--ink);
-  font-size: var(--t-foot); font-weight: 600;
-}
+/* base.css's .pill, a little larger and in full ink */
+.attention-open { min-height: 32px; padding: 0 var(--s4); color: var(--ink); }
 @media (hover: hover) and (pointer: fine) {
   .attention-item:hover::before { opacity: .55; }
   .attention-item:hover .attention-open { background: var(--btn); color: var(--btn-ink); }
@@ -336,6 +307,10 @@ html[data-theme="dark"] .workspace {
 .workspace-project:has(.project-card-link:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .project-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); min-height: 32px; }
 .project-card-top .badge { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* On the board the column already names the stage: the badge stays only where
+   it tells cards apart (bozza or preventivo, confermato, annullato) */
+.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-top .badge { display: none; }
+.board-column :is([data-stage="in_corso"], [data-stage="in_revisione"], [data-stage="completato"]) .project-card-top { justify-content: flex-end; }
 .favorite-button {
   position: relative; z-index: 2;
   display: grid; place-items: center; flex: none;
@@ -432,7 +407,7 @@ html[data-theme="dark"] .workspace {
   margin-bottom: var(--s4);
 }
 .project-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); flex: 1 1 560px; min-width: 0; }
-.project-filter :is(input, select) { border-radius: var(--r-pill); border-color: transparent; background-color: var(--surface); box-shadow: var(--sh-1); }
+.project-filter :is(input, select) { border-radius: var(--r-pill); background-color: var(--surface); box-shadow: var(--sh-1); }
 .project-filter :is(input, select):focus { border-color: var(--accent); }
 /* Compact 40 px controls only with a mouse: touch keeps base.css's 44 px target */
 @media (pointer: fine) {
@@ -508,7 +483,7 @@ html[data-theme="dark"] .board-column .workspace-project { background: var(--sur
 .board-empty {
   display: grid; place-items: center;
   padding: var(--s4);
-  font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); text-align: center;
+  font-size: var(--t-foot); line-height: 1.4; color: var(--ink-2); text-align: center; /* sits on the tinted well */
   text-wrap: balance;
 }
 
@@ -548,16 +523,13 @@ html[data-theme="dark"] .board-column .workspace-project { background: var(--sur
 .project-row:focus-visible { outline-offset: -2px; border-radius: var(--r-xs); }
 
 .favorites-empty {
-  display: flex; flex-direction: column; align-items: center; gap: var(--s3);
   margin-top: var(--s3);
   padding: var(--s8) var(--s5);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--sh-1);
-  text-align: center;
 }
-.favorites-empty .calm-mark { color: var(--star-edge); background: color-mix(in srgb, var(--star) 16%, transparent); }
-.favorites-empty p { max-width: 40ch; font-size: var(--t-callout); color: var(--ink-3); }
+.favorites-empty > .icon { color: var(--star-edge); background: color-mix(in srgb, var(--star) 16%, transparent); }
 
 /* ---------------------------------------------------------
    Nuovo ordine: one calm form in the centre
@@ -595,7 +567,7 @@ html[data-theme="dark"] .board-column .workspace-project { background: var(--sur
   display: inline-flex; align-items: center; vertical-align: 1px;
   min-height: 20px; margin-left: var(--s1); padding: 0 var(--s2);
   border-radius: var(--r-pill);
-  background: var(--fill); color: var(--ink-3);
+  background: var(--fill); color: var(--ink-2); /* ink-3 is below AA on --fill */
   font-size: var(--t-cap); font-weight: 550;
 }
 .manual-customer { border-top: 1px solid var(--line); }
@@ -710,5 +682,5 @@ html[data-theme="dark"] .board-column .workspace-project { background: var(--sur
 @media (prefers-contrast: more) {
   :is(.metric-card, .queue-card, .workspace-quicklinks > *, .workspace-project, .favorites-empty) { box-shadow: 0 0 0 1px var(--line-2); }
   .board-column { box-shadow: inset 0 0 0 1px var(--line-2); }
-  .project-filter :is(input, select) { border-color: var(--line-2); box-shadow: none; }
+  .project-filter :is(input, select) { box-shadow: none; }
 }

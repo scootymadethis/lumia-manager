@@ -6,7 +6,7 @@
     <h1>Pagamenti</h1>
     <p class="lede">{{ 'Il registro dei pagamenti ricevuti.' if user.staff else 'I pagamenti dei tuoi progetti, in un posto solo.' }}</p>
   </div>
-  <div class="page-actions"><a class="button secondary export-payments" href="/exports/payments.csv{{ suffix }}" download>{{ icon('download') }}<span>Esporta movimenti</span></a></div>
+  <div class="page-actions"><a class="button secondary export-payments" href="/exports/payments.csv{{ suffix }}">{{ icon('download') }}<span>Esporta movimenti</span></a></div>
 </section>
 
 <section class="payment-stats" aria-label="Riepilogo">
