@@ -1,13 +1,23 @@
 LUMIA DEVELOPMENT — STILE WEB E DISCORD
-17 ottobre 2026
+20 ottobre 2026
 
 WEB
-Nero profondo, tipografia di sistema, superfici leggere, gerarchie leggibili.
-Landing e manager condividono colori e componenti. I tre loghi di piattaforma
-provengono dagli SVG forniti dall’utente e sono conservati in static/logos.
-La landing aggiunge rotazioni, luce al puntatore e una sequenza legata allo
-scroll. Le interazioni finanziarie del manager restano stabili.
-Le preferenze per movimento e trasparenza vengono rispettate.
+Sistema Bianco: bianco e grigio chiaro, testo nero, un solo accento blu
+ghiaccio (#0a5bb5). Inter variabile ospitato in static/fonts, numeri tabulari
+negli importi. Ombre morbide a strati, raggi concentrici, spazi da 4 pt.
+Liquid Glass solo sugli strati che galleggiano: navigazione, barra superiore,
+tab bar, palette, tour, toast, controlli segmentati. Mai su dati e testi lunghi.
+Al massimo tre superfici di vetro visibili insieme; rifrazione SVG solo su
+Chromium, altrove sfocatura semplice.
+Landing sempre chiara; richiesta, accesso e dashboard hanno anche il tema
+scuro, scelto dall’interruttore e salvato nel browser.
+Un foglio per area: base, site, auth, intake, workspace, project, board,
+pages, tutorial. Versione unica ?v=20261019 per CSS e JS.
+CSP rigida: niente script o stili in linea, niente risorse esterne.
+I tre loghi di piattaforma provengono dagli SVG forniti dall’utente e sono
+conservati in static/logos. Le interazioni finanziarie restano stabili.
+Movimento solo con transform e opacity; movimento ridotto, trasparenza ridotta
+e contrasto elevato hanno sempre una versione curata.
 
 DISCORD
 Canali leggibili: 📢・annunci, 🎫・apri-ticket, 🛡・mod-log.

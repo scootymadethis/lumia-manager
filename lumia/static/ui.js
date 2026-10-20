@@ -45,7 +45,7 @@
         sum += cents(row.querySelector('[data-field="amount"]').value);
       });
       plan.querySelector('[name="part_count"]').value = rows.length;
-      plan.querySelector('[data-plan-total]').value = format.format(sum);
+      plan.querySelector('[data-plan-total]').value = format.format(sum / 100);
       plan.querySelector('.plan-total').dataset.invalid = String(sum !== total);
       plan.querySelector('[data-add-part]').disabled = rows.length >= 24;
     };
