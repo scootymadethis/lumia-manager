@@ -12,7 +12,9 @@
 {% set today_n = epoch_day(today)|trim|int %}
 {% set first_name = (user.name or '').split(' ')[0] %}
 {% set open_actions = attention|length %}
-{% set paid_share = (totals.paid * 100 // totals.total) if totals.total else 0 %}
+{#- Paid against confirmed work (paid + still due), so "Incassato" and "Da ricevere" add up -#}
+{% set confirmed = totals.paid + totals.due %}
+{% set paid_share = [(totals.paid * 100 // confirmed) if confirmed else 0, 100]|min %}
 <section class="workspace-welcome" data-tour="welcome">
   <div class="welcome-copy">
     <p class="welcome-date"><time datetime="{{ today }}">{{ weekdays[(today_n + 4) % 7] }} {{ today[8:10]|int }} {{ months[today[5:7]|int - 1] }} {{ today[:4] }}</time></p>
@@ -61,8 +63,8 @@
   <a class="metric-card" href="/payments{{ suffix }}">
     <span class="metric-label">{{ icon('euro') }}{{ 'Incassato' if user.staff else 'Pagato' }}</span>
     <strong class="metric-value tnum">{{ (totals.paid|money)[:-2] }}<small>€</small></strong>
-    <progress class="metric-progress ok" max="100" value="{{ paid_share }}" aria-label="{{ paid_share }}% del valore dei progetti"></progress>
-    <span class="metric-note"><b class="tnum">{{ paid_share }}%</b> di <span class="tnum">{{ totals.total|money }}</span></span>
+    <progress class="metric-progress ok" max="100" value="{{ paid_share }}" aria-label="{{ paid_share }}% del valore confermato"></progress>
+    <span class="metric-note"><b class="tnum">{{ paid_share }}%</b> di <span class="tnum">{{ confirmed|money }}</span> confermati</span>
   </a>
   <a class="metric-card" href="/payments{{ suffix }}">
     <span class="metric-label">{{ icon('clock') }}{{ 'Da ricevere' if user.staff else 'Da saldare' }}</span>
