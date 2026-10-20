@@ -1,5 +1,81 @@
+{% set providers = {'paypal':'PayPal','stripe':'Stripe (storico)','manual':'Manuale (storico)'} %}
+{% set expected = totals.paid + totals.due %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ 'Registro' if user.staff else 'I tuoi pagamenti' }}</p>
+    <h1>Pagamenti</h1>
+    <p class="lede">{{ 'Il registro dei pagamenti ricevuti.' if user.staff else 'I pagamenti dei tuoi progetti, in un posto solo.' }}</p>
+  </div>
+  <div class="page-actions"><a class="button secondary export-payments" href="/exports/payments.csv{{ suffix }}">{{ icon('download') }}<span>Esporta movimenti</span></a></div>
+</section>
 
-<section class="page-heading"><div><h1>Pagamenti.</h1><p>{{ 'Il registro dei pagamenti ricevuti.' if user.staff else 'I pagamenti dei tuoi progetti, in un posto solo.' }}</p></div></section><a class="button ghost export-payments" href="/exports/payments.csv{{ suffix }}">{{ icon('download') }} Esporta movimenti</a><section class="stats-grid"><article class="stat-card"><span>{{ 'Incassato' if user.staff else 'Hai pagato' }}</span><strong class="good">{{ totals.paid|money }}</strong></article><article class="stat-card"><span>{{ 'Da incassare' if user.staff else 'Da saldare' }}</span><strong>{{ totals.due|money }}</strong></article><article class="stat-card"><span>Movimenti</span><strong>{{ payments|length }}</strong></article></section><section class="panel"><div class="panel-heading"><h2>Movimenti</h2></div><div class="table-scroll" data-tour="ledger" tabindex="0" role="region" aria-label="Registro dei pagamenti"><table><thead><tr><th>Progetto</th><th>Data</th><th>Metodo</th><th>Importo</th></tr></thead><tbody>{% for p in payments %}<tr><td><a href="/orders/{{ p.order_id }}{{ suffix }}">{{ p.title }}</a>{% if user.staff %}<span class="subtext">{{ p.customer_name }}</span>{% endif %}{% if p.reversed_at %}<span class="subtext">Stornato</span>{% endif %}</td><td>{{ p.created|date }}</td><td>{{ {'paypal':'PayPal','stripe':'Stripe (storico)','manual':'Manuale (storico)'}.get(p.provider,p.provider) }}</td><td class="number {{ 'muted' if p.reversed_at else 'good' }}">{% if p.reversed_at %}<s>{{ p.amount_cents|money }}</s>{% else %}{{ p.amount_cents|money }}{% endif %}</td></tr>{% if p.reversed_at %}<tr><td>{{ p.title }}<span class="subtext">{{ p.reversal_reason }}</span></td><td>{{ p.reversed_at|date }}</td><td>Storno contabile</td><td class="number danger">− {{ p.amount_cents|money }}</td></tr>{% endif %}{% else %}<tr><td colspan="4" class="muted">Nessun pagamento ricevuto.</td></tr>{% endfor %}</tbody></table></div></section>
-{% if user.staff %}<section class="panel panel-spaced"><details class="expandable" {% if events|selectattr('status','equalto','da_riconciliare')|list|length %}open{% endif %}><summary>Eventi dei pagamenti</summary><div class="table-scroll" tabindex="0" role="region" aria-label="Eventi dei pagamenti"><table><thead><tr><th>Evento</th><th>Stato</th><th>Dettaglio</th><th>Data</th></tr></thead><tbody>{% for e in events %}<tr><td class="reference">{{ e.provider }}<span class="subtext">{{ e.id }}</span></td><td>{{ e.status|replace('_',' ') }}</td><td class="reference">{{ e.detail }}</td><td>{{ e.created|date }}</td></tr>{% else %}<tr><td colspan="4" class="muted">Nessun evento.</td></tr>{% endfor %}</tbody></table></div></details></section>{% endif %}
+<section class="payment-stats" aria-label="Riepilogo">
+  <article class="panel stat-card">
+    <p class="stat-label">{{ icon('check') }}{{ 'Incassato' if user.staff else 'Hai pagato' }}</p>
+    <p class="stat-value tnum">{{ totals.paid|money }}</p>
+    <progress class="ok" max="{{ expected if expected > 0 else 1 }}" value="{{ totals.paid }}" aria-label="Quota pagata sul totale confermato"></progress>
+    <p class="stat-sub">{% if expected %}<b class="tnum">{{ (totals.paid * 100 / expected)|round|int }}%</b> di {{ expected|money }}{% else %}Nessun importo da saldare{% endif %}</p>
+  </article>
+  <article class="panel stat-card">
+    <p class="stat-label">{{ icon('clock') }}{{ 'Da incassare' if user.staff else 'Da saldare' }}</p>
+    <p class="stat-value tnum">{{ totals.due|money }}</p>
+    <p class="stat-sub">Residuo dei progetti confermati</p>
+  </article>
+  <article class="panel stat-card">
+    <p class="stat-label">{{ icon('list') }}Movimenti</p>
+    <p class="stat-value tnum">{{ payments|length }}</p>
+    <p class="stat-sub">{{ 'Incassi registrati, storni compresi' if user.staff else 'Pagamenti registrati sui tuoi progetti' }}</p>
+  </article>
+</section>
+
+<section class="panel flush ledger-panel" aria-labelledby="ledger-title">
+  <div class="panel-heading"><h2 id="ledger-title">Movimenti</h2><span class="pill">{{ payments|length }}</span></div>
+  <div class="table-scroll" data-tour="ledger" tabindex="0" role="region" aria-label="Registro dei pagamenti">
+    <table class="data-table stack ledger">
+      <thead><tr><th scope="col">Progetto</th><th scope="col">Data</th><th scope="col">Metodo</th><th scope="col" class="number">Importo</th></tr></thead>
+      <tbody>
+      {% for p in payments %}
+        <tr class="{{ 'is-reversed' if p.reversed_at else '' }}">
+          <td><span class="ledger-project"><a href="/orders/{{ p.order_id }}{{ suffix }}">{{ p.title }}</a>{% if user.staff %}<span class="subtext">{{ p.customer_name }}</span>{% endif %}{% if p.reversed_at %}<span class="subtext ledger-flag">Stornato</span>{% endif %}</span></td>
+          <td data-label="Data" class="tnum">{{ p.created|date }}</td>
+          <td data-label="Metodo"><span class="ledger-method">{{ providers.get(p.provider, p.provider) }}</span></td>
+          <td data-label="Importo" class="number {{ 'muted' if p.reversed_at else 'good' }}">{% if p.reversed_at %}<s>{{ p.amount_cents|money }}</s>{% else %}{{ p.amount_cents|money }}{% endif %}</td>
+        </tr>
+        {% if p.reversed_at %}
+        <tr class="ledger-reversal">
+          <td><span class="ledger-project"><span class="ledger-reversal-title">{{ p.title }}</span><span class="subtext">{{ p.reversal_reason }}</span></span></td>
+          <td data-label="Data" class="tnum">{{ p.reversed_at|date }}</td>
+          <td data-label="Metodo">Storno contabile</td>
+          <td data-label="Importo" class="number danger">− {{ p.amount_cents|money }}</td>
+        </tr>
+        {% endif %}
+      {% else %}
+        <tr class="ledger-empty"><td colspan="4"><div class="empty-state">{{ icon('wallet') }}<h3>Nessun pagamento ricevuto.</h3><p>{{ 'Gli incassi compariranno qui appena registrati.' if user.staff else 'Quando paghi una tranche la trovi qui, con data e metodo.' }}</p></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if user.staff %}
+{% set to_reconcile = events|selectattr('status','equalto','da_riconciliare')|list|length %}
+<section class="panel events-panel">
+  <details class="disclosure" {% if to_reconcile %}open{% endif %}>
+    <summary>{{ icon('shield') }}<span>Eventi dei pagamenti</span>{% if to_reconcile %}<span class="pill warn-pill">{{ to_reconcile }} da riconciliare</span>{% else %}<span class="pill">{{ events|length }}</span>{% endif %}{{ icon('chevron') }}</summary>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Eventi dei pagamenti">
+      <table class="data-table stack events">
+        <thead><tr><th scope="col">Evento</th><th scope="col">Stato</th><th scope="col">Dettaglio</th><th scope="col">Data</th></tr></thead>
+        <tbody>
+        {% for e in events %}
+          <tr><td class="reference">{{ e.provider }}<span class="subtext">{{ e.id }}</span></td><td data-label="Stato"><span class="event-status status-{{ e.status }}">{{ e.status|replace('_',' ') }}</span></td><td data-label="Dettaglio" class="reference">{{ e.detail }}</td><td data-label="Data" class="tnum">{{ e.created|date }}</td></tr>
+        {% else %}
+          <tr class="ledger-empty"><td colspan="4" class="muted">Nessun evento.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+{% endif %}
 
 {% include 'manager/paypal-checkouts.html' %}

@@ -1,5 +1,5 @@
-<section class="order-queues" aria-label="{{ 'Coda operativa' if user.staff else 'Le tue prossime azioni' }}">
+<nav class="order-queues" aria-label="{{ 'Coda operativa' if user.staff else 'Le tue prossime azioni' }}">
 {% for key,label,glyph in [('requests','Da valutare' if user.staff else 'In valutazione','orders'),('quotes','Preventivi','layers'),('payments','Pagamenti disponibili','wallet'),('deliveries','Consegne da verificare','box'),('overdue','Scadenze trascorse','clock')] if user.staff or key!='requests' %}
-<a class="queue-card {{ 'queue-alert' if key=='overdue' and queues[key] else '' }} {{ 'selected' if selected_focus|default('')==key else '' }}" href="/orders?focus={{ key }}{{ '&view=client' if demo and not user.staff else '' }}"><span>{{ icon(glyph) }} {{ label }}</span><strong>{{ queues[key] }}</strong>{{ icon('arrow') }}</a>
+<a class="queue-card {{ 'queue-alert' if key=='overdue' and queues[key] else '' }} {{ 'selected' if selected_focus|default('')==key else '' }} {{ 'is-empty' if not queues[key] else '' }}" href="/orders?focus={{ key }}{{ '&view=client' if demo and not user.staff else '' }}"{% if selected_focus|default('')==key %} aria-current="true"{% endif %}><span class="queue-icon">{{ icon(glyph) }}</span><span class="queue-label">{{ label }}</span><strong class="queue-count tnum">{{ queues[key] }}</strong></a>
 {% endfor %}
-</section>
+</nav>

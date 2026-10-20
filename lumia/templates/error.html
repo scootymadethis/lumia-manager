@@ -1,2 +1,28 @@
-{% from 'macros.html' import icon %}
-<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#030304"><meta name="color-scheme" content="dark"><title>Richiesta non completata · Lumia</title><link rel="stylesheet" href="/static/design.css?v=4"><link rel="stylesheet" href="/static/manager.css?v=4"></head><body class="auth-page"><main class="auth-card"><span class="pill">{{ status }}</span><h1>Un momento.</h1><p>{{ detail }}</p><a class="button primary" href="/">Torna ai progetti {{ icon('arrow') }}</a><a class="text-link" href="/login">Accedi di nuovo</a></main></body></html>
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f5f7">
+<meta name="robots" content="noindex,nofollow">
+<title>Richiesta non completata · Lumia</title>
+<link rel="icon" href="/static/lumia-logo-discord.png">
+<script src="/static/theme.js?v=20261019"></script>
+<link rel="preload" href="/static/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/base.css?v=20261019">
+<link rel="stylesheet" href="/static/auth.css?v=20261019">
+</head>
+<body class="auth-page">
+<main class="auth-card">
+  <a class="auth-mark" href="/" aria-label="Lumia, torna ai progetti"><span class="brand-tile is-large"><img src="/static/lumia-logo-discord.png" alt="" width="64" height="64"><span class="tile-edge"></span></span></a>
+  <p class="auth-status"><span class="pill tnum">Errore {{ status }}</span></p>
+  <h1>Un momento.</h1>
+  <p class="auth-lede">{{ detail }}</p>
+  <div class="auth-actions">
+    <a class="button primary large" href="/">Torna ai progetti</a>
+    <a class="text-link" href="/login">Accedi di nuovo</a>
+  </div>
+</main>
+</body>
+</html>

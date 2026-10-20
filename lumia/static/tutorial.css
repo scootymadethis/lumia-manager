@@ -1,5 +1,218 @@
-.tutorial-heading .eyebrow{margin-bottom:12px}.customer-tutorial{display:grid;grid-template-columns:235px minmax(0,1fr);gap:32px;align-items:start;max-width:1150px}.tutorial-index{position:sticky;top:105px;padding:20px 0}.tutorial-index nav{margin-top:17px}.tutorial-index ol{list-style:none;padding:0;margin:0;display:grid;gap:5px}.tutorial-index a{display:flex;align-items:center;gap:13px;min-height:46px;padding:10px 12px;border:1px solid transparent;border-radius:12px;color:var(--muted);font-size:14px}.tutorial-index a>span{font-variant-numeric:tabular-nums;font-size:12px;color:#828d9f}.tutorial-index a[aria-current]{background:#b9ceff0b;border-color:#b9ceff30;color:var(--text)}.tutorial-index a[aria-current]>span{color:var(--accent)}.tutorial-note{font-size:13px;color:var(--muted);line-height:1.65;margin-top:24px}.tutorial-content{min-width:0}.tutorial-progress{margin-bottom:22px}.tutorial-progress>div{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:7px}.tutorial-progress span{font-size:13px;color:var(--muted)}.tutorial-progress .text-link{font-size:13px;background:none;border:0;padding:0}.tutorial-chapter{padding:32px;margin-bottom:24px;scroll-margin-top:110px}.tutorial-chapter[hidden],.tutorial-progress[hidden],.tutorial-complete[hidden],.tutorial-navigation[hidden]{display:none}.tutorial-chapter-top{display:flex;align-items:center;gap:10px;color:var(--accent);margin-bottom:24px;font-size:13px}.tutorial-chapter-top>.icon{width:25px;height:25px}.tutorial-chapter h2{font-size:clamp(1.7rem,3vw,2.25rem);max-width:580px;margin-bottom:20px;line-height:1.14}.tutorial-chapter>p,.tutorial-steps{color:var(--muted);font-size:16px;line-height:1.8}.tutorial-chapter strong{font-weight:550;color:#e1e6ef}.tutorial-steps{display:grid;gap:16px;margin:25px 0;padding-left:24px}.tutorial-steps li{padding-left:7px}.tutorial-steps li::marker{color:var(--accent);font-size:14px}.tutorial-tip{padding:18px 20px;margin:25px 0;border-left:2px solid #b9ceff5a;border-radius:0 12px 12px 0;background:#b9ceff07;color:#bfc8d6;font-size:14px;line-height:1.75}.tutorial-chapter>.text-link{margin-left:14px}.tutorial-navigation{display:flex;justify-content:space-between;gap:16px}.tutorial-save-status{margin-top:16px;font-size:13px;color:var(--muted);line-height:1.6;min-height:24px}.tutorial-complete{align-items:flex-start}.tutorial-complete .text-link{white-space:nowrap}.tutorial-chapter h2:focus{outline:none}.tutorial-index a:hover{color:var(--text);background:#ffffff05}
-@media(max-width:1000px){.customer-tutorial{grid-template-columns:195px minmax(0,1fr);gap:22px}.tutorial-chapter{padding:26px}.tutorial-index a{padding:10px 8px;gap:8px}}
-@media(max-width:760px){.customer-tutorial{grid-template-columns:minmax(0,1fr);gap:18px}.tutorial-index{position:static;padding:0}.tutorial-index ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.tutorial-index a{font-size:13px;line-height:1.5}.tutorial-index nav{margin-top:10px}.tutorial-index>.tutorial-note{margin-top:12px}.tutorial-chapter{padding:25px 22px}.tutorial-heading{align-items:flex-start;gap:16px}.tutorial-chapter-top{margin-bottom:20px}.tutorial-chapter>.button{width:100%}.tutorial-chapter>.text-link{margin:12px 0 0}.tutorial-tip{padding:15px}.tutorial-complete{flex-wrap:wrap}.tutorial-complete .text-link{margin-left:0}.tutorial-navigation .button{padding-inline:17px}.tutorial-content{width:100%}}
-@media(max-width:380px){.tutorial-index a{font-size:12px;padding-inline:5px;gap:5px}.tutorial-index a>span{font-size:11px}.tutorial-chapter{padding:23px 18px}.tutorial-navigation{gap:9px}.tutorial-navigation .button{font-size:14px;padding-inline:14px}}
-@media(prefers-contrast:more){.tutorial-tip{border-color:var(--accent);background:#121722}.tutorial-index a[aria-current]{border-color:var(--accent)}}
+/* =========================================================
+   Lumia "Bianco": the customer tutorial (/tutorial only).
+   customer-tutorial.js shows one chapter at a time and marks
+   the active index link with aria-current="step"; without JS
+   every chapter stays readable and the controls stay hidden.
+   ========================================================= */
+
+/* [hidden] must win over every display rule below (contract map §6.1.7) */
+.tutorial-chapter[hidden], .tutorial-progress[hidden], .tutorial-complete[hidden], .tutorial-navigation[hidden] { display: none !important; }
+
+.customer-tutorial {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: clamp(20px, 2.6vw, 32px);
+  align-items: start;
+  max-width: 1120px;
+}
+.tutorial-content { min-width: 0; }
+
+/* ---------- Index ---------- */
+.tutorial-index {
+  position: sticky; top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px) + var(--s4));
+  padding: var(--s4) var(--s2) var(--s2);
+}
+.tutorial-index-title {
+  padding: 0 var(--s3) var(--s3);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 600; color: var(--ink-3);
+}
+.tutorial-index ol { display: grid; gap: 2px; }
+.tutorial-index a {
+  position: relative;
+  display: flex; align-items: center; gap: var(--s3);
+  min-height: var(--target);
+  padding: var(--s1) var(--s3) var(--s1) var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--ink-2); text-decoration: none;
+  font-size: var(--t-callout); line-height: 1.3; font-weight: 500;
+  transition: transform var(--d-press) var(--ease-out);
+}
+.tutorial-index a:active { transform: scale(.98); }
+.tutorial-index-number {
+  display: grid; place-items: center; flex: none;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--fill); color: var(--ink-2);
+  font-size: var(--t-cap); line-height: 1; font-weight: 650;
+}
+.tutorial-index-label { min-width: 0; }
+.tutorial-index a[aria-current="step"] { background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.tutorial-index a[aria-current="step"] .tutorial-index-number { background: var(--btn); color: var(--btn-ink); }
+/* Chapters before the current one read as done: the number turns into a tick */
+.tutorial-index li:has(~ li > a[aria-current="step"]) .tutorial-index-number {
+  background: var(--accent) var(--check-mark) no-repeat center / 14px 14px;
+  color: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tutorial-index a:not([aria-current="step"]):hover { background: var(--fill); color: var(--ink); }
+}
+.tutorial-note {
+  margin: var(--s3) var(--s3) var(--s2);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-foot); line-height: 1.5; color: var(--ink-3);
+}
+.tutorial-content > noscript .tutorial-note { margin: var(--s4) 0 0; padding: 0; border: 0; }
+
+/* ---------- Progress and completion ---------- */
+.tutorial-progress { margin-bottom: var(--s4); padding: 0 var(--s1); }
+.tutorial-progress-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  margin-bottom: var(--s2);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 500; color: var(--ink-3);
+}
+.tutorial-restart { font-size: var(--t-foot); }
+.tutorial-progress progress { height: 4px; }
+.tutorial-complete { margin-bottom: var(--s4); padding: var(--s4) var(--s5); }
+.tutorial-complete .text-link { margin-top: var(--s2); }
+
+/* ---------- Chapter ---------- */
+.tutorial-chapter {
+  --panel-pad: clamp(22px, 4vw, 48px);
+  scroll-margin-top: var(--s3);
+  animation: tutorial-in var(--d-base) var(--ease-out);
+}
+@keyframes tutorial-in { from { opacity: 0; transform: translateY(6px); } }
+.tutorial-chapter + .tutorial-chapter { margin-top: var(--s4); }
+.tutorial-chapter-top { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s6); }
+.tutorial-chapter-icon {
+  display: grid; place-items: center; flex: none;
+  width: 44px; height: 44px;
+  border-radius: var(--r-sm);
+  background: radial-gradient(120% 100% at 30% 0%, #23364f, #000 70%);
+  color: #d6e8ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 0 0 .5px rgba(0, 0, 0, .3), 0 8px 18px -8px rgba(var(--glow), .85);
+}
+.tutorial-chapter-icon .icon { width: 22px; height: 22px; }
+.tutorial-kicker { display: grid; gap: 1px; min-width: 0; font-size: var(--t-callout); line-height: 1.3; font-weight: 600; color: var(--ink); }
+.tutorial-kicker > span { font-size: var(--t-cap); font-weight: 600; color: var(--ink-3); }
+.tutorial-chapter h2 {
+  max-width: 22ch;
+  margin-bottom: var(--s4);
+  font-size: var(--t-title1); line-height: 1.08; letter-spacing: var(--tr-title1); font-weight: 700;
+  font-feature-settings: var(--font-features-display);
+  scroll-margin-top: var(--s3);
+}
+.tutorial-chapter h2:focus { outline: none; }
+.tutorial-chapter > p { max-width: 62ch; font-size: var(--t-body); line-height: 1.6; color: var(--ink-2); }
+.tutorial-chapter strong { font-weight: 600; color: var(--ink); }
+
+.tutorial-steps { counter-reset: tutorial-step; display: grid; gap: var(--s4); max-width: 62ch; margin: var(--s6) 0; }
+.tutorial-steps li {
+  counter-increment: tutorial-step;
+  position: relative;
+  min-height: 28px;
+  padding-left: calc(28px + var(--s3));
+  --step-lh: calc(var(--t-callout) * 1.6);
+  font-size: var(--t-callout); line-height: var(--step-lh); color: var(--ink-2);
+}
+.tutorial-steps li::before {
+  content: counter(tutorial-step);
+  position: absolute; top: calc((var(--step-lh) - 28px) / 2); left: 0;
+  display: grid; place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--fill); color: var(--ink);
+  font-size: var(--t-foot); line-height: 1; font-weight: 650;
+  font-variant-numeric: tabular-nums; font-feature-settings: var(--font-features-num);
+}
+
+.tutorial-tip {
+  display: flex; align-items: flex-start; gap: var(--s3);
+  max-width: 66ch;
+  margin: var(--s6) 0;
+  padding: var(--s4) var(--s5);
+  border-radius: var(--r-md);
+  background: var(--accent-bg);
+  font-size: var(--t-callout); line-height: 1.55; color: var(--ink-2);
+}
+.tutorial-tip > .icon { width: 18px; height: 18px; margin-top: calc((1lh - 18px) / 2); color: var(--accent); }
+
+.tutorial-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s5); margin-top: var(--s7); }
+.tutorial-actions .text-link { min-height: var(--target); }
+
+/* ---------- Navigation ---------- */
+.tutorial-navigation {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  margin-top: var(--s4);
+}
+.tutorial-navigation .button { min-width: 148px; }
+.tutorial-save-status { min-height: 1lh; margin-top: var(--s3); padding: 0 var(--s1); font-size: var(--t-foot); line-height: 1.5; color: var(--ink-3); }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1099px) {
+  .customer-tutorial { grid-template-columns: 220px minmax(0, 1fr); }
+  .tutorial-index a { gap: var(--s2); font-size: var(--t-foot); }
+}
+
+/* ---------- Phone: the index becomes a row of eight steps ---------- */
+@media (max-width: 760px) {
+  .customer-tutorial { grid-template-columns: minmax(0, 1fr); gap: var(--s4); }
+  /* No side padding: eight equal columns reach the 44 px target at 390 px */
+  .tutorial-index { position: static; padding: var(--s3) 0 var(--s2); }
+  .tutorial-index-title { padding: 0 var(--s4) var(--s2); }
+  .tutorial-index ol { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; }
+  .tutorial-index a { justify-content: center; min-height: var(--target); padding: 0; border-radius: 50%; background: none; }
+  .tutorial-index a[aria-current="step"] { background: none; }
+  .tutorial-index-number { width: 32px; height: 32px; font-size: var(--t-foot); }
+  .tutorial-index-label {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .tutorial-index .tutorial-note { display: none; }
+
+  .tutorial-chapter { --panel-pad: var(--s5); }
+  .tutorial-chapter-top { margin-bottom: var(--s5); }
+  .tutorial-chapter h2 { font-size: 1.75rem; }
+  .tutorial-actions { flex-direction: column; align-items: stretch; gap: var(--s2); margin-top: var(--s6); }
+  .tutorial-actions .text-link { justify-content: center; }
+  .tutorial-tip { padding: var(--s4); }
+
+  /* Back and next float as a glass bar just above the tab bar */
+  .tutorial-navigation {
+    position: sticky; z-index: 20;
+    bottom: calc(var(--tabbar-h) + max(var(--s3), env(safe-area-inset-bottom, 0px)) + var(--s3));
+    padding: var(--s1);
+    border-radius: var(--r-pill);
+    isolation: isolate;
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-border), var(--sh-2);
+  }
+  .tutorial-navigation .button { flex: 1 1 0; min-width: 0; }
+  .tutorial-navigation .button.secondary { background: transparent; }
+}
+
+/* ---------- Preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-chapter { animation-name: lumia-fade-in; }
+  .tutorial-index a { transition: none; }
+  .tutorial-index a:active { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  @media (max-width: 760px) {
+    .tutorial-navigation { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px var(--line-2), var(--sh-2); }
+  }
+}
+@media (prefers-contrast: more) {
+  .tutorial-index a[aria-current="step"] { box-shadow: inset 0 0 0 1px var(--line-2); }
+  .tutorial-tip { box-shadow: inset 0 0 0 1px var(--accent); }
+}
+
+/* Finished: every step reads as done, except the one being read, which
+   keeps its filled number so the current chapter is still marked */
+.customer-tutorial:has([data-tutorial-complete]:not([hidden])) .tutorial-index a:not([aria-current="step"]) .tutorial-index-number {
+  background: var(--accent) var(--check-mark) no-repeat center / 14px 14px;
+  color: transparent;
+}

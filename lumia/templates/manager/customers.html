@@ -1,2 +1,28 @@
-
-<section class="page-heading"><div><h1>Clienti.</h1><p>{{ customers|length }} {{ 'cliente' if customers|length==1 else 'clienti' }} con un progetto Lumia.</p></div></section><div class="customer-grid">{% for c in customers %}<article class="panel customer-card">{{ avatar(c.name,c.avatar,'large') }}<h2>{{ c.name }}</h2><div class="customer-metrics"><div>Progetti<strong>{{ c.count }}</strong></div><div>Totale<strong>{{ c.total|money }}</strong></div></div><a class="text-link" href="/orders?q={{ c.id }}">Apri i progetti {{ icon('arrow') }}</a></article>{% else %}<section class="panel empty-state"><h3>Nessun cliente</h3><p>I clienti appariranno quando crei il primo ordine.</p><a class="button secondary" href="/orders/new">Nuovo ordine</a></section>{% endfor %}</div>
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Gestione</p>
+    <h1>Clienti</h1>
+    <p class="lede">{{ customers|length }} {{ 'cliente' if customers|length==1 else 'clienti' }} con un progetto Lumia.</p>
+  </div>
+</section>
+<div class="customer-grid">
+  {% for c in customers %}
+  <article class="panel customer-card" aria-labelledby="customer-{{ loop.index }}">
+    <header class="customer-head">
+      {{ avatar(c.name, c.avatar, 'large') }}
+      <div>
+        <h2 id="customer-{{ loop.index }}">{{ c.name }}</h2>
+        <p class="tnum">{{ c.count }} {{ 'progetto' if c.count == 1 else 'progetti' }}</p>
+      </div>
+    </header>
+    <dl class="customer-metrics">
+      <div><dt>Totale</dt><dd class="tnum">{{ c.total|money }}</dd></div>
+      <div><dt>Incassato</dt><dd class="tnum">{{ c.paid|money }}</dd></div>
+    </dl>
+    <progress class="{{ 'ok' if c.total and c.paid >= c.total else '' }}" max="{{ c.total if c.total > 0 else 1 }}" value="{{ c.paid if c.paid < c.total else c.total }}" aria-label="Incassato sul totale di {{ c.name }}"></progress>
+    <a class="text-link customer-link" href="/orders?q={{ c.id }}">Apri i progetti {{ icon('arrow') }}</a>
+  </article>
+  {% else %}
+  <section class="panel empty-state customer-empty">{{ icon('users') }}<h3>Nessun cliente</h3><p>I clienti appariranno quando crei il primo ordine.</p><a class="button secondary" href="/orders/new">{{ icon('plus') }}Nuovo ordine</a></section>
+  {% endfor %}
+</div>

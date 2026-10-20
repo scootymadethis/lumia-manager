@@ -1,24 +1,150 @@
-{% from 'macros.html' import icon %}
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"><meta name="theme-color" content="#030304"><meta name="color-scheme" content="dark"><meta name="robots" content="noindex,nofollow"><title>Il tuo progetto · Lumia</title><link rel="icon" href="/static/lumia-logo-discord.png"><link rel="stylesheet" href="/static/design.css?v=6"><link rel="stylesheet" href="/static/intake.css?v=9"><script src="/static/intake.js?v=10" defer></script></head>
+{% from 'macros.html' import icon, glass_defs %}
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex,nofollow">
+<title>Il tuo progetto · Lumia</title>
+<link rel="icon" href="/static/lumia-logo-discord.png">
+<script src="/static/theme.js?v=20261019"></script>
+<link rel="preload" href="/static/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/base.css?v=20261019">
+<link rel="stylesheet" href="/static/intake.css?v=20261019">
+<script src="/static/intake.js?v=20261019" defer></script>
+</head>
 <body class="intake" data-authenticated="{{ 'true' if user else 'false' }}" data-csrf="{{ user.csrf if user else '' }}" data-ai="{{ 'true' if ai_enabled else 'false' }}" data-demo="{{ 'true' if demo else 'false' }}">
-<a class="skip-link" href="#brief">Vai alle domande</a><div class="intake-atmosphere" aria-hidden="true"></div>
-<header class="intake-header"><a class="brand" href="{{ site_url }}"><img src="/static/lumia-logo-discord.png" width="32" height="32" alt="">Lumia</a><a class="text-link" href="/">{{ 'Il tuo workspace' if user else 'Area clienti' }} {{ icon('up') }}</a></header>
-<main class="intake-shell" id="brief">
-<aside class="brief-story"><p class="eyebrow">Diamo forma alla tua idea</p><h1>Si parte <br>da <span>te.</span></h1><p class="story-copy">Raccontaci cosa vuoi costruire.<br> Rispondi solo a quello che sai.</p>
-<div class="brief-sculpture" aria-hidden="true"><div class="brief-orbit"></div><div class="brief-orbit second"></div><div class="brief-core"><img src="/static/lumia-logo-discord.png" width="72" height="72" alt=""></div><div class="brief-float float-one">La tua idea</div><div class="brief-float float-two">Il nostro prossimo progetto</div></div>
-<ol class="brief-roadmap"><li class="current"><span>01</span>La tua idea</li><li><span>02</span>Un piano condiviso</li><li><span>03</span>Il tuo workspace</li></ol><p class="story-note">Nessun pagamento adesso.<br>Prima definiamo insieme prezzo e lavoro.</p></aside>
-<section class="brief-panel" aria-label="Richiesta di progetto">
-<div class="brief-topline"><span id="step-counter">01 / 06</span><span id="saved-state" role="status">La tua richiesta, passo passo</span></div><div class="brief-track" aria-hidden="true"><span></span></div>
-<nav class="brief-steps" aria-label="Passaggi della richiesta"><button type="button" data-step-to="0" aria-current="step">Dove</button><button type="button" data-step-to="1" disabled>Idea</button><button type="button" data-step-to="2" disabled>Dettagli</button><button type="button" data-step-to="3" disabled>Materiali</button><button type="button" data-step-to="4" disabled>Tempi</button><button type="button" data-step-to="5" disabled>Riepilogo</button></nav>
-<noscript><div class="notice">Per il percorso guidato attiva JavaScript. Puoi anche <a href="https://discord.gg/lumiadevelopment">contattarci su Discord</a>.</div></noscript>
-<p class="brief-optional-note">Tutte le domande sono facoltative. Puoi saltare i passaggi e parlarne con noi.</p>
-<form id="brief-form" method="post" action="/requests" novalidate>
-<fieldset data-step="0"><legend class="sr-only">Piattaforma e servizio</legend><p class="eyebrow">Il punto di partenza</p><h2>Da dove partiamo?</h2><p class="step-copy">Se lo sai, scegli cosa ti serve. Altrimenti puoi andare avanti.</p><div class="platform-choices">{% for value,label in platforms.items() %}<label class="platform-choice"><input type="radio" name="platform" value="{{ value }}"><span>{% if value in ['fivem','minecraft','discord'] %}<img src="/static/logos/{{ value }}.svg" alt="" width="30" height="30">{% else %}{{ icon('grid' if value=='web' else 'spark') }}{% endif %}{{ label }}<i>{{ icon('check') }}</i></span></label>{% endfor %}</div><label data-other-for="platform" hidden>Quale piattaforma? (facoltativo)<input name="other_platform" maxlength="300" placeholder="Scrivila qui, se vuoi"></label><label class="field-label" for="service">Da cosa partiamo?</label><select id="service" name="service"><option value="">Da decidere insieme</option>{% for value,label in services.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select><label data-other-for="service" hidden>Di cosa si tratta? (facoltativo)<input name="other_service" maxlength="300" placeholder="Bastano poche parole"></label></fieldset>
-<fieldset data-step="1"><legend class="sr-only">La tua idea</legend><p class="eyebrow">La parte più importante</p><h2>Che cosa hai in mente?</h2><p class="step-copy">Bastano poche parole. Puoi lasciare vuoto quello che non sai.</p><label>Nome del progetto (facoltativo)<input name="name" maxlength="120" placeholder="Se non ce l’hai, lo scegliamo dopo" autocomplete="off"></label><label>Cosa vorresti realizzare? (facoltativo)<textarea name="goal" maxlength="2000" rows="4" placeholder="Es. un server per giocare con i miei amici"></textarea></label><label>Cosa ti piacerebbe avere? (facoltativo)<textarea name="features" maxlength="2400" rows="3" placeholder="Es. un negozio nel gioco o un bot che dia il benvenuto"></textarea></label></fieldset>
-<fieldset data-step="2"><legend class="sr-only">Approfondimenti</legend><p class="eyebrow">Mettiamo a fuoco</p><h2>Hai già iniziato?</h2><p class="step-copy">Puoi raccontarci da cosa partiamo oppure saltare questo passaggio.</p><label>Hai già qualcosa di pronto? (facoltativo)<textarea name="technical" maxlength="1200" rows="3" placeholder="Es. ho già un server, oppure parto da zero"></textarea></label><details class="optional-questions"><summary>Vuoi aggiungere due dettagli? (facoltativo)</summary><div class="assistant-bar"><div>{{ icon('spark') }}<span>Qualche spunto</span></div>{% if ai_enabled %}{% if user %}<button class="button secondary small" type="button" id="ask-ai">Aiutami a raccontarlo</button>{% else %}<a class="button secondary small" href="/auth/discord?customer=1&amp;return=start" data-connect>Accedi per altri suggerimenti</a>{% endif %}{% else %}<span class="muted">Guida Lumia</span>{% endif %}</div><p class="assistant-status" id="assistant-status" role="status">Due domande semplici, solo se ti va di rispondere.</p><div id="followups"></div><p class="field-hint">Non inserire password, token o dati di pagamento. L’assistente riceve solo la descrizione del progetto.</p></details></fieldset>
-<fieldset data-step="3"><legend class="sr-only">Contenuti e stile</legend><p class="eyebrow">Il carattere del progetto</p><h2>Hai qualche esempio?</h2><p class="step-copy">Se hai qualcosa che ti piace, puoi mostrarcelo. Altrimenti passa avanti.</p><label>Hai già testi o messaggi? (facoltativo)<textarea name="texts" maxlength="2000" rows="5" placeholder="Puoi incollarli qui. Se non li hai, lascia vuoto."></textarea></label><label>Colori o esempi che ti piacciono? (facoltativo)<textarea name="style" maxlength="1000" rows="4" placeholder="Es. scuro e blu. Puoi anche aggiungere un link."></textarea></label></fieldset>
-<fieldset data-step="4"><legend class="sr-only">Budget e tempi</legend><p class="eyebrow">Troviamo il ritmo giusto</p><h2>Hai un budget o una data in mente?</h2><p class="step-copy">Se non sai ancora, lascia «Da concordare» e prosegui.</p><label>Budget indicativo (facoltativo)<select name="budget">{% for value,label in budgets.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label data-other-for="budget" hidden>Vuoi indicare un altro budget? (facoltativo)<input name="other_budget" maxlength="300" placeholder="Es. circa 800 €, oppure ne parliamo insieme"></label><label>Quando ti piacerebbe averlo? (facoltativo)<select name="timeline">{% for value,label in timelines.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label><label data-other-for="timeline" hidden>Quali tempi preferiresti? (facoltativo)<input name="other_timeline" maxlength="300" placeholder="Scrivilo qui, se vuoi"></label><label>Vuoi indicarci una data? (facoltativo)<input name="deadline" maxlength="200" placeholder="Es. apertura del server a dicembre"></label><div class="brief-reassurance">{{ icon('shield') }}<p>Il budget è un’indicazione. Prezzo, tempi e pagamenti a tranche verranno concordati nel preventivo.</p></div></fieldset>
-<fieldset data-step="5"><legend class="sr-only">Rivedi e invia</legend><p class="eyebrow">Pronti al prossimo passo</p><h2>Questa è la tua idea.</h2><p class="step-copy">Controlla il riepilogo. Dopo l’invio troverai tutto nel tuo workspace.</p><div id="brief-summary"></div><label class="brief-consent"><input type="checkbox" name="acknowledged" required><span>Richiedo una valutazione e un preventivo. Non sto effettuando un pagamento e il lavoro inizierà dopo l’accordo con il team.</span></label>{% if not user %}<div class="connect-note"><strong>Un account per ritrovare tutto.</strong><p>Accedi con Discord per inviare e seguire la richiesta. Non devi entrare nel server.</p><a class="button primary" href="/auth/discord?customer=1&amp;return=start" data-connect>Accedi e torna qui {{ icon('arrow') }}</a></div>{% else %}<p class="field-hint">La richiesta sarà associata a {{ user.name }}. Le risposte saranno disponibili nel manager.</p>{% endif %}{% if demo %}<div class="notice">Anteprima: puoi esplorare il percorso, ma l’invio è disattivato.</div>{% endif %}</fieldset>
-<p id="brief-error" class="brief-error" role="alert" tabindex="-1" hidden></p><div class="brief-actions"><button class="button ghost" id="brief-back" type="button" hidden>← Indietro</button><button class="text-link" id="brief-skip" type="button">Salta per ora</button><button class="button primary" id="brief-next" type="button">Continua {{ icon('arrow') }}</button><button class="button primary" id="brief-submit" type="submit" hidden {% if not user or demo %}disabled{% endif %}>Invia richiesta {{ icon('arrow') }}</button></div>
-</form><div class="brief-footnote"><span>Bozza conservata in questa scheda per 7 giorni.</span><button type="button" class="text-link" id="clear-brief">Cancella bozza</button></div></section>
-</main><dialog id="clear-dialog" class="brief-clear"><h2>Ricominciare da zero?</h2><p>La bozza di questa scheda verrà eliminata.</p><div><button class="button ghost" type="button" data-clear-cancel>Annulla</button><button class="button secondary" type="button" data-clear-confirm>Cancella</button></div></dialog></body></html>
+{{ glass_defs() }}
+<a class="skip-link" href="#brief">Vai alle domande</a>
+
+<header class="intake-header">
+  <a class="brand" href="{{ site_url }}" aria-label="Lumia, torna al sito"><span class="brand-tile"><img src="/static/lumia-logo-discord.png" width="30" height="30" alt=""></span><span class="brand-word">Lumia</span></a>
+  <div class="intake-header-actions">
+    <button class="icon-button" type="button" data-theme-toggle aria-label="Usa il tema scuro">{{ icon('moon', 'icon-moon') }}{{ icon('sun', 'icon-sun') }}</button>
+    <a class="button secondary small" href="/">{{ 'Il tuo workspace' if user else 'Area clienti' }}</a>
+  </div>
+</header>
+
+<main class="intake-main" id="brief">
+  <div class="brief-intro">
+    <div class="brief-sculpture" aria-hidden="true"><span class="sculpture-glow"></span><span class="brand-tile is-large sculpture-tile"><img src="/static/lumia-logo-discord.png" width="64" height="64" alt=""><span class="tile-edge"></span></span></div>
+    <h1>Si parte da te.</h1>
+    <p class="lede">Raccontaci cosa vuoi costruire. Ogni domanda è facoltativa: rispondi solo a quello che sai.</p>
+    <p class="brief-promise">{{ icon('lock') }}<span>Nessun pagamento adesso. Prima concordiamo insieme prezzo e lavoro.</span></p>
+  </div>
+
+  <section class="brief-panel" aria-label="Richiesta di progetto">
+    <div class="brief-topline"><span id="step-counter" class="tnum">01 / 06</span><span id="saved-state" role="status">La tua richiesta, passo passo</span></div>
+    <div class="brief-progress">
+      <div class="brief-track" aria-hidden="true"><span></span></div>
+      <nav class="brief-steps" aria-label="Passaggi della richiesta">
+        <button type="button" data-step-to="0" aria-current="step"><span class="step-label">Dove</span></button>
+        <button type="button" data-step-to="1" disabled><span class="step-label">Idea</span></button>
+        <button type="button" data-step-to="2" disabled><span class="step-label">Dettagli</span></button>
+        <button type="button" data-step-to="3" disabled><span class="step-label">Materiali</span></button>
+        <button type="button" data-step-to="4" disabled><span class="step-label">Tempi</span></button>
+        <button type="button" data-step-to="5" disabled><span class="step-label">Riepilogo</span></button>
+      </nav>
+    </div>
+
+    <noscript><div class="notice warn brief-noscript">{{ icon('help') }}<div><strong>Per il percorso guidato serve JavaScript.</strong><p>Attivalo e ricarica la pagina, oppure <a href="https://discord.gg/lumiadevelopment">scrivici su Discord</a>.</p></div></div></noscript>
+
+    <form id="brief-form" method="post" action="/requests" novalidate>
+      <fieldset data-step="0">
+        <legend class="sr-only">Piattaforma e servizio</legend>
+        <div class="step-head"><p class="eyebrow">Il punto di partenza</p><h2>Da dove partiamo?</h2><p class="step-copy">Se lo sai già, scegli la piattaforma. Altrimenti vai pure avanti.</p></div>
+        <div class="platform-choices">
+          {% for value, label in platforms.items() %}
+          <label class="platform-choice"><input type="radio" name="platform" value="{{ value }}"><span class="platform-mark">{% if value in ['fivem', 'minecraft', 'discord'] %}<img src="/static/logos/{{ value }}.svg" alt="" width="26" height="26">{% elif value == 'web' %}{{ icon('grid') }}{% elif value == 'discuss' %}{{ icon('help') }}{% else %}{{ icon('spark') }}{% endif %}</span><span class="platform-name">{{ label }}</span><span class="platform-check">{{ icon('check') }}</span></label>
+          {% endfor %}
+        </div>
+        <label class="field" data-other-for="platform" hidden><span class="field-label">Quale piattaforma?</span><input name="other_platform" maxlength="300" placeholder="Scrivila qui, se vuoi"></label>
+        <div class="field"><label class="field-label" for="service">Da cosa partiamo?</label><select id="service" name="service"><option value="">Da decidere insieme</option>{% for value, label in services.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+        <label class="field" data-other-for="service" hidden><span class="field-label">Di cosa si tratta?</span><input name="other_service" maxlength="300" placeholder="Bastano poche parole"></label>
+      </fieldset>
+
+      <fieldset data-step="1">
+        <legend class="sr-only">La tua idea</legend>
+        <div class="step-head"><p class="eyebrow">La parte più importante</p><h2>Che cosa hai in mente?</h2><p class="step-copy">Bastano poche parole. Lascia vuoto quello che non sai ancora.</p></div>
+        <label class="field"><span class="field-label">Nome del progetto</span><input name="name" maxlength="120" placeholder="Se non ce l’hai, lo scegliamo dopo" autocomplete="off"></label>
+        <label class="field"><span class="field-label">Cosa vorresti realizzare?</span><textarea name="goal" maxlength="2000" rows="4" placeholder="Es. un server per giocare con i miei amici"></textarea></label>
+        <label class="field"><span class="field-label">Cosa ti piacerebbe avere?</span><textarea name="features" maxlength="2400" rows="3" placeholder="Es. un negozio nel gioco o un bot che dia il benvenuto"></textarea></label>
+      </fieldset>
+
+      <fieldset data-step="2">
+        <legend class="sr-only">Approfondimenti</legend>
+        <div class="step-head"><p class="eyebrow">Mettiamo a fuoco</p><h2>Hai già iniziato?</h2><p class="step-copy">Raccontaci da cosa partiamo, oppure salta questo passaggio.</p></div>
+        <label class="field"><span class="field-label">Hai già qualcosa di pronto?</span><textarea name="technical" maxlength="1200" rows="3" placeholder="Es. ho già un server, oppure parto da zero"></textarea></label>
+        <details class="disclosure brief-more">
+          <summary>{{ icon('spark') }}<span>Vuoi aggiungere due dettagli?</span>{{ icon('chevron') }}</summary>
+          <div class="brief-more-body">
+            <div class="assistant-bar">
+              <span class="assistant-title">Qualche spunto</span>
+              {% if ai_enabled %}{% if user %}<button class="button secondary small" type="button" id="ask-ai">Aiutami a raccontarlo</button>{% else %}<a class="button secondary small" href="/auth/discord?customer=1&amp;return=start" data-connect>Accedi per altri suggerimenti</a>{% endif %}{% else %}<span class="muted">Guida Lumia</span>{% endif %}
+            </div>
+            <p class="assistant-status" id="assistant-status" role="status">Due domande semplici, solo se ti va di rispondere.</p>
+            <div id="followups"></div>
+            <p class="field-hint">Non inserire password, token o dati di pagamento. L’assistente riceve solo la descrizione del progetto.</p>
+          </div>
+        </details>
+      </fieldset>
+
+      <fieldset data-step="3">
+        <legend class="sr-only">Contenuti e stile</legend>
+        <div class="step-head"><p class="eyebrow">Il carattere del progetto</p><h2>Hai qualche esempio?</h2><p class="step-copy">Se c’è qualcosa che ti piace, mostracelo. Altrimenti passa avanti.</p></div>
+        <label class="field"><span class="field-label">Hai già testi o messaggi?</span><textarea name="texts" maxlength="2000" rows="5" placeholder="Puoi incollarli qui. Se non li hai, lascia vuoto."></textarea></label>
+        <label class="field"><span class="field-label">Colori o esempi che ti piacciono?</span><textarea name="style" maxlength="1000" rows="4" placeholder="Es. scuro e blu. Puoi anche aggiungere un link."></textarea></label>
+      </fieldset>
+
+      <fieldset data-step="4">
+        <legend class="sr-only">Budget e tempi</legend>
+        <div class="step-head"><p class="eyebrow">Troviamo il ritmo giusto</p><h2>Hai un budget o una data in mente?</h2><p class="step-copy">Se non lo sai ancora, lascia «Da concordare» e prosegui.</p></div>
+        <div class="field-pair">
+          <label class="field"><span class="field-label">Budget indicativo</span><select name="budget">{% for value, label in budgets.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label>
+          <label class="field"><span class="field-label">Quando ti piacerebbe averlo?</span><select name="timeline">{% for value, label in timelines.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label>
+        </div>
+        <label class="field" data-other-for="budget" hidden><span class="field-label">Quale budget hai in mente?</span><input name="other_budget" maxlength="300" placeholder="Es. circa 800 €, oppure ne parliamo insieme"></label>
+        <label class="field" data-other-for="timeline" hidden><span class="field-label">Quali tempi preferiresti?</span><input name="other_timeline" maxlength="300" placeholder="Scrivilo qui, se vuoi"></label>
+        <label class="field"><span class="field-label">Vuoi indicarci una data?</span><input name="deadline" maxlength="200" placeholder="Es. apertura del server a dicembre"></label>
+        <p class="brief-reassurance">{{ icon('shield') }}<span>Il budget è solo un’indicazione. Prezzo, tempi e pagamenti a tranche li concordiamo nel preventivo.</span></p>
+      </fieldset>
+
+      <fieldset data-step="5">
+        <legend class="sr-only">Rivedi e invia</legend>
+        <div class="step-head"><p class="eyebrow">Pronti al prossimo passo</p><h2>Questa è la tua idea.</h2><p class="step-copy">Controlla il riepilogo. Dopo l’invio trovi tutto nel tuo workspace.</p></div>
+        <div id="brief-summary"></div>
+        <label class="check brief-consent"><input type="checkbox" name="acknowledged" required><span>Richiedo una valutazione e un preventivo. Non sto effettuando un pagamento e il lavoro inizierà dopo l’accordo con il team.</span></label>
+        {% if not user %}
+        <div class="connect-note">
+          <span class="connect-mark">{{ icon('discord') }}</span>
+          <div class="connect-copy"><strong>Un account per ritrovare tutto.</strong><p>Accedi con Discord per inviare e seguire la richiesta. Non devi entrare nel server.</p></div>
+          <a class="button primary" href="/auth/discord?customer=1&amp;return=start" data-connect>Accedi e torna qui</a>
+        </div>
+        {% else %}
+        <p class="field-hint brief-owner">La richiesta sarà associata a <strong>{{ user.name }}</strong>. Le risposte saranno disponibili nel tuo workspace.</p>
+        {% endif %}
+        {% if demo %}<div class="notice warn">{{ icon('lock') }}<div><p>Anteprima: puoi esplorare il percorso, ma l’invio è disattivato.</p></div></div>{% endif %}
+      </fieldset>
+
+      <p id="brief-error" class="brief-error" role="alert" tabindex="-1" hidden></p>
+      <div class="brief-actions glass-strong">
+        <button class="button secondary" id="brief-back" type="button" hidden>{{ icon('chevron', 'icon-back') }}<span class="back-label">Indietro</span></button>
+        <button class="button ghost" id="brief-skip" type="button">Salta per ora</button>
+        <button class="button primary" id="brief-next" type="button">Continua</button>
+        <button class="button primary" id="brief-submit" type="submit" hidden{% if not user or demo %} disabled{% endif %}>Invia richiesta</button>
+      </div>
+    </form>
+
+    <div class="brief-footnote"><span>Bozza conservata in questa scheda per 7 giorni.</span><button type="button" class="text-link" id="clear-brief">Cancella bozza</button></div>
+  </section>
+</main>
+
+<dialog id="clear-dialog" class="dialog brief-clear" aria-labelledby="clear-title">
+  <h2 id="clear-title">Ricominciare da zero?</h2>
+  <p>La bozza di questa scheda verrà eliminata. L’operazione non si può annullare.</p>
+  <div class="dialog-actions"><button class="button secondary" type="button" data-clear-cancel>Annulla</button><button class="button danger" type="button" data-clear-confirm>Cancella bozza</button></div>
+</dialog>
+</body>
+</html>

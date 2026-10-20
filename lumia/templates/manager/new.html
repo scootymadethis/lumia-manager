@@ -1,6 +1,34 @@
-<section class="page-heading"><div><a class="text-link back-link" href="/orders">← Progetti</a><h1>Nuovo ordine.</h1><p>Cominciamo da cliente, progetto e accordi.</p></div></section>
-<section class="panel form-panel"><form method="post" action="/orders" class="stacked-form" data-customer-form>{{ csrf(user) }}
-<label>Progetto<input name="title" required maxlength="200" placeholder="Es. FiveM · Sistema lavori"></label>
-<div class="form-row"><label>Cliente Discord<select name="customer" data-customer-select><option value="">Scegli un cliente…</option>{% for id,name in customer_options %}<option value="{{ id }}">{{ name }}</option>{% endfor %}</select></label><label>Totale (€)<input name="total" required inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" placeholder="1250,00"></label></div>
-<details class="manual-customer"><summary>Il cliente non è nell’elenco?</summary><label>Inserisci il suo ID Discord<input name="customer_id" inputmode="numeric" pattern="[0-9]+" placeholder="ID utente" data-customer-manual></label><p class="fineprint">L’elenco usa i membri disponibili al bot e i clienti già registrati.</p></details>
-<label>Descrizione e accordi<textarea name="details" rows="6" maxlength="8000" placeholder="Funzionalità, consegne e condizioni concordate."></textarea></label><label>Ticket collegato <span class="optional">Facoltativo</span><input name="ticket_id" inputmode="numeric" pattern="[0-9]+" placeholder="Numero ticket"></label><p class="fineprint">Aggiungerai milestone, consegne e tranche dal dettaglio del progetto.</p><div class="form-footer"><a class="button ghost" href="/orders">Annulla</a><button class="button primary" {% if demo %}disabled{% endif %}>Crea bozza</button></div></form></section>
+<section class="page-heading new-order-heading">
+  <div><h1>Nuovo ordine</h1><p class="lede">Cominciamo da progetto, cliente e accordi.</p></div>
+</section>
+<section class="panel form-panel" aria-labelledby="new-order-title">
+  <h2 class="sr-only" id="new-order-title">Dati dell’ordine</h2>
+  <form method="post" action="/orders" class="new-order-form" data-customer-form>{{ csrf(user) }}
+    <fieldset class="form-section">
+      <legend class="form-section-title"><span class="form-section-icon">{{ icon('orders') }}</span>Progetto</legend>
+      <label class="field"><span class="field-label">Titolo</span><input name="title" required maxlength="200" placeholder="Es. FiveM · Sistema lavori" autocomplete="off"></label>
+      <div class="field"><label class="field-label" for="order-total">Totale concordato</label><span class="amount-field"><input id="order-total" name="total" required inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" placeholder="1250,00" autocomplete="off" aria-describedby="total-hint"><span class="amount-unit" aria-hidden="true">€</span></span><span class="field-hint" id="total-hint">Con al massimo due decimali, per esempio 1250,00.</span></div>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend class="form-section-title"><span class="form-section-icon">{{ icon('users') }}</span>Cliente</legend>
+      <label class="field"><span class="field-label">Cliente Discord</span><select name="customer" data-customer-select><option value="">Scegli un cliente…</option>{% for id,name in customer_options %}<option value="{{ id }}">{{ name }}</option>{% endfor %}</select></label>
+      <details class="disclosure manual-customer">
+        <summary>Il cliente non è nell’elenco?{{ icon('chevron') }}</summary>
+        <div class="manual-customer-body">
+          <label class="field"><span class="field-label">ID Discord del cliente</span><input name="customer_id" inputmode="numeric" pattern="[0-9]+" placeholder="ID utente" autocomplete="off" data-customer-manual></label>
+          <p class="fineprint">L’elenco usa i membri disponibili al bot e i clienti già registrati. Se scegli un cliente dall’elenco, questo campo si svuota.</p>
+        </div>
+      </details>
+    </fieldset>
+    <fieldset class="form-section">
+      <legend class="form-section-title"><span class="form-section-icon">{{ icon('messages') }}</span>Accordi</legend>
+      <label class="field"><span class="field-label">Descrizione e accordi</span><textarea name="details" rows="6" maxlength="8000" placeholder="Funzionalità, consegne e condizioni concordate."></textarea></label>
+      <label class="field"><span class="field-label">Ticket collegato <span class="optional">Facoltativo</span></span><input name="ticket_id" inputmode="numeric" pattern="[0-9]+" placeholder="Numero ticket" autocomplete="off"></label>
+    </fieldset>
+    <div class="form-actions new-order-actions">
+      <p class="fineprint">L’ordine parte come bozza. Milestone, consegne e tranche le aggiungi dal progetto.</p>
+      <a class="button ghost" href="/orders">Annulla</a>
+      <button type="submit" class="button primary" {% if demo %}disabled{% endif %}>Crea bozza</button>
+    </div>
+  </form>
+</section>

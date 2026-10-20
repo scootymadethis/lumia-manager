@@ -1,20 +1,118 @@
+{#- Calendar helpers: days since 1970-01-01 for an ISO date (Hinnant's days_from_civil),
+    so the home can say the weekday and "tra 3 giorni" without a date library. -#}
+{% macro epoch_day(iso) -%}
+{%- set m = iso[5:7]|int -%}{%- set d = iso[8:10]|int -%}
+{%- set y = iso[:4]|int - (1 if m <= 2 else 0) -%}
+{%- set era = y // 400 -%}{%- set yoe = y - era * 400 -%}
+{%- set doy = (153 * (m - 3 if m > 2 else m + 9) + 2) // 5 + d - 1 -%}
+{{- era * 146097 + yoe * 365 + yoe // 4 - yoe // 100 + doy - 719468 -}}
+{%- endmacro %}
+{% set months = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'] %}
+{% set weekdays = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'] %}
+{% set today_n = epoch_day(today)|trim|int %}
+{% set first_name = (user.name or '').split(' ')[0] %}
+{% set open_actions = attention|length %}
+{#- Paid against confirmed work (paid + still due), so "Incassato" and "Da ricevere" add up -#}
+{% set confirmed = totals.paid + totals.due %}
+{% set paid_share = [(totals.paid * 100 // confirmed) if confirmed else 0, 100]|min %}
 <section class="workspace-welcome" data-tour="welcome">
-  <div><p class="eyebrow">{{ 'Il tuo centro operativo' if user.staff else 'Il tuo spazio, in Lumia' }}</p><h1>{{ 'Tutto sotto controllo.' if user.staff else 'Da qui prende forma.' }}</h1><p>{{ 'Progetti, conversazioni e prossimi passi. Un solo posto.' if user.staff else 'Segui il lavoro, parla con il team e gestisci ogni fase.' }}</p></div>
-  {% if user.staff %}<a class="button primary" href="/orders/new" data-tour="create">{{ icon('plus') }} Nuovo ordine</a>{% else %}<a class="button primary" href="/start{{ suffix }}">{{ icon('plus') }} Nuova richiesta</a>{% endif %}
+  <div class="welcome-copy">
+    <p class="welcome-date"><time datetime="{{ today }}">{{ weekdays[(today_n + 4) % 7] }} {{ today[8:10]|int }} {{ months[today[5:7]|int - 1] }} {{ today[:4] }}</time></p>
+    <h1>{% if first_name %}Ciao, {{ first_name }}.{% else %}Bentornato.{% endif %}</h1>
+    <p class="welcome-lede">{% if user.staff %}{% if open_actions %}{{ 'C’è una voce' if open_actions == 1 else 'Ci sono ' ~ open_actions ~ ' voci' }} in primo piano{% if agenda %} e {{ 'una data' if agenda|length == 1 else agenda|length ~ ' date' }} in agenda{% endif %}.{% else %}Sei in pari: il lavoro aperto procede senza intoppi.{% endif %}{% elif open_actions %}{{ 'Una cosa richiede' if open_actions == 1 else open_actions ~ ' cose richiedono' }} la tua attenzione.{% else %}Sei in pari: al prossimo passo ti avvisiamo qui.{% endif %}</p>
+  </div>
+  {% if user.staff %}<a class="button primary" href="/orders/new" data-tour="create">{{ icon('plus') }}<span>Nuovo ordine</span></a>{% else %}<a class="button primary" href="/start{{ suffix }}">{{ icon('plus') }}<span>Nuova richiesta</span></a>{% endif %}
 </section>
-{% include 'manager/queues.html' %}
+
+{% macro attention_panel(extra_class='') %}
+<section class="panel attention-panel {{ extra_class }}" data-tour="attention" aria-labelledby="attention-title">
+  <div class="panel-heading"><h2 id="attention-title">{{ 'In primo piano' if user.staff else 'Tocca a te' }}</h2>{% if attention %}<span class="pill tnum">{{ attention|length }}</span>{% endif %}</div>
+  {% if attention %}<ul class="attention-list">{% for item in attention[:5] %}<li><a href="{{ item.url }}" class="attention-item">
+    <span class="action-symbol {{ item.kind }}">{{ icon('wallet' if item.kind=='payment' else 'box' if item.kind=='delivery' else 'layers' if item.kind=='quote' else 'orders') }}</span>
+    {% if user.staff %}<span class="attention-copy"><strong>{{ item.title }}</strong><span>{{ item.text }}</span></span>{% elif item.kind == 'payment' %}{% set part = item.text.rsplit(' · ', 1) %}<span class="attention-copy"><strong>Tranche «{{ part[0] }}»</strong><span>{{ item.title }}</span></span>{% else %}<span class="attention-copy"><strong>{{ item.text }}</strong><span>{{ item.title }}</span></span>{% endif %}
+    <span class="attention-go">{% if item.kind == 'payment' and not user.staff and item.text.rsplit(' · ', 1)|length == 2 %}<span class="attention-amount"><strong class="tnum">{{ item.text.rsplit(' · ', 1)[1] }}</strong><small>da saldare</small></span>{% endif %}<span class="pill attention-open" aria-hidden="true">Apri</span>{{ icon('chevron') }}</span>
+  </a></li>{% endfor %}</ul>
+  {% else %}<div class="empty-state is-compact">{{ icon('check') }}<h3>Sei in pari.</h3><p>Le prossime azioni appariranno qui.</p></div>{% endif %}
+</section>
+{% endmacro %}
+
+{% macro agenda_panel(extra_class='') %}
+<section class="panel agenda-preview {{ extra_class }}" data-tour="upcoming" aria-labelledby="agenda-title">
+  <div class="panel-heading"><h2 id="agenda-title">Prossime date</h2><a class="text-link" href="/agenda{{ suffix }}">Agenda {{ icon('chevron') }}</a></div>
+  {% if agenda %}<ol class="upnext-days">{% for day, items in agenda[:4]|groupby('date') %}{% set n = epoch_day(day)|trim|int %}{% set delta = n - today_n %}
+    <li class="upnext-day">
+      <span class="upnext-date{{ ' is-overdue' if delta < 0 else '' }}"><small>{{ weekdays[(n + 4) % 7][:3]|lower }}</small><strong class="tnum">{{ day[8:10]|int }}</strong><small>{{ months[day[5:7]|int - 1][:3] }}{% if day[:4] != today[:4] %} {{ day[2:4] }}{% endif %}</small></span>
+      <ul class="upnext-items">{% for item in items %}
+        <li><a class="upnext-item {{ 'is-payment' if item.kind == 'Tranche' else 'is-milestone' }}" href="{{ item.url }}">
+          <strong class="upnext-title">{{ item.title }}</strong><span class="upnext-project">{{ item.project }}</span>
+          {% if item.overdue %}<small class="upnext-overdue">Data trascorsa</small>{% else %}<small class="upnext-when tnum">{{ 'Oggi' if delta == 0 else 'Domani' if delta == 1 else 'Tra ' ~ delta ~ ' giorni' }}</small>{% endif %}
+        </a></li>{% endfor %}
+      </ul>
+    </li>{% endfor %}</ol>
+  {% else %}<div class="empty-state is-compact">{{ icon('calendar') }}<h3>Spazio al lavoro.</h3><p>Le date concordate saranno visibili qui.</p></div>{% endif %}
+</section>
+{% endmacro %}
+
+{% macro metrics() %}
 <section class="dashboard-metrics" data-tour="summary" aria-label="Riepilogo del workspace">
-  <a class="metric-card metric-primary" href="/orders{{ suffix }}"><span class="metric-top">{{ icon('layers') }} Progetti attivi {{ icon('up') }}</span><strong>{{ totals.active }}</strong><span class="metric-bottom">{{ totals.quotes }} {{ 'preventivo aperto' if totals.quotes==1 else 'preventivi aperti' }}</span><div class="metric-orbits" aria-hidden="true"><i></i><i></i><i></i></div></a>
-  <a class="metric-card" href="/payments{{ suffix }}"><span class="metric-top">{{ icon('wallet') }} {{ 'Incassato' if user.staff else 'Pagato' }}</span><strong>{{ totals.paid|money }}</strong><span class="metric-bottom">Incassi registrati</span><span class="metric-echo" aria-hidden="true">{{ icon('wallet') }}</span></a>
-  <a class="metric-card" href="/payments{{ suffix }}"><span class="metric-top">{{ icon('clock') }} {{ 'Da ricevere' if user.staff else 'Da saldare' }}</span><strong>{{ totals.due|money }}</strong><span class="metric-bottom">Sui progetti confermati</span></a>
+  <a class="metric-card" href="/orders{{ suffix }}">
+    <span class="metric-label">{{ icon('layers') }}Progetti attivi</span>
+    <strong class="metric-value tnum">{{ totals.active }}</strong>
+    <span class="metric-note">{% if totals.quotes %}<b class="tnum">{{ totals.quotes }}</b> {{ 'preventivo aperto' if totals.quotes==1 else 'preventivi aperti' }}{% else %}Nessun preventivo aperto{% endif %}</span>
+  </a>
+  <a class="metric-card" href="/payments{{ suffix }}">
+    <span class="metric-label">{{ icon('euro') }}{{ 'Incassato' if user.staff else 'Pagato' }}</span>
+    <strong class="metric-value tnum">{{ (totals.paid|money)|replace('€', '')|trim }}<small> €</small></strong>
+    <progress class="metric-progress ok" max="100" value="{{ paid_share }}" aria-label="{{ paid_share }}% del valore confermato"></progress>
+    <span class="metric-note"><b class="tnum">{{ paid_share }}%</b> di <span class="tnum">{{ confirmed|money }}</span> confermati</span>
+  </a>
+  <a class="metric-card" href="/payments{{ suffix }}">
+    <span class="metric-label">{{ icon('clock') }}{{ 'Da ricevere' if user.staff else 'Da saldare' }}</span>
+    <strong class="metric-value tnum">{{ (totals.due|money)|replace('€', '')|trim }}<small> €</small></strong>
+    <span class="metric-note">Sui progetti confermati</span>
+  </a>
+  <a class="metric-card" href="/orders?focus=deliveries{{ '&view=client' if demo and not user.staff else '' }}">
+    <span class="metric-label">{{ icon('box') }}{{ 'Consegne in attesa' if user.staff else 'Consegne da provare' }}</span>
+    <strong class="metric-value tnum">{{ queues.deliveries }}</strong>
+    <span class="metric-note">{% if queues.deliveries %}{{ 'In attesa della risposta del cliente' if user.staff else 'Provale e lascia un riscontro' }}{% else %}Nessuna in sospeso{% endif %}</span>
+  </a>
 </section>
-<div class="dashboard-grid">
-  <section class="panel attention-panel" data-tour="attention"><div class="panel-heading"><div><p class="eyebrow">Da qui, il prossimo passo</p><h2>{{ 'In primo piano' if user.staff else 'Tocca a te' }}</h2></div><span class="section-count">{{ attention|length }}</span></div>
-    <div class="attention-list">{% for item in attention[:5] %}<a href="{{ item.url }}" class="attention-item"><span class="action-symbol {{ item.kind }}">{{ icon('wallet' if item.kind=='payment' else 'box' if item.kind=='delivery' else 'orders') }}</span><div><strong>{{ item.title }}</strong><span>{{ item.text }}</span></div>{{ icon('arrow') }}</a>{% else %}<div class="calm-empty">{{ icon('check') }}<h3>Sei in pari.</h3><p>Le prossime azioni appariranno qui.</p></div>{% endfor %}</div>
-  </section>
-  <section class="panel agenda-preview" data-tour="upcoming"><div class="panel-heading"><div><p class="eyebrow">Uno sguardo avanti</p><h2>Prossime date</h2></div><a class="icon-button" href="/agenda{{ suffix }}" aria-label="Apri l’agenda">{{ icon('arrow') }}</a></div>
-    {% for item in agenda[:4] %}<a class="agenda-mini" href="{{ item.url }}"><span class="date-tile"><strong>{{ item.date[8:] }}</strong><small>{{ item.date[5:7] }}/{{ item.date[:4] }}</small></span><div><strong>{{ item.title }}</strong><span>{{ item.project }}</span>{% if item.overdue %}<small class="date-overdue">Data trascorsa</small>{% endif %}</div></a>{% else %}<div class="calm-empty">{{ icon('calendar') }}<h3>Spazio al lavoro.</h3><p>Le date concordate saranno visibili qui.</p></div>{% endfor %}
-  </section>
+{% endmacro %}
+
+{% macro projects() %}
+<section class="recent-projects" data-tour="projects" aria-labelledby="projects-title">
+  <div class="workspace-section-heading"><h2 id="projects-title">{{ 'Progetti recenti' if user.staff else 'I tuoi progetti' }}</h2><a class="text-link" href="/orders{{ suffix }}">Tutti i progetti {{ icon('chevron') }}</a></div>
+  <div class="project-card-grid{{ ' is-quad' if user.staff and orders[:6]|length == 4 else '' }}">{% for o in orders[:6] %}{% include 'manager/project-card.html' %}{% else %}
+    <div class="panel empty-state is-compact projects-empty">{{ icon('orders') }}<h3>Il prossimo progetto parte da qui.</h3><p>{{ 'Crea il primo ordine per organizzare il lavoro.' if user.staff else 'Inizia una richiesta guidata: ritroverai qui il preventivo e tutti gli aggiornamenti.' }}</p>{% if user.staff %}<a class="button small secondary" href="/orders/new">{{ icon('plus') }}<span>Nuovo ordine</span></a>{% else %}<a class="button small secondary" href="/start{{ suffix }}">{{ icon('plus') }}<span>Nuova richiesta</span></a>{% endif %}</div>{% endfor %}
+  </div>
+</section>
+{% endmacro %}
+
+{% if user.staff %}
+{{ metrics() }}
+{% include 'manager/queues.html' %}
+<div class="dashboard-grid home-grid">
+  {{ attention_panel('span-8') }}
+  {{ agenda_panel('span-4') }}
 </div>
-<section class="recent-projects" data-tour="projects"><div class="workspace-section-heading"><div><p class="eyebrow">Il lavoro, a colpo d’occhio</p><h2>{{ 'Progetti recenti' if user.staff else 'I tuoi progetti' }}</h2></div><a class="text-link" href="/orders{{ suffix }}">Tutti i progetti {{ icon('arrow') }}</a></div><div class="project-card-grid">{% for o in orders[:6] %}{% include 'manager/project-card.html' %}{% else %}<div class="panel calm-empty"><h3>Il prossimo progetto parte da qui.</h3><p>{{ 'Crea il primo ordine per organizzare il lavoro.' if user.staff else 'Inizia una richiesta guidata: ritroverai qui il preventivo e tutti gli aggiornamenti.' }}</p></div>{% endfor %}</div></section>
-<section class="workspace-quicklinks" data-tour="quicklinks"><a href="/activity{{ suffix }}">{{ icon('messages') }}<div><strong>Le conversazioni continuano qui.</strong><span>Messaggi, consegne e risposte.</span></div>{{ icon('arrow') }}</a>{% if user.staff %}<button type="button" data-guide-open>{{ icon('spark') }}<div><strong>Configuriamo il tuo flusso.</strong><span>La guida ti indica dove andare.</span></div>{{ icon('arrow') }}</button>{% else %}<a href="/tutorial{{ suffix }}">{{ icon('spark') }}<div><strong>Come funziona l’area clienti?</strong><span>Il tutorial completo, dalla richiesta alla consegna.</span></div>{{ icon('arrow') }}</a>{% endif %}</section>
+{{ projects() }}
+{% else %}
+{#- Same top-to-bottom order as the guided tour: welcome, summary, next step, projects -#}
+{{ metrics() }}
+<div class="dashboard-grid home-grid">
+  {{ attention_panel('span-8 is-client') }}
+  {{ agenda_panel('span-4') }}
+</div>
+{{ projects() }}
+{% endif %}
+
+<nav class="workspace-quicklinks" data-tour="quicklinks" aria-label="Accesso rapido">
+  <a href="/activity{{ suffix }}"><span class="quicklink-icon">{{ icon('messages') }}</span><span class="quicklink-copy"><strong>Attività</strong><span>Messaggi, consegne e risposte del team.</span></span>{{ icon('chevron', 'quicklink-chevron') }}</a>
+  {% if user.staff %}
+  <a href="/payments{{ suffix }}"><span class="quicklink-icon">{{ icon('wallet') }}</span><span class="quicklink-copy"><strong>Pagamenti</strong><span>Registro, tranche ed esportazioni.</span></span>{{ icon('chevron', 'quicklink-chevron') }}</a>
+  <button type="button" data-guide-open><span class="quicklink-icon">{{ icon('spark') }}</span><span class="quicklink-copy"><strong>Guida rapida</strong><span>Un giro della home in un minuto.</span></span>{{ icon('chevron', 'quicklink-chevron') }}</button>
+  {% else %}
+  <a href="/tutorial{{ suffix }}"><span class="quicklink-icon">{{ icon('help') }}</span><span class="quicklink-copy"><strong>Come funziona l’area clienti</strong><span>Il tutorial, dalla richiesta alla consegna.</span></span>{{ icon('chevron', 'quicklink-chevron') }}</a>
+  <a href="/start{{ suffix }}"><span class="quicklink-icon">{{ icon('plus') }}</span><span class="quicklink-copy"><strong>Nuova richiesta</strong><span>Raccontaci il prossimo progetto.</span></span>{{ icon('chevron', 'quicklink-chevron') }}</a>
+  {% endif %}
+</nav>

@@ -1,11 +1,328 @@
-.intake{background:#030304;min-height:100svh;color:#f0f1f5;overflow-x:clip}.intake-atmosphere{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 10% 40%,#27305925,transparent 54%),radial-gradient(ellipse at 85% 80%,#28203512,transparent 45%)}.intake-header{position:relative;max-width:1440px;margin:auto;padding:28px max(28px,env(safe-area-inset-right));display:flex;align-items:center;justify-content:space-between}.intake-shell{position:relative;max-width:1280px;margin:40px auto 80px;display:grid;grid-template-columns:.85fr 1.15fr;gap:80px;padding:0 32px}.brief-story{position:sticky;top:50px;align-self:start;padding-top:28px}.eyebrow{font-size:14px;font-weight:550;color:#9fa8bf;margin:0 0 20px}.brief-story h1{font-size:clamp(64px,6vw,88px);line-height:1.03;letter-spacing:-.065em;font-weight:600;margin:0 0 28px}.brief-story h1 span{background:linear-gradient(110deg,#f2f4ff,#8795c1);background-clip:text;color:transparent}.story-copy,.step-copy{font-size:17px;line-height:1.65;color:#a9abb7}.brief-sculpture{height:240px;position:relative;perspective:850px;--phase:0;transform:rotateY(calc(var(--phase)*4deg));transition:transform 650ms cubic-bezier(.22,1,.36,1)}.brief-core{position:absolute;left:calc(50% - 58px);top:68px;width:116px;height:116px;border:1px solid #ffffff26;display:grid;place-items:center;transform:rotateX(18deg) rotateY(-20deg) rotateZ(-8deg);border-radius:32px;background:linear-gradient(140deg,#2c3348ba,#0d1019);box-shadow:0 30px 70px #0009,0 0 90px #7d88cd22;transition:transform 650ms cubic-bezier(.22,1,.36,1)}.brief-core img{opacity:.85}.brief-orbit{position:absolute;width:90%;height:130px;border:1px solid #aab9f31b;border-radius:50%;top:80px;left:5%;transform:rotate(-23deg)}.brief-orbit.second{transform:rotate(24deg);width:75%;left:13%}.brief-float{position:absolute;padding:12px 16px;border:1px solid #ffffff14;border-radius:14px;background:#1c213345;backdrop-filter:blur(16px);font-size:13px;color:#b3bbd0;box-shadow:0 12px 40px #0005}.float-one{left:0;top:60px;transform:rotate(-6deg)}.float-two{right:0;bottom:40px;transform:rotate(4deg)}.brief-roadmap{list-style:none;padding:0;margin:28px 0;display:grid;gap:17px;font-size:15px;color:#787d8f}.brief-roadmap span{font-size:12px;margin-right:14px;color:#626c86;font-variant-numeric:tabular-nums}.brief-roadmap .current{color:#dfe5f5}.story-note{color:#858a9c;font-size:14px;line-height:1.7}.brief-panel{border:1px solid #ffffff13;border-radius:28px;padding:32px;background:linear-gradient(145deg,#181b2380,#0c0d1260);box-shadow:0 40px 100px #0004;backdrop-filter:blur(20px);min-width:0;align-self:start}.brief-topline{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#9299ac;font-variant-numeric:tabular-nums}.brief-track{height:2px;background:#ffffff0c;margin:18px 0 14px;overflow:hidden;border-radius:2px}.brief-track span{display:block;height:100%;width:100%;transform:scaleX(.16666);transform-origin:left;background:#cbd6ff;box-shadow:0 0 15px #b3bfff;transition:transform 450ms cubic-bezier(.22,1,.36,1)}.brief-steps{display:flex;justify-content:space-between;gap:3px;margin-bottom:36px}.brief-steps button{background:none;border:0;color:#737a8d;font:inherit;font-size:12px;padding:8px 2px;cursor:pointer}.brief-steps button[aria-current]{color:#e5eaff}.brief-steps button:disabled{cursor:default;opacity:.6}#brief-form{perspective:1000px}#brief-form fieldset{border:0;padding:0;margin:0;min-width:0}#brief-form fieldset[hidden]{display:none}#brief-form h2{font-size:clamp(28px,3vw,36px);letter-spacing:-.045em;font-weight:550;line-height:1.15;margin:0 0 16px}.step-copy{margin:0 0 26px;font-size:16px}#brief-form label:not(.platform-choice){display:grid;gap:10px;margin:22px 0 0;font-size:15px;color:#d7dbe6}#brief-form input:not([type=radio]):not([type=checkbox]),#brief-form textarea,#brief-form select{font-size:16px;background:#080a0f8c;border:1px solid #ffffff15;border-radius:12px;color:#eaedf5;width:100%;padding:14px 15px;min-height:50px;transition:border-color 160ms ease}#brief-form textarea{resize:vertical;line-height:1.6}#brief-form ::placeholder{color:#697183}#brief-form input:focus,#brief-form textarea:focus,#brief-form select:focus{outline:2px solid #b9c7ef85;outline-offset:3px}#brief-form .field-label{display:block;margin:28px 0 12px}.platform-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.platform-choice{position:relative;min-width:0;cursor:pointer}.platform-choice input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer}.platform-choice>span{display:flex;gap:14px;align-items:center;border:1px solid #ffffff14;padding:22px 18px;background:#12141c80;border-radius:16px;font-size:16px;min-height:84px;transition:background 180ms ease,border-color 180ms ease}.platform-choice img{object-fit:contain;max-width:30px;max-height:30px}.platform-choice i{margin-left:auto;display:grid;place-items:center;border-radius:50%;background:#bdc9ef;color:#111627;width:20px;height:20px;opacity:0;transform:scale(.6);transition:opacity 180ms ease,transform 240ms cubic-bezier(.22,1,.36,1)}.platform-choice input:checked+span{border-color:#b4c5fa80;background:#8299e319}.platform-choice input:checked+span i{opacity:1;transform:scale(1)}.platform-choice input:focus-visible+span{outline:2px solid #c0cfff;outline-offset:4px}.brief-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:36px;padding-top:24px;border-top:1px solid #ffffff0d}.brief-actions .ghost{margin-right:auto}.brief-actions .button{min-height:48px}.brief-actions [hidden]{display:none}.brief-footnote{display:flex;justify-content:space-between;gap:16px;border-top:1px solid #ffffff0a;margin-top:24px;padding-top:22px;font-size:12px;color:#797f91}.brief-footnote button{font:inherit;white-space:nowrap}.assistant-bar{display:flex;gap:16px;align-items:center;justify-content:space-between;border-top:1px solid #ffffff13;margin-top:28px;padding-top:25px}.assistant-bar>div{display:flex;gap:10px;align-items:center;font-size:15px}.assistant-bar .button{font-size:12px}.assistant-status,.field-hint{font-size:13px;line-height:1.6;color:#8f96a9;margin:16px 0}.brief-reassurance{border:1px solid #ffffff12;background:#ffffff03;border-radius:16px;padding:18px;margin-top:28px;display:flex;align-items:start;gap:12px;color:#a7b0c6}.brief-reassurance p{margin:0;font-size:14px;line-height:1.6}.brief-summary-item{border-bottom:1px solid #ffffff0e;padding:18px 0;min-width:0}.brief-summary-item>div{display:flex;align-items:center;justify-content:space-between;gap:16px}.brief-summary-item strong{font-size:13px;color:#939cb4;font-weight:500}.brief-summary-item button{font-size:12px}.brief-summary-item p{font-size:15px;line-height:1.6;margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}#brief-form .brief-consent{display:flex;align-items:flex-start;gap:12px;padding:20px 0;font-size:14px;line-height:1.6}.brief-consent input{margin-top:5px;width:18px;height:18px;flex-shrink:0;accent-color:#c1cbee}.connect-note{border:1px solid #ffffff14;border-radius:16px;padding:20px;background:#99afed08}.connect-note p{font-size:14px;line-height:1.6;color:#a5adc0}.brief-error{padding:16px;border:1px solid #e79a9a45;background:#ff6c6c09;border-radius:12px;font-size:14px;line-height:1.6;color:#f0b7b7}.brief-clear{background:#15171f;border:1px solid #ffffff21;border-radius:22px;color:#eee;max-width:420px;padding:28px}.brief-clear::backdrop{background:#000a;backdrop-filter:blur(6px)}.brief-clear h2{font-size:22px;margin:0 0 16px}.brief-clear p{font-size:15px;color:#a9afbf;line-height:1.6}.brief-clear>div{display:flex;gap:12px;justify-content:flex-end;margin-top:24px}
-@media(hover:hover) and (pointer:fine){.platform-choice:hover>span{background:#a2b7ef10;border-color:#a7b4d535}.button:active{transform:scale(.98)}}
-@media(max-width:1050px){.intake-shell{gap:40px;grid-template-columns:.7fr 1.3fr}.brief-panel{padding:26px}.brief-story h1{font-size:64px}.brief-float{font-size:11px}.float-two{bottom:20px}.brief-orbit{top:70px}.brief-sculpture{height:220px}}
-@media(max-width:760px){.intake-header{padding:20px max(20px,env(safe-area-inset-left))}.intake-header .brand{font-size:18px}.intake-header .text-link{font-size:13px}.intake-shell{display:block;margin:16px auto 0;padding:0 16px max(32px,env(safe-area-inset-bottom))}.brief-story{position:static;padding:0 8px 24px}.brief-story h1{font-size:42px;margin:0 0 12px;letter-spacing:-.055em}.brief-story h1 br{display:none}.brief-story h1 span{margin-left:0}.brief-story .eyebrow{font-size:12px;margin-bottom:12px}.story-copy{font-size:15px;margin:0}.story-copy br{display:none}.brief-sculpture,.brief-roadmap,.story-note{display:none}.brief-panel{padding:24px 20px;border-radius:22px;backdrop-filter:none}.brief-steps{margin-bottom:28px}.brief-topline{font-size:12px}.brief-steps button{font-size:11px}.platform-choice>span{padding:17px 12px;gap:9px;font-size:14px}.platform-choices{gap:10px}.platform-choice i{width:17px;height:17px}.platform-choice img{width:25px;height:25px}.assistant-bar{flex-wrap:wrap}.brief-actions{margin-top:28px;gap:6px}.brief-actions .button{font-size:14px;padding:13px 14px}.brief-footnote{font-size:11px;gap:10px}.brief-footnote span{max-width:170px}.connect-note .button{font-size:14px}.brief-panel h2{font-size:30px}.brief-clear{max-width:calc(100% - 32px)}}
-@media(prefers-reduced-motion:reduce){.intake *{animation:none!important;transition:none!important;scroll-behavior:auto!important}.brief-sculpture,.brief-core{transform:none}}
-.intake button.text-link{background:none;border:0;padding:0}.intake .skip-link:not(:focus){width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.brief-core img{mix-blend-mode:screen}.brief-footnote{font-size:13px}.brief-topline #saved-state{text-align:right}.brief-steps button{min-height:40px}.brief-clear{max-height:calc(100dvh - 32px);overflow:auto}@media(max-width:760px){.brief-footnote{font-size:12px}.brief-steps button{font-size:12px}}
+/* =========================================================
+   Lumia "Bianco": guided request (/start).
+   Loaded after base.css; reuses its tokens and components.
+   Hooks read by intake.js: fieldset[data-step], [data-step-to],
+   #step-counter, #saved-state, .brief-track span (scaleX),
+   .brief-sculpture (--phase), .brief-panel, #brief-* ids.
+   ========================================================= */
 
-/* Optional, plain-language questions. */
-.brief-optional-note{font-size:13px;color:#a9b5cf;line-height:1.7;margin:-15px 0 28px;padding:13px 15px;background:#a5bceb08;border:1px solid #a5bceb16;border-radius:12px}
-#brief-form label[data-other-for][hidden]{display:none}.optional-questions{margin-top:24px;border:1px solid #ffffff12;border-radius:13px;padding:16px}.optional-questions>summary{cursor:pointer;font-size:14px;line-height:1.6;color:#bcc7dc}.optional-questions .assistant-bar{margin-top:16px;padding-top:16px}.brief-actions{flex-wrap:wrap}.brief-actions #brief-skip{font:inherit;font-size:13px;color:#a9b5cf;margin-right:auto}.brief-actions #brief-back{margin-right:0}
-@media(max-width:760px){.brief-actions #brief-skip{order:3;flex-basis:100%;text-align:center;margin:10px 0 0;padding:6px}.brief-actions #brief-back{margin-right:auto}.brief-optional-note{margin-top:-8px}.optional-questions{padding:14px}}
+/* [hidden] really hides (contract map §6.1.7). base.css has the global
+   rule; these repeat it for the wizard's own toggled nodes. */
+#brief-form fieldset[hidden],
+.brief-actions [hidden],
+#brief-form label[data-other-for][hidden] { display: none !important; }
+
+body.intake { background: var(--canvas); }
+
+/* ---------- Brand ---------- */
+.brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: var(--target);
+  color: var(--ink); font-size: 1.0625rem; font-weight: 650; letter-spacing: -.025em;
+}
+
+/* ---------- Header ---------- */
+.intake-header {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  width: 100%; max-width: var(--maxw); margin-inline: auto;
+  padding: calc(var(--s3) + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)) var(--s3) max(var(--gutter), env(safe-area-inset-left, 0px));
+}
+.intake-header-actions { display: flex; align-items: center; gap: var(--s2); }
+
+/* ---------- Column ---------- */
+.intake-main {
+  width: 100%; max-width: calc(640px + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: clamp(var(--s6), 6vh, var(--s10)) var(--gutter) var(--s11);
+}
+
+/* ---------- Intro: the brand tile lights up as the request grows ---------- */
+.brief-intro { position: relative; margin-bottom: clamp(var(--s8), 6vh, var(--s9)); }
+.brief-sculpture {
+  --phase: 0;
+  position: relative; z-index: 0;
+  width: 64px; height: 64px; margin-bottom: var(--s6);
+  animation: brief-rise 900ms var(--ease-out) 80ms both;
+}
+.sculpture-glow {
+  position: absolute; z-index: -1; left: 50%; top: 50%;
+  /* A tight halo that belongs to the tile (160 px at rest, 256 px when the
+     request is complete), not a wide wash spilling out of the column */
+  width: 200px; height: 200px; margin: -100px 0 0 -100px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--glow), .3), rgba(var(--glow), .1) 55%, rgba(var(--glow), 0));
+  pointer-events: none;
+  transform: scale(calc(.8 + var(--phase) * .08));
+  opacity: calc(.5 + var(--phase) * .1);
+  transition: transform var(--d-slow) var(--ease-out), opacity var(--d-slow) var(--ease-out);
+}
+/* The tile is base.css's .brand-tile.is-large with its .tile-edge */
+
+.brief-intro h1 {
+  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); line-height: 1.02;
+  letter-spacing: -.04em; font-weight: 700;
+  font-feature-settings: var(--font-features-display);
+}
+.brief-intro .lede { margin-top: var(--s3); max-width: 36ch; font-size: clamp(1.0625rem, 1rem + .4vw, 1.25rem); }
+.brief-promise {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  margin-top: var(--s5);
+  font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3);
+}
+.brief-promise .icon { width: 16px; height: 16px; color: var(--ink-3); }
+
+/* ---------- Progress: six segments, one continuous fill ---------- */
+.brief-topline {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4);
+  margin-bottom: var(--s3);
+  font-size: var(--t-foot); line-height: 1.35; color: var(--ink-3);
+}
+#step-counter { flex: none; color: var(--ink); font-weight: 600; }
+#saved-state { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+
+.brief-progress { --seg-gap: 6px; display: grid; margin-bottom: clamp(var(--s8), 6vh, var(--s9)); }
+.brief-progress > * { grid-area: 1 / 1; }
+.brief-track {
+  align-self: start;
+  height: 4px; border-radius: var(--r-pill); overflow: hidden;
+  background: var(--surface-3);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 calc((100% - 5 * var(--seg-gap)) / 6), transparent 0 calc((100% - 5 * var(--seg-gap)) / 6 + var(--seg-gap)));
+  mask-image: repeating-linear-gradient(90deg, #000 0 calc((100% - 5 * var(--seg-gap)) / 6), transparent 0 calc((100% - 5 * var(--seg-gap)) / 6 + var(--seg-gap)));
+}
+.brief-track span {
+  display: block; height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(calc(1 / 6));
+  transition: transform var(--d-slow) var(--ease-out);
+}
+.brief-steps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--seg-gap); }
+.brief-steps button {
+  position: relative;
+  min-width: 0; min-height: 40px; padding: 14px 0 0;
+  text-align: left; color: var(--ink-3);
+  font-size: var(--t-foot); line-height: 1.3; font-weight: 500;
+}
+.brief-steps .step-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brief-steps button[aria-current="step"] { color: var(--ink); font-weight: 600; }
+.brief-steps button:disabled { cursor: default; opacity: .55; }
+.brief-steps button:focus-visible { outline-offset: 4px; border-radius: var(--r-xs); }
+@media (hover: hover) and (pointer: fine) {
+  .brief-steps button:not(:disabled, [aria-current="step"]):hover { color: var(--accent); }
+}
+
+/* ---------- Steps ---------- */
+#brief-form fieldset[data-step] { display: grid; gap: var(--s6); }
+.step-head { margin-bottom: var(--s2); }
+.step-head .eyebrow { margin-bottom: var(--s2); color: var(--accent); }
+.step-head h2 {
+  font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.375rem); line-height: 1.08;
+  letter-spacing: -.034em; font-weight: 700;
+  font-feature-settings: var(--font-features-display);
+}
+/* intake.js focuses the heading for screen readers; it is not a control */
+.step-head h2:focus, .step-head h2:focus-visible { outline: none; }
+.step-copy { margin-top: var(--s3); max-width: 46ch; font-size: clamp(1.0625rem, 1rem + .3vw, 1.1875rem); line-height: 1.42; color: var(--ink-3); }
+
+.field-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6) var(--s4); align-items: start; }
+
+/* ---------- Platform cards (native radios, visually hidden) ---------- */
+.platform-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
+.platform-choice {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: space-between; gap: var(--s5);
+  min-width: 0; min-height: 116px; padding: var(--s4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  transition: transform var(--d-press) var(--ease-out);
+}
+.platform-choice input {
+  position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%; margin: 0;
+  border: 0; border-radius: inherit; background: none;
+  opacity: 0; cursor: pointer;
+}
+.platform-mark {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: var(--r-sm);
+  background: var(--surface-2); color: var(--ink-2);
+}
+.platform-mark img { width: 26px; height: 26px; }
+.platform-mark .icon { width: 22px; height: 22px; }
+.platform-name { font-size: var(--t-callout); line-height: 1.25; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
+.platform-check {
+  position: absolute; top: var(--s4); right: var(--s4);
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--control-edge);
+  color: transparent;
+}
+.platform-check .icon { width: 14px; height: 14px; stroke-width: 2.6; }
+
+.platform-choice:has(input:checked) {
+  background: color-mix(in srgb, var(--accent-bg) 60%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.platform-choice:has(input:checked) .platform-mark { background: var(--surface); }
+.platform-choice:has(input:checked) .platform-check {
+  background: var(--accent); color: var(--on-accent); box-shadow: none;
+  animation: brief-check var(--d-base) var(--ease-out);
+}
+.platform-choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.platform-choice:active { transform: scale(.98); }
+@media (hover: hover) and (pointer: fine) {
+  .platform-choice:not(:has(input:checked)):hover { box-shadow: inset 0 0 0 1px var(--ink-4); }
+}
+
+/* ---------- More details (AI or guided follow-ups) ---------- */
+.brief-more {
+  padding-inline: var(--s4);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.brief-more > summary { min-height: 56px; }
+.brief-more > summary > .icon:first-child { width: 18px; height: 18px; color: var(--accent); }
+.brief-more[open] > summary > .icon:first-child { transform: none; }
+.brief-more-body { display: grid; gap: var(--s4); padding-bottom: var(--s4); }
+.assistant-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); }
+.assistant-title { font-size: var(--t-callout); font-weight: 600; color: var(--ink); }
+.assistant-bar .muted { font-size: var(--t-foot); }
+.assistant-status { font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3); }
+#followups { display: grid; gap: var(--s4); }
+#followups:empty { display: none; }
+#followups label { display: grid; gap: var(--s2); font-size: var(--t-callout); line-height: 1.3; font-weight: 550; color: var(--ink); }
+#followups textarea { font-weight: 400; }
+
+/* ---------- Budget reassurance ---------- */
+.brief-reassurance { display: flex; align-items: flex-start; gap: var(--s3); font-size: var(--t-foot); line-height: 1.45; color: var(--ink-3); }
+.brief-reassurance .icon { width: 18px; height: 18px; margin-top: 0; color: var(--ok); }
+
+/* ---------- Summary (generated by intake.js) ---------- */
+#brief-summary { padding: var(--s1) var(--s5); border-radius: var(--r-lg); background: var(--surface-2); }
+#brief-summary:empty { display: none; }
+.brief-summary-item { padding: var(--s4) 0; }
+.brief-summary-item + .brief-summary-item { border-top: 1px solid var(--line); }
+.brief-summary-item > div { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); min-height: 24px; }
+.brief-summary-item strong { min-width: 0; font-size: var(--t-foot); line-height: 1.35; font-weight: 500; color: var(--ink-3); overflow-wrap: anywhere; }
+.brief-summary-item .text-link { flex: none; font-size: var(--t-foot); }
+.brief-summary-item p { margin-top: var(--s1); color: var(--ink); white-space: pre-line; overflow-wrap: anywhere; }
+
+/* ---------- Consent and account ---------- */
+.brief-consent {
+  display: flex; align-items: flex-start;
+  padding: var(--s4);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  font-size: var(--t-callout); line-height: 1.45; color: var(--ink-2);
+}
+.brief-consent input { margin-top: 1px; }
+.brief-consent:has(input:checked) { box-shadow: inset 0 0 0 1px var(--accent); }
+
+.connect-note {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--s4);
+  padding: var(--s5);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+.connect-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); }
+.connect-mark .icon { width: 22px; height: 22px; }
+.connect-copy strong { display: block; color: var(--ink); }
+.connect-copy p { margin-top: var(--s1); font-size: var(--t-callout); line-height: 1.45; color: var(--ink-2); }
+.connect-note .button { grid-column: 2; justify-self: start; }
+.brief-owner strong { color: var(--ink-2); }
+
+/* ---------- Errors and actions ---------- */
+.brief-error {
+  margin-top: var(--s6); padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  background: var(--bad-bg); color: var(--bad);
+  font-size: var(--t-callout); line-height: 1.45; font-weight: 500;
+}
+.brief-error a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .18em; }
+
+.brief-actions { display: flex; align-items: center; gap: var(--s3); }
+.brief-actions #brief-back { margin-right: auto; }
+.brief-actions #brief-skip { margin-left: auto; }
+.brief-actions .icon-back { transform: scaleX(-1); }
+
+/* Desktop: a plain row under a hairline; the glass is for phones only */
+@media (min-width: 621px) {
+  .brief-actions { margin-top: var(--s8); padding-top: var(--s6); border-top: 1px solid var(--line); }
+  .brief-actions.glass-strong {
+    isolation: auto;
+    background: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    box-shadow: none;
+  }
+  .brief-actions.glass-strong::before { display: none; }
+  .brief-actions #brief-back { padding-left: var(--s4); }
+}
+
+.brief-footnote {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s1) var(--s4);
+  margin-top: var(--s6);
+  font-size: var(--t-foot); line-height: 1.4; color: var(--ink-3);
+}
+.brief-footnote .text-link { font-size: var(--t-foot); }
+
+.brief-noscript { margin-bottom: var(--s6); }
+
+/* ---------- Clear-draft dialog ---------- */
+.brief-clear { width: min(420px, calc(100vw - 2 * var(--s4))); }
+
+/* ---------- Phones ---------- */
+@media (max-width: 620px) {
+  /* Room the fixed action bar takes (60px bar, its bottom offset, a 12px gap above it).
+     Focus, Tab, valid() and the #brief-error banner all scroll clear of the bar.
+     No scroll-margin on the fields: it would add to this padding and double the gap. */
+  html { scroll-padding-bottom: calc(60px + 2 * var(--s3) + env(safe-area-inset-bottom, 0px)); }
+  .intake-main { padding-bottom: calc(60px + var(--s3) + env(safe-area-inset-bottom, 0px) + var(--s8)); }
+  .brief-sculpture, .sculpture-tile { width: 48px; height: 48px; }
+  .brief-sculpture { margin-bottom: var(--s5); }
+  .intake-main { padding-top: var(--s5); }
+  .sculpture-tile { border-radius: 11px; }
+  .sculpture-glow { width: 160px; height: 160px; margin: -80px 0 0 -80px; }
+
+  /* Segments only; the labels stay for assistive tech */
+  .brief-progress { margin-bottom: var(--s7); }
+  .brief-steps button { min-height: 4px; padding: 0; }
+  .brief-steps button::after { content: ""; position: absolute; inset: -20px 0; }
+  .brief-steps .step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .platform-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+  .platform-choice { min-height: 104px; }
+  .field-pair { grid-template-columns: minmax(0, 1fr); }
+  .connect-note { grid-template-columns: minmax(0, 1fr); }
+  .connect-note .button { grid-column: 1; justify-self: stretch; }
+  #brief-summary { padding-inline: var(--s4); }
+
+  /* Floating glass action bar, clear of the home indicator */
+  .brief-actions {
+    position: fixed; z-index: 50;
+    left: max(var(--s3), env(safe-area-inset-left, 0px));
+    right: max(var(--s3), env(safe-area-inset-right, 0px));
+    bottom: calc(var(--s3) + env(safe-area-inset-bottom, 0px));
+    gap: var(--s1);
+    padding: var(--s2);
+    border-radius: var(--r-pill);
+  }
+  .brief-actions #brief-back { flex: none; width: var(--target); padding: 0; margin-right: 0; }
+  .brief-actions #brief-back .icon { width: 20px; height: 20px; }
+  .brief-actions .back-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .brief-actions #brief-skip { margin-left: 0; padding-inline: var(--s4); }
+  .brief-actions :is(#brief-next, #brief-submit) { flex: 1 1 auto; }
+}
+
+/* ---------- Motion ---------- */
+@keyframes brief-rise { from { opacity: 0; transform: translateY(10px) scale(.96); } }
+@keyframes brief-check { from { opacity: 0; transform: scale(.8); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .brief-sculpture { animation: none; }
+  .sculpture-glow, .brief-track span, .platform-choice { transition: none; }
+  .platform-choice:active { transform: none; }
+  .platform-choice:has(input:checked) .platform-check { animation-name: lumia-fade-in; }
+}
