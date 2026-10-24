@@ -31,6 +31,7 @@ from .workspace import Workspace
 from .intake import Intake, PLATFORMS, SERVICES, BUDGETS, TIMELINES, LABELS
 from .briefing import Briefing
 from .paypal import PayPal
+from .analytics import Analytics, RANGES, seed_demo
 
 HERE = Path(__file__).parent
 DISCORD = 'https://discord.com/api/v10'
@@ -49,6 +50,23 @@ def _public_url(value, demo=False):
             or parsed.username or parsed.password or parsed.path not in ('', '/') or parsed.query or parsed.fragment):
         raise RuntimeError('LUMIA_PUBLIC_URL deve essere l’origine HTTPS pubblica, senza percorso (es. https://manager.example.it).')
     return f'{parsed.scheme}://{parsed.netloc.lower()}'
+
+
+def client_address(request):
+    # Production sits behind a Cloudflare tunnel, the only route to the app.
+    return request.headers.get('cf-connecting-ip') or (request.client.host if request.client else '')
+
+
+async def beacon(request, limits):
+    """Parse a track.js batch: small JSON in a text/plain body (no preflight, no cookies needed)."""
+    raw = await request.body()
+    if len(raw) > 32768 or limits.hit(('beacon', client_address(request)), 60) > 90:
+        return None
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return None
+    return data.get('events') if isinstance(data, dict) else None
 
 
 def _cookie(response, name, value, ttl):
@@ -89,7 +107,7 @@ def create_app(bot, *, http_transport=None):
         site=_public_url(site)
         if urlsplit(site).netloc==urlsplit(public).netloc:
             raise RuntimeError('Landing e manager richiedono hostname distinti.')
-        app.router.routes.insert(0,Host(urlsplit(site).netloc,app=create_site_app(site,public)))
+        app.router.routes.insert(0,Host(urlsplit(site).netloc,app=create_site_app(site,public,analytics=app.state.analytics)))
         app.state.site_host=urlsplit(site).netloc
     return app
 
@@ -121,6 +139,8 @@ def create_demo_app():
         if stage == 'completato':
             milestone = orders.milestones(order['id'])[0]
             orders.set_milestone(order['id'], milestone['id'], True, 900)
+    for number, name in enumerate(['Luca B.', 'Chiara D.', 'Davide P.', 'Elena S.', 'Matteo G.', 'Sara L.', 'Federico N.', 'Anna V.'], start=201):
+        store.put('web_customers', number, {'name': name})
     bot = SimpleNamespace(store=store, orders=orders, cfg={'guild_id': 0, 'owner_ids': [], 'roles': {}}, demo_names=names)
     public = _public_url(os.getenv('LUMIA_DEMO_URL', 'http://127.0.0.1:8765'), demo=True)
     return _build_app(bot, public, '', '', demo=True)
@@ -139,6 +159,9 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         workspace.delivery(1,900,'Prima versione','https://discord.gg/lumiadevelopment','Apri il ticket per concordare la prova della versione.')
     stripe_secret = '' if demo else os.getenv('STRIPE_WEBHOOK_SECRET', '').strip()
     paypal = PayPal(orders, public, http_transport)
+    analytics = Analytics(store, bot.cfg.get('timezone', 'Europe/Rome'))
+    if demo:
+        seed_demo(analytics)
     limits = Window()
     checkout_locks = {}
     support_locks = {}
@@ -156,12 +179,19 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
     app.state.intake=intake
     app.state.briefing=briefing
     app.state.paypal=paypal
+    app.state.analytics=analytics
     app.mount('/static', StaticFiles(directory=HERE / 'static'), name='static')
     templates = Jinja2Templates(directory=HERE / 'templates')
     templates.env.filters['money'] = lambda cents: f'{cents / 100:,.2f}'.replace(',', '_').replace('.', ',').replace('_', '.') + ' €'
     zone = ZoneInfo(bot.cfg.get('timezone', 'Europe/Rome'))
     templates.env.filters['date'] = lambda value: datetime.fromtimestamp(value, zone).strftime('%d/%m/%Y, %H:%M')
     templates.env.filters['decimal'] = lambda cents:f'{cents/100:.2f}'.replace('.',',')
+
+    templates.env.filters['clock'] = lambda value: datetime.fromtimestamp(value, zone).strftime('%H:%M:%S')
+
+    templates.env.filters['duration'] = lambda seconds: (f'{int(seconds)} s' if seconds < 60 else
+
+        f'{int(seconds // 60)} min {int(seconds % 60):02d} s' if seconds < 3600 else f'{int(seconds // 3600)} h {int(seconds % 3600 // 60):02d} min')
 
     @app.middleware('http')
     async def guard(request, call_next):
@@ -215,6 +245,8 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
                 raise HTTPException(403, 'Non è possibile verificare la tua appartenenza attuale al server Discord.') from None
             member=None
         is_staff = bool(member and is_management(member, bot.cfg))
+        if is_staff:
+            analytics.mark_staff(session['id'])
         if staff and not is_staff:
             raise HTTPException(403, 'Questa funzione è riservata al ruolo Management.')
         avatar=getattr(getattr(member,'display_avatar',None),'url',None)
@@ -374,6 +406,30 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
                 # Immutable local audit already committed; Discord outage cannot undo it.
                 pass
 
+    def goal(request, name, user_id, order_id=None):
+        try:
+            analytics.goal(client_address(request) if request else None, request.headers.get('user-agent', '') if request else '',
+                           name, user_id, order_id)
+        except Exception:
+            # Analytics must never break a login, a request or a payment.
+            pass
+
+    def person_name(user_id):
+        name = getattr(bot, 'demo_names', {}).get(user_id) or store.get('web_customers', user_id, {}).get('name')
+        guild = None if demo else bot.get_guild(int(bot.cfg['guild_id']))
+        member = guild.get_member(user_id) if guild and hasattr(guild, 'get_member') else None
+        return getattr(member, 'display_name', None) or name
+
+    @app.post('/_t')
+    async def track(request: Request):
+        events = await beacon(request, limits)
+        if events:
+            token = request.cookies.get(COOKIE, '')
+            session = store.get('web_sessions', _digest(token)) if token else None
+            user_id = session['id'] if session and session.get('expires', 0) > time.time() else None
+            analytics.record('manager', client_address(request), request.headers.get('user-agent', ''), events, user_id)
+        return Response(status_code=204)
+
     @app.exception_handler(HTTPException)
     async def http_error(request, error):
         if error.status_code == 303:
@@ -445,6 +501,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             'name': identity.get('global_name') or identity.get('username', 'Membro'),
             'csrf': secrets.token_urlsafe(32), 'expires': time.time() + SESSION_TTL,'web_customer':bool(pending.get('web_customer'))})
         store.put('web_customers',int(identity['id']),{'name':identity.get('global_name') or identity.get('username','Cliente')})
+        goal(request, 'login', int(identity['id']))
         response = RedirectResponse('/start?connected=1' if pending.get('return_start') else '/', status_code=303)
         _cookie(response, COOKIE, session_token, SESSION_TTL)
         response.delete_cookie(STATE_COOKIE, secure=True, httponly=True, samesite='lax', path='/')
@@ -496,7 +553,9 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             order,created=intake.submit(user['id'],values.get('submission',''),raw)
         except ValueError as error:
             return JSONResponse({'detail':str(error)},status_code=400)
-        if created: await audit_log(f'Ordine #{order["id"]}: richiesta dal sito inviata dal cliente {user["id"]}.')
+        if created:
+            goal(request, 'request', user['id'], order['id'])
+            await audit_log(f'Ordine #{order["id"]}: richiesta dal sito inviata dal cliente {user["id"]}.')
         return JSONResponse({'url':f'/orders/{order["id"]}?submitted=1','id':order['id']},status_code=201 if created else 200)
 
     @app.post('/orders/{number:int}/quote')
@@ -607,7 +666,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             raise ValueError('Passaggio del tutorial non valido.') from None
         role='admin' if user['staff'] else 'client'
         tour_page=values.get('page','overview')
-        if tour_page not in ('overview','orders','detail','payments','activity','agenda','customers','new','settings','tutorial'):
+        if tour_page not in ('overview','orders','detail','payments','activity','agenda','customers','new','settings','tutorial','analytics','journey'):
             raise ValueError('Pagina del tutorial non valida.')
         store.put('workspace_tour',f'{user["id"]}:{role}',{
             'status':values['status'],'step':step,'page':tour_page,'version':2 if user['staff'] else 3,'at':time.time()})
@@ -698,6 +757,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
         await form(request, user)
         visible_order(number, user)
         orders.accept(number, user['id'])
+        goal(request, 'quote', user['id'], number)
         await audit_log(f'Preventivo #{number} accettato dal cliente {user["id"]}.')
         return RedirectResponse(f'/orders/{number}', status_code=303)
 
@@ -778,6 +838,20 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
     async def payments(request: Request):
         return page(request, await principal(request), 'payments')
 
+    @app.get('/analytics')
+    async def analytics_page(request: Request, range: str = '7d', team: str = '', visits: str = ''):
+        user = await principal(request, staff=True)
+        key = range if range in RANGES else '7d'
+        return page(request, user, 'analytics', report=analytics.report(key, team == '1', person_name, limit=200 if visits == 'all' else 20))
+
+    @app.get('/analytics/sessions/{ident}')
+    async def analytics_session(request: Request, ident: str):
+        user = await principal(request, staff=True)
+        journey = analytics.session(ident, person_name)
+        if not journey:
+            raise HTTPException(404, 'Percorso non trovato o già scaduto.')
+        return page(request, user, 'journey', journey=journey)
+
     @app.get('/settings')
     async def settings(request: Request):
         return page(request, await principal(request, staff=True), 'settings')
@@ -802,6 +876,7 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
                 raise HTTPException(409, str(error)) from None
             except (httpx.HTTPError, KeyError, StopIteration):
                 raise HTTPException(502, 'PayPal non è al momento disponibile. Riprova dal progetto: il tentativo viene conservato.') from None
+        goal(request, 'checkout', user['id'], number)
         return RedirectResponse(url, status_code=303)
 
     @app.get('/orders/{number:int}/paypal/return')
@@ -833,6 +908,8 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
             except ValueError as error:
                 paypal.event('return-error:' + token, 'da_riconciliare', str(error))
                 raise HTTPException(409, 'Il pagamento richiede una verifica del team. Non ripetere il pagamento.') from None
+        if applied:
+            goal(request, 'paid', order['customer'], number)
         if applied and not demo:
             await notify_order(bot, order, 'Pagamento PayPal ricevuto. Consulta il saldo nel sito.')
         return RedirectResponse(f'/orders/{number}?checkout=success', status_code=303)
@@ -871,6 +948,8 @@ def _build_app(bot, public, client_id, client_secret, *, demo=False, http_transp
                         if not applied and paypal.checkout(token)['status'] != 'paid':
                             # Provider state may lag the webhook; let PayPal retry.
                             raise HTTPException(503, 'Pagamento PayPal in verifica.')
+                    if applied:
+                        goal(None, 'paid', orders.get(saved['order_id'])['customer'], saved['order_id'])
                     if applied and not demo:
                         await notify_order(bot, orders.get(saved['order_id']), 'Pagamento PayPal ricevuto. Saldo aggiornato nel sito.')
                 except ValueError as error:

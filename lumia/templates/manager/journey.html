@@ -1,0 +1,33 @@
+{% set v = journey.summary %}
+{% set glyphs = {'view':'eye','click':'cursor','leave':'logout','step':'list','goal':'flag'} %}
+<section class="page-heading journey-heading">
+  <div>
+    <p class="eyebrow"><a class="text-link" href="/analytics">{{ icon('chevron', 'icon-back') }}Analisi</a></p>
+    <h1>{{ v.person }}</h1>
+    <p class="lede">{{ v.start|date }} · {{ v.duration|duration }} · {{ v.views }} {{ 'pagina' if v.views == 1 else 'pagine' }}, {{ v.clicks }} {{ 'clic' }}</p>
+  </div>
+  <div class="page-actions">{% if v.order %}<a class="button secondary" href="/orders/{{ v.order }}">{{ icon('orders') }}<span>Apri LM-{{ '%04d'|format(v.order) }}</span></a>{% endif %}</div>
+</section>
+
+<dl class="journey-facts">
+  <div class="panel"><dt>Traguardo raggiunto</dt><dd><span class="visit-stage stage-{{ v.stage_key }}">{{ v.stage }}</span></dd></div>
+  <div class="panel"><dt>Provenienza</dt><dd>{{ v.source }}</dd></div>
+  <div class="panel"><dt>Dispositivo</dt><dd>{{ v.device or '—' }}{% if v.browser %} · {{ v.browser }}{% endif %}</dd></div>
+  <div class="panel"><dt>Chi è</dt><dd>{{ 'Team Lumia' if v.staff else 'Cliente con account' if v.known else 'Visitatore anonimo' }}</dd></div>
+</dl>
+
+<section class="panel journey-panel" aria-labelledby="timeline-title">
+  <div class="panel-heading"><h2 id="timeline-title">Il percorso, passo per passo</h2><span class="pill tnum">{{ journey.timeline|length }}</span></div>
+  <ol class="journey-timeline">
+    {% for e in journey.timeline %}
+    <li class="journey-event kind-{{ e.kind }}">
+      <span class="journey-icon" aria-hidden="true">{{ icon(glyphs[e.kind]) }}</span>
+      <div class="journey-copy">
+        <p class="journey-text">{% if e.kind == 'goal' and e.order %}<a href="/orders/{{ e.order }}">{{ e.text }}</a>{% else %}{{ e.text }}{% endif %}</p>
+        {% if e.detail %}<p class="journey-detail{{ ' reference' if e.kind == 'click' }}">{{ e.detail }}</p>{% endif %}
+      </div>
+      <span class="journey-time tnum">{{ e.created|clock }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>

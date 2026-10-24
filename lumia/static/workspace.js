@@ -211,6 +211,20 @@
     activity: [['[data-tour="activity"]', 'Riprendi il filo.', 'Apri un’attività per tornare alla conversazione o alla consegna. Segna come lette le attività già controllate.']],
     customers: [['.customer-grid', 'Le relazioni, ordinate.', 'Qui trovi i clienti con progetti registrati. Apri i loro progetti per consultare accordi, consegne e pagamenti.']],
     new: [['.form-panel', 'Partiamo dai dati essenziali.', 'Inserisci il cliente Discord, il titolo e l’importo del progetto. Potrai aggiungere milestone, consegne e un piano a tranche nei dettagli.']],
+    analytics: [
+
+      ['[data-tour="analytics-range"]', 'Scegli il periodo.', 'Confronta oggi, la settimana o il trimestre. Le frecce sotto i numeri dicono come va rispetto al periodo precedente. Le visite del team sono escluse, a meno che tu non le includa.'],
+
+      ['[data-tour="analytics-funnel"] .panel-heading', 'Dove si perdono le persone.', 'Ogni riga è un passo verso l’ordine: dalla visita alla richiesta, al preventivo accettato e al pagamento. La percentuale in basso dice quanti si fermano a quel passaggio.'],
+
+      ['[data-tour="analytics-clicks"] .panel-heading', 'Cosa attira l’attenzione.', 'I pulsanti e i link più usati, pagina per pagina. Il testo digitato nei moduli non viene mai registrato.'],
+
+      ['[data-tour="analytics-visits"] .panel-heading', 'Ogni visita, dall’inizio alla fine.', 'Apri una visita per seguire il percorso passo per passo: pagine, clic, passaggi della richiesta e ordine collegato.']
+
+    ],
+
+    journey: [['.journey-timeline', 'Il percorso di una visita.', 'In ordine di tempo: pagine aperte, clic, passaggi della richiesta e momenti chiave come accesso, richiesta e pagamento.']],
+
     settings: [['.settings-stack', 'Servizi e accessi.', 'Controlla gli indirizzi e la configurazione di PayPal. Le credenziali restano sul server; i permessi seguono i ruoli Discord.']]
   };
   const saveTour = status => {

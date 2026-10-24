@@ -3,14 +3,15 @@ import os
 from pathlib import Path
 from urllib.parse import urlsplit
 from fastapi import FastAPI,Request
-from fastapi.responses import HTMLResponse,PlainTextResponse,RedirectResponse
+from fastapi.responses import HTMLResponse,PlainTextResponse,RedirectResponse,Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from .core import Window
 
 HERE=Path(__file__).parent
 
 
-def create_site_app(public=None,manager=None,*,preview=False):
+def create_site_app(public=None,manager=None,*,preview=False,analytics=None):
     public=(public or os.getenv('LUMIA_SITE_URL','https://lumiadevelopment.it')).rstrip('/')
     manager=(manager or os.getenv('LUMIA_PUBLIC_URL','https://manager.lumiadevelopment.it')).rstrip('/')
     invite=os.getenv('LUMIA_DISCORD_INVITE','https://discord.gg/lumiadevelopment').strip()
@@ -18,6 +19,7 @@ def create_site_app(public=None,manager=None,*,preview=False):
     if parsed.scheme!='https' or parsed.hostname not in ('discord.gg','discord.com') or parsed.username or parsed.password:
         raise RuntimeError('LUMIA_DISCORD_INVITE deve essere un invito HTTPS Discord.')
     app=FastAPI(docs_url=None,redoc_url=None,openapi_url=None)
+    limits=Window()
     app.mount('/static',StaticFiles(directory=HERE/'static'),name='static')
     templates=Jinja2Templates(directory=HERE/'templates')
     templates.env.filters['money']=lambda cents:f'{cents/100:.2f} €'
@@ -40,6 +42,16 @@ def create_site_app(public=None,manager=None,*,preview=False):
     async def index(request:Request):
         return templates.TemplateResponse(request=request,name='landing.html',context={
             'public_url':public,'manager_url':manager,'discord_url':invite})
+
+    @app.post('/_t')
+    async def track(request:Request):
+        from .web import beacon,client_address
+        # Same-origin beacons only; the preview landing has nowhere to store them.
+        if analytics and request.headers.get('origin')==public:
+            events=await beacon(request,limits)
+            if events:
+                analytics.record('landing',client_address(request),request.headers.get('user-agent',''),events)
+        return Response(status_code=204)
 
     @app.get('/robots.txt')
     async def robots():

@@ -105,6 +105,7 @@
     }
     clearError(); const direction = index >= current ? 1 : -1;
     current = Math.max(0,Math.min(5,index)); reached = Math.max(reached,current);
+    if (direction > 0 && current > 0) document.dispatchEvent(new CustomEvent('lumia:track',{detail:{kind:'step',label:nav[current]?.textContent.trim(),value:current}}));
     steps.forEach((step,i) => { step.hidden = i !== current; });
     nav.forEach((button,i) => { button.disabled = i > reached; if (i===current) button.setAttribute('aria-current','step'); else button.removeAttribute('aria-current'); });
     back.hidden = current===0; next.hidden = current===5; skip.hidden = current===5; submit.hidden = current!==5;

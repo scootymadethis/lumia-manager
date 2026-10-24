@@ -1,0 +1,170 @@
+{% set r = report %}
+{% set team_query = '&team=1' if r.include_staff else '' %}
+{% macro delta(name, invert=False) -%}
+{%- set value = r.delta[name] -%}
+{%- if value is none -%}<span class="kpi-delta is-flat">Nuovo</span>
+{%- elif value|abs < 0.5 -%}<span class="kpi-delta is-flat">Stabile</span>
+{%- else -%}{%- set good = (value > 0) != invert -%}
+<span class="kpi-delta {{ 'is-up' if good else 'is-down' }}"><span aria-hidden="true">{{ '↑' if value > 0 else '↓' }}</span> {{ value|abs|round|int }}%<span class="sr-only"> rispetto al periodo precedente</span></span>
+{%- endif -%}
+{%- endmacro %}
+<section class="page-heading analytics-heading">
+  <div>
+    <p class="eyebrow">Gestione</p>
+    <h1>Analisi</h1>
+    <p class="lede">Chi visita il sito, cosa guarda e dove si ferma, fino all’ordine.</p>
+  </div>
+  <div class="page-actions analytics-actions">
+    <p class="live-pill{{ ' is-idle' if not r.live }}" role="status"><span class="live-dot" aria-hidden="true"></span>{% if r.live %}<span class="tnum">{{ r.live }}</span> {{ 'persona' if r.live == 1 else 'persone' }} sul sito ora{% else %}Nessuno sul sito ora{% endif %}</p>
+  </div>
+</section>
+
+<div class="analytics-controls" data-tour="analytics-range">
+  <nav class="segmented" aria-label="Periodo">
+    {% for key, (label, days) in r.ranges.items() %}<a href="/analytics?range={{ key }}{{ team_query }}"{% if r.range == key %} aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+  </nav>
+  <a class="chip" href="/analytics?range={{ r.range }}{{ '' if r.include_staff else '&team=1' }}"{% if r.include_staff %} aria-current="true"{% endif %}>{{ icon('users') }}<span>Includi il team</span></a>
+</div>
+
+<section class="analytics-kpis" aria-label="Riepilogo del periodo">
+  <article class="panel kpi-card">
+    <p class="kpi-label">{{ icon('users') }}Persone</p>
+    <p class="kpi-value tnum">{{ r.kpis.people }}</p>
+    <p class="kpi-foot">{{ delta('people') }}</p>
+  </article>
+  <article class="panel kpi-card">
+    <p class="kpi-label">{{ icon('layers') }}Visite</p>
+    <p class="kpi-value tnum">{{ r.kpis.sessions }}</p>
+    <p class="kpi-foot">{{ delta('sessions') }}<span class="kpi-note tnum">{{ r.kpis.views }} pagine viste</span></p>
+  </article>
+  <article class="panel kpi-card">
+    <p class="kpi-label">{{ icon('clock') }}Tempo medio</p>
+    <p class="kpi-value tnum">{{ r.kpis.duration|duration }}</p>
+    <p class="kpi-foot">{{ delta('duration') }}<span class="kpi-note tnum">{{ r.kpis.bounce|round|int }}% esce subito</span></p>
+  </article>
+  <article class="panel kpi-card is-goal">
+    <p class="kpi-label">{{ icon('flag') }}Richieste inviate</p>
+    <p class="kpi-value tnum">{{ r.kpis.requests }}</p>
+    <p class="kpi-foot">{{ delta('requests') }}<span class="kpi-note tnum">{{ '%.1f'|format(r.kpis.conversion)|replace('.', ',') }}% delle persone</span></p>
+  </article>
+</section>
+
+{% if r.empty %}
+<section class="panel empty-state analytics-empty">{{ icon('chart') }}<h3>Ancora nessuna visita in questo periodo.</h3><p>Le visite al sito e al manager compaiono qui pochi secondi dopo. Prova un periodo più lungo{% if not r.include_staff %} o includi il team{% endif %}.</p></section>
+{% else %}
+<section class="panel analytics-trend" aria-labelledby="trend-title">
+    <div class="panel-heading"><h2 id="trend-title">Andamento</h2><span class="pill tnum">Picco {{ r.peak }} {{ 'persona' if r.peak == 1 else 'persone' }}</span></div>
+    {% set n = r.series|length %}{% set slot = 1000 / n %}{% set bar = [slot * 0.64, 36]|min %}
+    <figure class="trend-chart">
+      <svg viewBox="0 0 1000 220" role="img" aria-label="Persone {{ 'per ora, oggi' if n == 24 else 'per giorno' }}">
+        <line class="trend-grid" x1="0" x2="1000" y1="20" y2="20"/><line class="trend-grid" x1="0" x2="1000" y1="110" y2="110"/><line class="trend-base" x1="0" x2="1000" y1="200" y2="200"/>
+        {% for b in r.series %}{% set h = [b.height * 1.8, 2 if b.people else 0]|max %}
+        <g class="trend-bar{{ ' has-request' if b.requests else '' }}"><title>{{ b.title }} · {{ b.people }} {{ 'persona' if b.people == 1 else 'persone' }}{% if b.requests %} · {{ b.requests }} {{ 'richiesta' if b.requests == 1 else 'richieste' }}{% endif %}</title>
+          <rect class="trend-hit" x="{{ loop.index0 * slot }}" y="0" width="{{ slot }}" height="200"/>
+          {% if b.people %}<rect class="trend-fill" x="{{ loop.index0 * slot + (slot - bar) / 2 }}" y="{{ 200 - h }}" width="{{ bar }}" height="{{ h }}" rx="{{ [bar / 2, 6, h / 2]|min }}"/>{% endif %}
+          {% if b.requests %}<circle class="trend-goal" cx="{{ loop.index0 * slot + slot / 2 }}" cy="{{ 200 - h - 12 }}" r="5"/>{% endif %}
+        </g>{% endfor %}
+      </svg>
+      {% set step = 1 if n <= 8 else (3 if n == 24 else (n // 6)) %}
+      <figcaption class="trend-axis tnum" aria-hidden="true">{% for b in r.series %}{% if loop.index0 % step == 0 or loop.last %}<span>{{ b.title if n != 24 else b.label }}</span>{% endif %}{% endfor %}</figcaption>
+    </figure>
+    <p class="trend-legend"><span class="legend-swatch is-people" aria-hidden="true"></span>Persone <span class="legend-swatch is-goal" aria-hidden="true"></span>Giorni con una richiesta</p>
+</section>
+
+<div class="analytics-grid">
+  <section class="panel analytics-funnel" aria-labelledby="funnel-title" data-tour="analytics-funnel">
+    <div class="panel-heading"><h2 id="funnel-title">Dal sito all’ordine</h2></div>
+    <ol class="funnel-list">
+      {% for step in r.funnel %}
+      <li class="funnel-step{{ ' is-goal' if step.key in ['request','quote','paid'] else '' }}">
+        <div class="funnel-row"><span class="funnel-label">{{ step.label }}</span><span class="funnel-count tnum">{{ step.count }}</span></div>
+        <progress max="100" value="{{ step.share }}" aria-label="{{ step.label }}: {{ step.share|round|int }}% delle persone"></progress>
+        {% if step.drop %}<span class="funnel-drop tnum">−{{ step.drop|round|int }}% al passaggio</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% for board in r.reach[:1] %}
+  <section class="panel analytics-reach" aria-labelledby="reach-title">
+    <div class="panel-heading"><h2 id="reach-title">Dove si fermano</h2><span class="pill">{{ board.name }}</span></div>
+    <p class="panel-note">Quota di visite che arriva a vedere ogni sezione.</p>
+    <ol class="bar-list">
+      {% for part in board.sections %}<li><span class="bar-label">{{ part.label }}</span><span class="bar-value tnum">{{ part.share|round|int }}%</span><progress max="100" value="{{ part.share }}" aria-hidden="true"></progress></li>{% endfor %}
+    </ol>
+  </section>
+  {% endfor %}
+</div>
+
+<div class="analytics-grid is-halves">
+  <section class="panel analytics-sources" aria-labelledby="sources-title">
+    <div class="panel-heading"><h2 id="sources-title">Da dove arrivano</h2></div>
+    <ol class="bar-list">
+      {% for s in r.sources %}<li><span class="bar-label">{{ s.label }}{% if s.requests %} <span class="bar-goal">{{ s.requests }} {{ 'richiesta' if s.requests == 1 else 'richieste' }}</span>{% endif %}</span><span class="bar-value tnum">{{ s.count }}</span><progress max="100" value="{{ s.share }}" aria-hidden="true"></progress></li>{% endfor %}
+    </ol>
+  </section>
+  <section class="panel analytics-devices" aria-labelledby="devices-title">
+    <div class="panel-heading"><h2 id="devices-title">Dispositivi</h2></div>
+    <ol class="bar-list">
+      {% for d in r.devices %}<li><span class="bar-label">{{ d.label }}</span><span class="bar-value tnum">{{ d.share|round|int }}%</span><progress max="100" value="{{ d.share }}" aria-hidden="true"></progress></li>{% endfor %}
+    </ol>
+    <p class="panel-note tnum">{% for b in r.browsers %}{{ b.label }} {{ b.share|round|int }}%{{ ' · ' if not loop.last }}{% endfor %}</p>
+  </section>
+</div>
+
+<section class="panel flush analytics-table" aria-labelledby="pages-title">
+  <div class="panel-heading"><h2 id="pages-title">Pagine</h2><span class="pill tnum">{{ r.pages|length }}</span></div>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Pagine più viste">
+    <table class="data-table stack">
+      <thead><tr><th scope="col">Pagina</th><th scope="col" class="number">Viste</th><th scope="col" class="number">Persone</th><th scope="col" class="number">Tempo attivo</th><th scope="col" class="number">Letta</th><th scope="col" class="number">Escono qui</th></tr></thead>
+      <tbody>
+      {% for p in r.pages %}
+        <tr><td><span class="page-cell"><strong>{{ p.name }}</strong><span class="subtext">{{ 'Sito' if p.site == 'landing' else 'Manager' }} · {{ p.key.split(':', 1)[1] }}</span></span></td>
+          <td data-label="Viste" class="number">{{ p.views }}</td><td data-label="Persone" class="number">{{ p.people }}</td>
+          <td data-label="Tempo attivo" class="number">{{ p.time|duration if p.time is not none else '—' }}</td>
+          <td data-label="Letta" class="number">{{ (p.depth|round|int ~ '%') if p.depth is not none else '—' }}</td>
+          <td data-label="Escono qui" class="number">{{ p.exit_rate|round|int }}%</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel flush analytics-table" aria-labelledby="clicks-title" data-tour="analytics-clicks">
+  <div class="panel-heading"><h2 id="clicks-title">Cosa cliccano</h2><span class="pill tnum">{{ r.clicks|length }}</span></div>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Elementi più cliccati">
+    <table class="data-table stack">
+      <thead><tr><th scope="col">Elemento</th><th scope="col">Pagina</th><th scope="col" class="number">Clic</th><th scope="col" class="number">Persone</th></tr></thead>
+      <tbody>
+      {% for c in r.clicks %}
+        <tr><td><span class="page-cell"><strong>{{ c.label }}</strong>{% if c.target %}<span class="subtext reference">{{ c.target }}</span>{% endif %}</span></td>
+          <td data-label="Pagina">{{ c.page }}</td><td data-label="Clic" class="number">{{ c.count }}</td><td data-label="Persone" class="number">{{ c.people }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">Nessun clic registrato nel periodo.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel flush analytics-visits" aria-labelledby="visits-title" data-tour="analytics-visits">
+  <div class="panel-heading"><h2 id="visits-title">Ultime visite</h2><span class="pill tnum">{{ r.recent|length }}</span></div>
+  <ul class="visit-list">
+    {% for v in r.recent %}
+    <li><a class="visit-row" href="/analytics/sessions/{{ v.id }}">
+      <span class="avatar visit-avatar{{ ' is-known' if v.known else '' }}" aria-hidden="true">{{ v.person[:1]|upper }}</span>
+      <span class="visit-main">
+        <span class="visit-who"><strong>{{ v.person }}</strong>{% if v.staff %}<span class="pill">Team</span>{% elif v.known %}<span class="pill is-known">Cliente</span>{% endif %}</span>
+        <span class="visit-trail">{% for step in v.trail %}<span>{{ step }}</span>{% if not loop.last %}{{ icon('chevron', 'trail-sep') }}{% endif %}{% endfor %}{% if v.more %}<span class="muted">+{{ v.more }}</span>{% endif %}</span>
+      </span>
+      <span class="visit-meta">
+        <span class="visit-stage stage-{{ v.stage_key }}">{{ v.stage }}</span>
+        <span class="visit-when tnum">{{ v.start|date }} · {{ v.duration|duration }} · {{ v.device }}{% if v.source != 'Diretto' %} · {{ v.source }}{% endif %}</span>
+      </span>
+      {{ icon('chevron', 'visit-chevron') }}
+    </a></li>
+    {% endfor %}
+  </ul>
+  {% if r.more_visits %}<p class="visit-more"><a class="text-link" href="/analytics?range={{ r.range }}{{ team_query }}&visits=all#visits-title">Mostra {{ 'le altre' if r.more_visits + r.limit <= 200 else 'altre' }} {{ [r.more_visits, 200 - r.limit]|min }} visite {{ icon('chevron') }}</a></p>{% endif %}
+</section>
+{% endif %}
+<p class="analytics-privacy">{{ icon('lock') }}<span>Senza cookie e senza indirizzi IP salvati: un visitatore anonimo è riconoscibile solo per la giornata. I clienti che accedono sono collegati al loro account. Nessun testo digitato viene registrato; i dati si cancellano dopo 90 giorni.</span></p>
