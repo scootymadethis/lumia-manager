@@ -2,7 +2,7 @@
 {% from 'manager/plan-macro.html' import plan_part with context %}
 {% set suffix = '?view=client' if demo and not user.staff else '' %}
 {% set area = 'Management' if user.staff else 'Area clienti' %}
-{% set crumb = {'overview':'Home','orders':'Progetti','detail':'Progetto','new':'Nuovo ordine','payments':'Pagamenti','customers':'Clienti','settings':'Impostazioni','agenda':'Agenda','activity':'Attività','tutorial':'Tutorial clienti'}[page] %}
+{% set crumb = {'overview':'Home','orders':'Progetti','detail':'Progetto','new':'Nuovo ordine','payments':'Pagamenti','customers':'Clienti','settings':'Impostazioni','agenda':'Agenda','activity':'Attività','tutorial':'Tutorial clienti','analytics':'Analisi','journey':'Percorso'}[page] %}
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -10,7 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f5f5f7">
-  <title>{% if page=='detail' %}{{ order.title }}{% elif page=='tutorial' %}Tutorial clienti{% elif page=='orders' %}Progetti{% elif page=='new' %}Nuovo ordine{% elif page=='customers' %}Clienti{% elif page=='payments' %}Pagamenti{% elif page=='agenda' %}Agenda{% elif page=='activity' %}Attività{% elif page=='settings' %}Impostazioni{% else %}Workspace{% endif %} · Lumia</title>
+  <title>{% if page=='detail' %}{{ order.title }}{% elif page=='tutorial' %}Tutorial clienti{% elif page=='orders' %}Progetti{% elif page=='new' %}Nuovo ordine{% elif page=='customers' %}Clienti{% elif page=='payments' %}Pagamenti{% elif page=='agenda' %}Agenda{% elif page=='activity' %}Attività{% elif page=='settings' %}Impostazioni{% elif page=='analytics' %}Analisi{% elif page=='journey' %}{{ journey.summary.person }} · Analisi{% else %}Workspace{% endif %} · Lumia</title>
   <link rel="icon" href="/static/lumia-logo-discord.png">
   <script src="/static/theme.js?v=20261019"></script>
   <link rel="preload" href="/static/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
@@ -20,8 +20,12 @@
   <link rel="stylesheet" href="/static/board.css?v=20261019">
   <link rel="stylesheet" href="/static/pages.css?v=20261019">
   {% if page == 'tutorial' %}<link rel="stylesheet" href="/static/tutorial.css?v=20261019">{% endif %}
+
+  {% if page in ['analytics','journey'] %}<link rel="stylesheet" href="/static/analytics.css?v=20261024">{% endif %}
   <script src="/static/ui.js?v=20261019" defer></script>
-  <script src="/static/workspace.js?v=20261019" defer></script>
+  <script src="/static/workspace.js?v=20261024" defer></script>
+
+  <script src="/static/track.js?v=20261024" defer></script>
   {% if page == 'tutorial' %}<script src="/static/customer-tutorial.js?v=20261019" defer></script>{% endif %}
   <meta name="robots" content="noindex,nofollow">
 </head>
@@ -41,6 +45,8 @@
     <nav class="nav-secondary" aria-labelledby="nav-manage-title">
       <p class="nav-divider" id="nav-manage-title">Gestione</p>
       <a class="nav-item nav-customers{{ ' active' if page=='customers' else '' }}" href="/customers"{% if page=='customers' %} aria-current="page"{% endif %}>{{ icon('users') }}<span class="nav-label">Clienti</span></a>
+      <a class="nav-item nav-analytics{{ ' active' if page in ['analytics','journey'] else '' }}" href="/analytics"{% if page=='analytics' %} aria-current="page"{% endif %}>{{ icon('chart') }}<span class="nav-label">Analisi</span></a>
+
       <a class="nav-item nav-settings{{ ' active' if page=='settings' else '' }}" href="/settings"{% if page=='settings' %} aria-current="page"{% endif %}>{{ icon('settings') }}<span class="nav-label">Impostazioni</span></a>
     </nav>
     {% endif %}
@@ -57,12 +63,14 @@
   <div class="app-main">
     {% if demo %}<div class="demo-banner"><strong>DEMO</strong><span>Dati di esempio: le modifiche sono disattivate.</span><nav class="demo-switch" aria-label="Vista della demo"><a href="/"{% if user.staff %} aria-current="page"{% endif %}>Management</a><a href="/?view=client"{% if not user.staff %} aria-current="page"{% endif %}>Cliente</a></nav></div>{% endif %}
     <header class="topbar">
-      {% if page in ['detail','new'] %}<a class="topbar-back icon-button" href="/orders{{ suffix }}" aria-label="Torna ai progetti">{{ icon('chevron', 'icon-back') }}</a>{% endif %}
+      {% if page in ['detail','new'] %}<a class="topbar-back icon-button" href="/orders{{ suffix }}" aria-label="Torna ai progetti">{{ icon('chevron', 'icon-back') }}</a>{% elif page == 'journey' %}<a class="topbar-back icon-button" href="/analytics" aria-label="Torna all’analisi">{{ icon('chevron', 'icon-back') }}</a>{% endif %}
       <a class="topbar-brand" href="/{{ suffix }}" aria-label="Lumia, vai alla home"><img src="/static/lumia-logo-discord.png" alt="" width="28" height="28"></a>
       <nav class="topbar-breadcrumb" aria-label="Percorso">
         <ol>
           <li class="crumb-area"><a href="/{{ suffix }}">{{ area }}</a></li>
           {% if page in ['detail','new'] %}<li class="crumb-parent"><a href="/orders{{ suffix }}">Progetti</a></li>{% endif %}
+
+          {% if page == 'journey' %}<li class="crumb-parent"><a href="/analytics">Analisi</a></li>{% endif %}
           <li class="crumb-current"><span aria-current="page">{{ order.title if page == 'detail' else crumb }}</span></li>
         </ol>
       </nav>
@@ -77,7 +85,7 @@
             <ul class="account-links">
               <li><a href="/start{{ suffix }}">{{ icon('plus') }}<span>Nuova richiesta</span></a></li>
               <li><a href="/payments{{ suffix }}">{{ icon('wallet') }}<span>Pagamenti</span></a></li>
-              {% if user.staff %}<li><a href="/customers">{{ icon('users') }}<span>Clienti</span></a></li><li><a href="/settings">{{ icon('settings') }}<span>Impostazioni</span></a></li>{% else %}<li><a href="/tutorial{{ suffix }}">{{ icon('help') }}<span>Tutorial clienti</span></a></li>{% endif %}
+              {% if user.staff %}<li><a href="/customers">{{ icon('users') }}<span>Clienti</span></a></li><li><a href="/analytics">{{ icon('chart') }}<span>Analisi</span></a></li><li><a href="/settings">{{ icon('settings') }}<span>Impostazioni</span></a></li>{% else %}<li><a href="/tutorial{{ suffix }}">{{ icon('help') }}<span>Tutorial clienti</span></a></li>{% endif %}
               <li><button type="button" data-guide-open>{{ icon('spark') }}<span>Guida a questa pagina</span></button></li>
               <li><button type="button" data-theme-toggle aria-label="Usa il tema scuro">{{ icon('moon', 'icon-moon') }}{{ icon('sun', 'icon-sun') }}<span class="theme-to-dark">Usa il tema scuro</span><span class="theme-to-light">Usa il tema chiaro</span></button></li>
             </ul>
@@ -93,7 +101,7 @@
 
     <main class="manager-main" id="main">
       {% if user.staff and events|selectattr('status','equalto','da_riconciliare')|list|length %}<div class="notice warn workspace-notice">{{ icon('shield') }}<div><strong>Riconciliazione richiesta</strong><p>Ci sono eventi di pagamento da verificare nel registro.</p></div><a class="button small secondary" href="/payments">Controlla</a></div>{% endif %}
-      {% if page in ['overview','orders','activity','agenda','tutorial','detail','new','customers','payments','settings'] %}{% include 'manager/'+page+'.html' %}{% endif %}
+      {% if page in ['overview','orders','activity','agenda','tutorial','detail','new','customers','payments','settings','analytics','journey'] %}{% include 'manager/'+page+'.html' %}{% endif %}
     </main>
     <footer class="manager-footer"><span>Lumia Workspace</span><button type="button" class="text-link" data-guide-open>Serve una mano? {{ icon('help') }}</button></footer>
   </div>

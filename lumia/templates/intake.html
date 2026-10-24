@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="/static/base.css?v=20261019">
 <link rel="stylesheet" href="/static/intake.css?v=20261019">
 <script src="/static/intake.js?v=20261019" defer></script>
+<script src="/static/track.js?v=20261024" defer></script>
 </head>
 <body class="intake" data-authenticated="{{ 'true' if user else 'false' }}" data-csrf="{{ user.csrf if user else '' }}" data-ai="{{ 'true' if ai_enabled else 'false' }}" data-demo="{{ 'true' if demo else 'false' }}">
 {{ glass_defs() }}
