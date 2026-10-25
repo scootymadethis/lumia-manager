@@ -325,12 +325,11 @@ class TicketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.ticket(ticket['id'])['state'], 'open')
         self.assertFalse(channel.deleted)
 
-    async def test_delete_requires_seven_days_and_intact_archive(self):
+    async def test_delete_requires_closed_ticket_and_intact_archive(self):
         ticket, channel = self.ticket()
-        await self.cog.close_ticket(ticket['id'], self.manager, 'finito')
         with self.assertRaises(ValueError):
             await self.cog.delete_closed(ticket['id'], self.manager, f'ELIMINA #{ticket["id"]}')
-        self.store.update_ticket(ticket['id'], closed=time.time() - 8 * 86400)
+        await self.cog.close_ticket(ticket['id'], self.manager, 'finito')
         saved = self.store.ticket(ticket['id'])
         archive = Path(self.temp.name) / 'transcripts' / saved['transcript']
         archive.write_text('corrupted', encoding='utf-8')
@@ -356,10 +355,9 @@ class TicketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.ticket(ticket['id'])['state'], 'closed')
         self.assertFalse(channel.deleted)
 
-    async def test_verified_closed_channel_can_be_deleted_after_seven_days(self):
+    async def test_verified_closed_channel_can_be_deleted_immediately(self):
         ticket, channel = self.ticket()
         await self.cog.close_ticket(ticket['id'], self.manager, 'finito')
-        self.store.update_ticket(ticket['id'], closed=time.time() - 8 * 86400)
         await self.cog.delete_closed(ticket['id'], self.manager, f'ELIMINA #{ticket["id"]}')
         self.assertTrue(channel.deleted)
         self.assertTrue(self.cog.verified_archive(self.store.ticket(ticket['id'])).is_file())

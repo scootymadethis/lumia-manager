@@ -92,7 +92,7 @@ class LumiaBot(commands.Bot):
             return False
 
     async def setup_hook(self):
-        for ext in ('setup_server','onboarding','verification','tickets','order_commands','moderation','community','events'):
+        for ext in ('setup_server','onboarding','verification','tickets','notifications','order_commands','moderation','community','events'):
             await self.load_extension('lumia.'+ext)
         guild=discord.Object(id=self.cfg['guild_id'])
         self.tree.copy_global_to(guild=guild)

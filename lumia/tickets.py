@@ -8,6 +8,7 @@ import logging
 import os
 import tempfile
 import time
+import uuid
 from urllib.parse import urlsplit
 from collections import defaultdict
 from pathlib import Path
@@ -147,7 +148,8 @@ class TicketPanelView(TicketView):
             'Non inviare password, token o dati di pagamento. I messaggi e i riferimenti agli allegati '
             'vengono archiviati nelle trascrizioni, accessibili alle persone autorizzate al ticket. '
             'Management gestisce manualmente conservazione e cancellazione: non c’è una scadenza automatica. '
-            'I canali chiusi restano consultabili per almeno 7 giorni. Gli allegati collegati non vengono copiati in modo permanente.'))
+            'Dopo la chiusura Management può eliminare subito il canale, conservando la trascrizione locale verificata. '
+            'Gli allegati collegati non vengono copiati in modo permanente.'))
 
 
 class TicketModal(discord.ui.Modal):
@@ -253,6 +255,54 @@ class TicketControls(TicketView):
         self.cog.deletable_ticket(ticket['id'], interaction.user)
         await interaction.response.send_modal(DeleteTicketModal(self.cog, ticket['id'], interaction.user.id))
 
+    @discord.ui.button(label='Coda staff', style=discord.ButtonStyle.secondary,
+                       custom_id='lumia:tickets:queue:v1')
+    async def queue(self, interaction, button):
+        self.cog.check_guild(interaction)
+        await self.cog.show_queue(interaction)
+
+
+class TicketQueueView(TicketView):
+    def __init__(self, cog, requester):
+        super().__init__(cog, timeout=180)
+        self.requester, self.page = requester, 0
+
+    def render(self, actor):
+        if actor.id != self.requester:
+            raise app_commands.CheckFailure('Questa coda appartiene a un altro operatore.')
+        rows = self.cog.queue_rows(actor)
+        pages = max(1, (len(rows) + 9) // 10)
+        self.page = min(max(0, self.page), pages - 1)
+        self.previous.disabled = self.page == 0
+        self.next.disabled = self.page == pages - 1
+        lines = []
+        for row in rows[self.page * 10:(self.page + 1) * 10]:
+            waiting = 'staff' if row['waiting'] == 'staff' else 'cliente'
+            assigned = f'<@{row["staff"]}>' if row['staff'] else 'Da assegnare'
+            extra = f' · Partnership: {row["partnership"]}' if row['partnership'] else ''
+            lines.append(f'**#{row["id"]:04d} · {KINDS[row["kind"]][0]} · {row["priority"]}**\n'
+                         f'<#{row["channel"]}> · {assigned}{extra}\n'
+                         f'Attende {waiting} da <t:{int(row["waiting_since"])}:R> · {row["state"]}')
+        return card('Coda assistenza', '\n\n'.join(lines) or 'Nessun ticket attivo accessibile.',
+                    footer=f'Pagina {self.page + 1} / {pages} · {len(rows)} ticket · Visibile solo a te')
+
+    async def update(self, interaction, offset=0):
+        self.cog.check_guild(interaction)
+        self.page += offset
+        await interaction.response.edit_message(embed=self.render(interaction.user), view=self)
+
+    @discord.ui.button(label='Indietro', style=discord.ButtonStyle.secondary)
+    async def previous(self, interaction, button):
+        await self.update(interaction, -1)
+
+    @discord.ui.button(label='Aggiorna', style=discord.ButtonStyle.primary)
+    async def refresh(self, interaction, button):
+        await self.update(interaction)
+
+    @discord.ui.button(label='Avanti', style=discord.ButtonStyle.secondary)
+    async def next(self, interaction, button):
+        await self.update(interaction, 1)
+
 
 class Tickets(commands.Cog):
     ticket = app_commands.Group(name='ticket', description='Assistenza e progetti Lumia', guild_only=True)
@@ -261,6 +311,7 @@ class Tickets(commands.Cog):
         self.bot = bot
         self.locks = defaultdict(asyncio.Lock)
         self.recovery_lock = asyncio.Lock()
+        self.panel_lock = asyncio.Lock()
         self.recovered = False
         self.persistent_views = []
 
@@ -306,6 +357,71 @@ class Tickets(commands.Cog):
         ticket = self.checked_ticket(ticket['id'], interaction.user, staff=staff)
         self.ticket_channel(ticket)
         return ticket
+
+    def queue_rows(self, actor):
+        if (not getattr(actor, 'guild', None) or actor.guild.id != self.bot.cfg['guild_id']
+                or not is_support(actor, self.bot.cfg)):
+            raise app_commands.CheckFailure('Coda riservata a Support e Management nel server Lumia.')
+        rows = []
+        for ticket in self.bot.store.tickets():
+            if ticket['state'] not in ('creating', 'open', 'closing') or not can_access(actor, ticket, self.bot.cfg, staff=True):
+                continue
+            saved = self.bot.store.get('ticket_queue', ticket['id'], {})
+            rows.append({**ticket, 'waiting': saved.get('waiting', 'staff'),
+                         'waiting_since': saved.get('waiting_since', ticket['created']),
+                         'priority': saved.get('priority', 'normale'),
+                         'partnership': self.bot.store.get('ticket_partnerships', ticket['id'], {}).get('status')})
+        return sorted(rows, key=lambda row: (row['waiting'] != 'staff',
+                      {'urgente': 0, 'alta': 1, 'normale': 2}.get(row['priority'], 2), row['waiting_since']))
+
+    async def show_queue(self, interaction):
+        view = TicketQueueView(self, interaction.user.id)
+        result = view.render(interaction.user)
+        await respond(interaction, None, embed=result, view=view)
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if (not message.guild or message.guild.id != self.bot.cfg['guild_id']
+                or message.author.bot or message.webhook_id):
+            return
+        ticket = next((t for t in self.bot.store.tickets() if t['channel'] == message.channel.id), None)
+        if not ticket:
+            return
+        async with self.locks[ticket['id']]:
+            ticket = self.bot.store.ticket(ticket['id'])
+            if ticket['state'] != 'open' or not can_access(message.author, ticket, self.bot.cfg):
+                return
+            self.ticket_channel(ticket)
+            saved = self.bot.store.get('ticket_queue', ticket['id'], {})
+            if message.id <= saved.get('last_message', 0):
+                return
+            team = message.author.id != ticket['owner'] and (
+                is_support(message.author, self.bot.cfg) or message.author.id in ticket.get('extra', []))
+            waiting = 'client' if team else 'staff'
+            at = message.created_at.timestamp()
+            since = saved.get('waiting_since', ticket['created']) if saved.get('waiting', 'staff') == waiting else at
+            saved.update(waiting=waiting, waiting_since=since, last_message=message.id, last_actor=message.author.id, last_at=at)
+            if team and not saved.get('first_response'):
+                saved['first_response'] = at
+            self.bot.store.put('ticket_queue', ticket['id'], saved)
+
+    async def set_queue_value(self, interaction, key, value):
+        ticket = self.for_interaction(interaction, staff=True)
+        allowed = {'waiting': ('staff', 'client'), 'priority': ('normale', 'alta', 'urgente')}
+        if value not in allowed[key]:
+            raise ValueError('Valore non valido.')
+        async with self.locks[ticket['id']]:
+            current = self.checked_ticket(ticket['id'], interaction.user, staff=True)
+            if current['state'] != 'open':
+                raise ValueError('Aggiorna la coda solo per un ticket aperto.')
+            saved = self.bot.store.get('ticket_queue', ticket['id'], {})
+            saved[key] = value
+            if key == 'waiting':
+                saved['waiting_since'] = time.time()
+            self.bot.store.put('ticket_queue', ticket['id'], saved)
+            self.bot.store.put('ticket_queue_audit', uuid.uuid4().hex,
+                               {'ticket': ticket['id'], 'actor': interaction.user.id, 'at': time.time(), key: value})
+        await respond(interaction, 'Coda aggiornata. Usa /ticket coda per il riepilogo privato.')
 
     async def report_error(self, interaction, error):
         if isinstance(error, (ValueError, app_commands.CheckFailure)):
@@ -509,7 +625,7 @@ class Tickets(commands.Cog):
                     log.exception('Could not restore interrupted ticket #%s', number)
                 raise
             try:
-                await channel.send(embed=card('Ticket chiuso','La trascrizione è archiviata. Il canale resta consultabile per almeno 7 giorni.',
+                await channel.send(embed=card('Ticket chiuso','La trascrizione è archiviata. Management può eliminare subito il canale con «Elimina ticket».',
                     level='success',subject=actor,fields=[('Richiesta',f'#{number:04d}',True),
                     ('Cliente',f'<@{ticket["owner"]}>',True)]),allowed_mentions=NO_MENTIONS)
             except discord.HTTPException:
@@ -559,8 +675,11 @@ class Tickets(commands.Cog):
                 await respond(interaction, 'La trascrizione è archiviata in sicurezza ma supera il limite '
                               'di allegati Discord. Chiedi alla Management una copia tramite un canale riservato.')
             else:
-                with discord.File(path, filename=path.name) as attachment:
+                attachment = discord.File(path, filename=path.name)
+                try:
                     await respond(interaction, f'Trascrizione del ticket **#{ticket["id"]}**.', file=attachment)
+                finally:
+                    attachment.close()
 
     def deletable_ticket(self, number, actor):
         if not is_management(actor, self.bot.cfg):
@@ -568,8 +687,8 @@ class Tickets(commands.Cog):
         ticket = self.checked_ticket(number, actor, staff=True)
         if self.bot.store.get('ticket_deleted_channels', number):
             raise ValueError('Il canale di questo ticket è già stato eliminato.')
-        if ticket['state'] != 'closed' or not ticket['closed'] or time.time() - ticket['closed'] < 7 * 86400:
-            raise ValueError('Puoi eliminare il canale solo 7 giorni dopo la chiusura confermata. Usa prima Chiudi / richiedi chiusura.')
+        if ticket['state'] != 'closed' or not ticket['closed']:
+            raise ValueError('Chiudi prima il ticket con «Chiudi / richiedi chiusura»: dopo l’archiviazione puoi eliminarlo subito.')
         self.verified_archive(ticket)
         self.ticket_channel(ticket)
         return ticket
@@ -592,10 +711,22 @@ class Tickets(commands.Cog):
                 raise ValueError('Il ticket è in elaborazione. Riprova tra poco.')
             channel = self.ticket_channel(ticket)
             saved = self.bot.store.get('ticket_controls', number, {})
+            panel = card('Controlli del ticket',
+                'Assistenza e trascrizione. Eliminazione riservata a Management, con conferma, '
+                'archivio verificato e ticket chiuso. Nessuna attesa dopo la chiusura.')
+
+            async def update_message(message):
+                options = {'view': TicketControls(self), 'allowed_mentions': NO_MENTIONS}
+                embeds = getattr(message, 'embeds', [])
+                # Refresh only the generated controls panel, never the customer's intro.
+                if len(embeds) == 1 and embeds[0].title == 'Controlli del ticket':
+                    options['embed'] = panel
+                await message.edit(**options)
+
             if saved.get('channel') == channel.id and saved.get('message'):
                 try:
                     message = await channel.fetch_message(saved['message'])
-                    await message.edit(view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+                    await update_message(message)
                     return
                 except discord.NotFound:
                     pass
@@ -608,12 +739,10 @@ class Tickets(commands.Cog):
                     ids = {getattr(item, 'custom_id', None) for row in getattr(message, 'components', [])
                            for item in getattr(row, 'children', [])}
                     if message.author.id == bot_user.id and expected <= ids:
-                        await message.edit(view=TicketControls(self), allowed_mentions=NO_MENTIONS)
+                        await update_message(message)
                         self.bot.store.put('ticket_controls', number, {'message': message.id, 'channel': channel.id})
                         return
-            message = await channel.send(embed=card('Controlli del ticket',
-                'Assistenza e trascrizione. Eliminazione riservata a Management, con conferma, '
-                'archivio verificato e almeno 7 giorni dalla chiusura.'),
+            message = await channel.send(embed=panel,
                 view=TicketControls(self), allowed_mentions=NO_MENTIONS)
             self.bot.store.put('ticket_controls', number, {'message': message.id, 'channel': channel.id})
 
@@ -675,8 +804,82 @@ class Tickets(commands.Cog):
         if channel is None or channel.guild.id != self.bot.cfg['guild_id']:
             raise ValueError('Configura il canale ticket oppure seleziona un canale del server.')
         await interaction.response.defer(ephemeral=True)
-        await channel.send(embed=panel_embed(), view=TicketPanelView(self), allowed_mentions=NO_MENTIONS)
-        await respond(interaction, 'Pannello ticket pubblicato.')
+        async with self.panel_lock:
+            saved = self.bot.store.get('ticket_panels', channel.id, {})
+            options = {'embed': panel_embed(), 'view': TicketPanelView(self), 'allowed_mentions': NO_MENTIONS}
+            if saved.get('message'):
+                try:
+                    message = await channel.fetch_message(saved['message'])
+                    await message.edit(**options)
+                    return await respond(interaction, 'Pannello ticket aggiornato.')
+                except discord.NotFound:
+                    pass
+            bot_user = getattr(self.bot, 'user', None)
+            if bot_user:
+                async for original in channel.history(limit=None, oldest_first=True):
+                    identifiers = {getattr(item, 'custom_id', None) for row in getattr(original, 'components', [])
+                                   for item in getattr(row, 'children', [])}
+                    if original.author.id == bot_user.id and 'lumia:tickets:select:v1' in identifiers:
+                        await original.edit(**options)
+                        self.bot.store.put('ticket_panels', channel.id, {'message': original.id})
+                        return await respond(interaction, 'Pannello precedente aggiornato senza duplicati.')
+            message = await channel.send(**options)
+            self.bot.store.put('ticket_panels', channel.id, {'message': message.id})
+        await respond(interaction, 'Pannello ticket pubblicato e registrato per gli aggiornamenti.')
+
+    @ticket.command(name='coda', description='Staff: mostra ticket, priorità e chi deve rispondere')
+    async def queue_command(self, interaction: discord.Interaction):
+        self.check_guild(interaction)
+        await self.show_queue(interaction)
+
+    @ticket.command(name='attesa', description='Staff: indica se il ticket attende il team o il cliente')
+    @app_commands.choices(risposta=[app_commands.Choice(name='Attende lo staff', value='staff'),
+                                   app_commands.Choice(name='Attende il cliente', value='client')])
+    async def waiting_command(self, interaction: discord.Interaction, risposta: str):
+        await self.set_queue_value(interaction, 'waiting', risposta)
+
+    @ticket.command(name='priorita', description='Staff: imposta la priorità del ticket')
+    @app_commands.choices(livello=[app_commands.Choice(name=s.capitalize(), value=s) for s in ('normale','alta','urgente')])
+    async def priority_command(self, interaction: discord.Interaction, livello: str):
+        await self.set_queue_value(interaction, 'priority', livello)
+
+    @ticket.command(name='archivio', description='Management: recupera la trascrizione anche dopo la cancellazione del canale')
+    async def archive_command(self, interaction: discord.Interaction, numero: app_commands.Range[int, 1]):
+        self.check_guild(interaction)
+        if not is_management(interaction.user, self.bot.cfg):
+            raise app_commands.CheckFailure('Archivio riservato a Management.')
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        async with self.locks[numero]:
+            ticket = self.checked_ticket(numero, interaction.user, staff=True)
+            if ticket['state'] != 'closed':
+                raise ValueError('La trascrizione finale è disponibile solo dopo la chiusura.')
+            path = self.verified_archive(ticket)
+            if path.stat().st_size > interaction.guild.filesize_limit:
+                return await respond(interaction, 'Archivio presente ma troppo grande per Discord. Management può recuperarlo dal backup riservato.')
+            self.bot.store.put('ticket_archive_access', uuid.uuid4().hex,
+                               {'ticket': numero, 'actor': interaction.user.id, 'at': time.time()})
+            attachment = discord.File(path, filename=path.name)
+            try:
+                await respond(interaction, f'Trascrizione finale del ticket #{numero}.', file=attachment)
+            finally:
+                attachment.close()
+
+    @ticket.command(name='partnership', description='Management: aggiorna lo stato della collaborazione nel ticket partnership')
+    @app_commands.choices(stato=[app_commands.Choice(name=s.capitalize(), value=s)
+        for s in ('proposta','valutazione','approvata','attiva','conclusa','rifiutata')])
+    async def partnership_command(self, interaction: discord.Interaction, stato: str,
+                                  nota: app_commands.Range[str, 0, 1000] = ''):
+        ticket = self.for_interaction(interaction, staff=True)
+        if not is_management(interaction.user, self.bot.cfg):
+            raise app_commands.CheckFailure('Collaborazioni riservate a Management.')
+        if ticket['kind'] != 'partner' or stato not in ('proposta','valutazione','approvata','attiva','conclusa','rifiutata'):
+            raise ValueError('Usa un ticket Partnership e uno stato valido.')
+        async with self.locks[ticket['id']]:
+            entry = self.bot.store.get('ticket_partnerships', ticket['id'], {'history': []})
+            entry.update(status=stato, referent=interaction.user.id, updated=time.time())
+            entry['history'].append({'status': stato, 'note': nota, 'actor': interaction.user.id, 'at': time.time()})
+            self.bot.store.put('ticket_partnerships', ticket['id'], entry)
+        await respond(interaction, f'Partnership aggiornata: {stato}. Storico conservato e visibile a Management.')
 
     @ticket.command(name='prendi', description='Prendi in carico questo ticket')
     async def claim_command(self, interaction: discord.Interaction):
@@ -735,7 +938,7 @@ class Tickets(commands.Cog):
         ticket = self.for_interaction(interaction)
         await self.request_close(interaction, ticket, motivo)
 
-    @ticket.command(name='elimina-canale', description='Management: elimina un ticket chiuso da almeno 7 giorni')
+    @ticket.command(name='elimina-canale', description='Management: elimina subito un ticket chiuso con archivio verificato')
     async def delete_command(self, interaction: discord.Interaction, conferma: str):
         ticket = self.for_interaction(interaction, staff=True)
         await interaction.response.defer(ephemeral=True, thinking=True)

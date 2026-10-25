@@ -19,7 +19,9 @@ class IntegrationTests(unittest.IsolatedAsyncioTestCase):
                     commands=bot.tree.get_commands(guild=discord.Object(id=123))
                     names={c.name for c in commands}
                     self.assertNotIn('statistiche',names)
-                    self.assertTrue({'server','ticket','ordine','faq','pannelli','verifica'}.issubset(names))
+                    self.assertTrue({'server','ticket','ordine','faq','pannelli','verifica','preferenze','notifiche'}.issubset(names))
+                    tickets=next(c for c in commands if c.name=='ticket')
+                    self.assertTrue({'coda','attesa','priorita','archivio','partnership','controlli'}.issubset({c.name for c in tickets.commands}))
                     server=next(c for c in commands if c.name=='server')
                     self.assertTrue({'stile','canali','anteprima','embed'}.issubset({c.name for c in server.commands}))
                     verification=next(c for c in commands if c.name=='verifica')

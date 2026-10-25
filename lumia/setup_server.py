@@ -10,7 +10,7 @@ from .presentation import card,channel_name,small_caps,text_card,log_card,COLORS
 
 ROLE_DEFS=(
  ('unverified','Da verificare',0x94A3B8),('member','Member',0xCBD5E1),('fivem','FiveM',0x64748B),('minecraft','Minecraft',0x64748B),
- ('news','News Ping',0x64748B),('release','Release Ping',0x64748B),('customer','Customer',0xA78BFA),
+ ('web','Discord & Web',0x64748B),('news','News Ping',0x64748B),('release','Release Ping',0x64748B),('customer','Customer',0xA78BFA),
  ('developer','Developer',0x93C5FD),('support','Support',0x34D399),('moderator','Moderator',0xF59E0B),('management','Management',0x38BDF8))
 ROLE_DEFS=tuple((key,label+' ®',color) for key,label,color in ROLE_DEFS)
 CAT_NAMES={'start':'INIZIA DA QUI','info':'LUMIA DEVELOPMENT','community':'COMMUNITY','tickets':'ASSISTENZA APERTA','private_tickets':'ASSISTENZA RISERVATA','staff':'STAFF E GESTIONE'}
@@ -506,23 +506,16 @@ class ServerSetup(commands.Cog):
     @server.command(name='diagnostica',description='Controlla configurazione, ruoli e servizi')
     async def diagnostics(self,i:discord.Interaction):
         require(i,lambda m:is_management(m,self.bot.cfg))
-        missing=[]
-        for key,number in self.bot.cfg['channels'].items():
-            if key=='member_counter':
-                continue  # Legacy key retained only to migrate old installations.
-            if not i.guild.get_channel(number):
-                missing.append('Canale '+key)
-        for key,number in self.bot.cfg['roles'].items():
-            role=i.guild.get_role(number)
-            if not role:
-                missing.append('Ruolo '+key)
-            elif role>=i.guild.me.top_role:
-                missing.append('Gerarchia ruolo '+key)
-        perms=i.guild.me.guild_permissions
-        for name in ('manage_channels','manage_roles','view_channel','send_messages','read_message_history','attach_files','embed_links'):
-            if not getattr(perms,name):
-                missing.append('Permesso '+name)
-        await respond(i,'**Diagnostica Lumia**\n'+('\n'.join(missing)[:1700] if missing else 'Configurazione principale presente. Verifica anche i permessi specifici dei canali e prova un ticket con due utenti.'))
+        if i.guild_id!=self.bot.cfg['guild_id']:
+            raise app_commands.CheckFailure('Server non autorizzato.')
+        await i.response.defer(ephemeral=True,thinking=True)
+        from .diagnostics import inspect_discord
+        issues=await inspect_discord(self.bot,i.guild)
+        lines=issues or ['Controlli operativi superati. Prova anche verifica, ticket e download archivio con account distinti.']
+        for offset in range(0,len(lines),18):
+            await respond(i,None,embed=card('Diagnostica Lumia', '\n'.join(lines[offset:offset+18]),
+                level='warning' if issues else 'success',
+                footer='Sola lettura · Per backup VPS e ripristino consulta la guida di aggiornamento'))
 
 
 async def setup(bot):

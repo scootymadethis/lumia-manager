@@ -2,7 +2,7 @@ import copy
 import json
 from pathlib import Path
 
-ROLE_KEYS = ('management','support','moderator','developer','member','unverified','customer','fivem','minecraft','news','release')
+ROLE_KEYS = ('management','support','moderator','developer','member','unverified','customer','fivem','minecraft','web','news','release')
 # member_counter is retained only to identify/detach counters in older installations.
 CHANNEL_KEYS = ('welcome','rules','verification','announcements','services','portfolio','faq','role_panel','ticket_panel','transcripts','mod_log','server_log','staff_orders','events','suggestions','general','member_counter')
 

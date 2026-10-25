@@ -6,11 +6,11 @@ il ruolo Member oppure un ruolo Support/Management. Sono consentiti al massimo
 due ticket attivi per autore e una nuova apertura ogni 60 secondi. Anche le
 aperture e chiusure in elaborazione contano nel limite.
 
-Il pannello propone FiveM, Minecraft, Script, Progetto personalizzato,
-Assistenza, Partnership e Segnalazione riservata. I moduli hanno al massimo
-cinque campi. Budget e scadenze sono richieste indicative: il bot non presenta
-stime o promesse come preventivi approvati. I testi completi restano nel ticket
-e nell'archivio, anche se l'anteprima iniziale è abbreviata.
+Il pannello propone Assistenza, Partnership e Segnalazione riservata.
+Le nuove richieste di sviluppo, i preventivi, gli ordini e i pagamenti si
+gestiscono dal sito. I vecchi ticket commerciali restano consultabili.
+I testi completi restano nel ticket e nell'archivio, anche se l'anteprima
+iniziale è abbreviata.
 
 Visibilità
 - Ticket ordinari: autore, Support, Management, proprietario del server,
@@ -29,7 +29,17 @@ Visibilità
 
 Comandi
 /ticket pannello [canale]
-  Management: pubblica il menu nel canale scelto o in ticket_panel.
+  Management: pubblica o aggiorna il menu nel canale scelto o in ticket_panel.
+/ticket coda
+  Support/Management: coda privata paginata, filtrata per i propri accessi.
+/ticket attesa risposta
+/ticket priorita livello
+  Staff autorizzato: indica chi deve rispondere e la priorità del ticket aperto.
+/ticket partnership stato [nota]
+  Management nel ticket partnership: aggiorna stato, referente e storico.
+/ticket archivio numero
+  Management: recupera l'archivio finale verificato anche dopo la cancellazione
+  del canale. Gli accessi al download vengono registrati.
 /ticket prendi
   Support/Management autorizzati: presa in carico atomica, un solo vincitore.
 /ticket assegna staff
@@ -54,8 +64,8 @@ Comandi
 /ticket recupera
   Management: riprova creazioni/chiusure interrotte e aggiornamenti accessi sospesi.
 /ticket elimina-canale conferma
-  Nel ticket chiuso, Management: solo dopo almeno 7 giorni e un archivio finale
-  integro. Scrivi esattamente ELIMINA #123, sostituendo 123 con il numero ticket.
+  Nel ticket chiuso, Management: eliminazione immediata con archivio finale
+  integro, senza attesa minima. Scrivi esattamente ELIMINA #123, sostituendo 123 con il numero ticket.
   Senza conferma, archivio verificato o identificativo corretto non elimina nulla.
 
 Chiusura e conservazione
@@ -80,8 +90,10 @@ scadere. I messaggi già cancellati prima della trascrizione non sono recuperabi
 Gli amministratori possono ancora modificare canali e messaggi: evita modifiche
 manuali durante la chiusura e conserva separatamente gli allegati da archiviare.
 
-I canali chiusi restano consultabili almeno 7 giorni. La cancellazione del canale
-è manuale e richiede il comando sopra; un errore di archivio impedisce l'azione.
+Dopo la chiusura Management può eliminare subito il canale, senza attendere
+sette giorni. La cancellazione è manuale: usa il pulsante Elimina ticket
+(con conferma scritta) oppure il comando sopra. Un errore di archivio impedisce
+l'azione. /ticket controlli aggiorna i pulsanti nei ticket esistenti.
 Non c'è cancellazione automatica delle trascrizioni per età in questo modulo.
 retention_days è un valore di politica predisposto in configurazione: non attiva
 alcuna cancellazione automatica dei dati. Per gli archivi e gli altri registri
@@ -89,7 +101,7 @@ la Management deve definire e applicare una politica manuale, incluse le
 copie snapshot e i backup. Il pannello informa gli utenti di questa conservazione
 manuale prima dell'apertura. Non trattare il valore 90 come una scadenza automatica
 delle trascrizioni. Dopo la rimozione del canale le copie locali restano alla
-Management; il comando nel canale eliminato non è più disponibile.
+Management, che può recuperarle con /ticket archivio numero da un altro canale.
 
 Ripristino e limiti operativi
 Le richieste in creazione sono recuperate tramite il topic esatto lumia-ticket:N.

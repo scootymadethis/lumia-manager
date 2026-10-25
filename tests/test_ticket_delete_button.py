@@ -1,4 +1,4 @@
-"""Ticket deletion controls keep the existing retention and archive contract."""
+"""Ticket deletion is immediate after closure, with confirmation and verified archive."""
 import time
 import unittest
 from types import SimpleNamespace as NS
@@ -22,7 +22,6 @@ class TicketDeleteButtonTests(unittest.IsolatedAsyncioTestCase):
     async def archived(self):
         ticket,channel=self.ticket()
         await self.cog.close_ticket(ticket['id'],self.manager,'finito')
-        self.store.update_ticket(ticket['id'],closed=time.time()-8*86400)
         return self.store.ticket(ticket['id']),channel
 
     async def modal(self):
@@ -47,13 +46,11 @@ class TicketDeleteButtonTests(unittest.IsolatedAsyncioTestCase):
                 await self.module.TicketControls(self.cog).delete.callback(i)
             i.response.send_modal.assert_not_awaited()
 
-    async def test_open_recent_or_corrupt_archive_cannot_open_confirmation(self):
+    async def test_open_or_corrupt_archive_cannot_open_confirmation(self):
         ticket,channel=self.ticket()
-        for stage in ('open','recent','corrupt'):
-            if stage=='recent':
+        for stage in ('open','corrupt'):
+            if stage=='corrupt':
                 await self.cog.close_ticket(ticket['id'],self.manager,'finito')
-            elif stage=='corrupt':
-                self.store.update_ticket(ticket['id'],closed=time.time()-8*86400)
                 self.cog.archive_path(ticket).write_text('corrupt',encoding='utf-8')
             i=self.interaction()
             with self.assertRaises(ValueError):
@@ -76,7 +73,7 @@ class TicketDeleteButtonTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):await modal.on_submit(self.interaction())
         self.assertFalse(channel.deleted)
 
-    async def test_confirmation_rechecks_actor_permission_channel_and_retention(self):
+    async def test_confirmation_rechecks_actor_permission_channel_and_closed_state(self):
         ticket,channel=await self.archived()
         modal=await self.modal();modal.children[0]._value=f'ELIMINA #{ticket["id"]}'
         other_manager=self.guild.member(206,(101,))
@@ -86,9 +83,16 @@ class TicketDeleteButtonTests(unittest.IsolatedAsyncioTestCase):
         self.manager.roles=[]
         with self.assertRaises(app_commands.CheckFailure):await modal.on_submit(self.interaction())
         self.manager.roles=[self.guild.roles[101]]
-        self.store.update_ticket(ticket['id'],closed=time.time())
+        self.store.update_ticket(ticket['id'],state='open')
         with self.assertRaises(ValueError):await modal.on_submit(self.interaction())
         self.assertFalse(channel.deleted)
+
+    async def test_slash_command_deletes_immediately_after_closure(self):
+        ticket,channel=await self.archived()
+        self.assertLess(time.time()-ticket['closed'],60)
+        await self.cog.delete_command.callback(self.cog,self.interaction(),f'ELIMINA #{ticket["id"]}')
+        self.assertTrue(channel.deleted)
+        self.assertTrue(self.cog.verified_archive(self.store.ticket(ticket['id'])).is_file())
 
     async def test_repeat_confirmation_never_deletes_a_channel_twice(self):
         ticket,channel=await self.archived()
@@ -151,3 +155,19 @@ class TicketDeleteButtonTests(unittest.IsolatedAsyncioTestCase):
         foreign.edit.assert_not_awaited()
         self.assertEqual(channel.sent,[])
         self.assertEqual(self.store.get('ticket_controls',ticket['id'])['message'],791)
+
+    async def test_existing_controls_panel_text_is_updated_without_replacing_ticket_intro(self):
+        ticket,channel=self.ticket()
+        self.store.put('ticket_controls',ticket['id'],{'message':800,'channel':channel.id})
+        message=NS(id=800,embeds=[discord.Embed(title='Controlli del ticket',description='Attendi almeno 7 giorni dalla chiusura.')],edit=AsyncMock())
+        channel.fetch_message=AsyncMock(return_value=message)
+        await self.cog.publish_controls(ticket['id'],self.manager)
+        updated=message.edit.call_args.kwargs.get('embed')
+        self.assertIsNotNone(updated)
+        self.assertNotIn('7 giorni',updated.description)
+        self.assertIn('Nessuna attesa',updated.description)
+        message.embeds=[discord.Embed(title='Ticket #0001 · Assistenza',description='Dettagli originali del cliente')]
+        message.edit.reset_mock()
+        await self.cog.publish_controls(ticket['id'],self.manager)
+        self.assertNotIn('embed',message.edit.call_args.kwargs)
+        self.assertEqual(channel.sent,[])

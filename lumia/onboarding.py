@@ -88,11 +88,11 @@ def bind_private_panel(bot,message,member,kind):
 
 
 async def send_preferences(bot,member):
-    selected={key for key in ('fivem','minecraft','news','release')
+    selected={key for key in ('fivem','minecraft','web','news','release')
               if bot.cfg['roles'].get(key,0) in {r.id for r in member.roles}}
     message=await member.send(embed=with_avatar(embed('I tuoi interessi',
-        'Seleziona FiveM e Minecraft per i tuoi interessi, Novità e Release per le notifiche. '
-        'Puoi scegliere più voci o deselezionarle tutte. Per riaprire questo menu usa /inizia nel server.'),member),
+        'Seleziona FiveM, Minecraft e Discord & Web per i tuoi interessi, Novità e Release per le notifiche. '
+        'Puoi scegliere più voci o deselezionarle tutte. Usa /preferenze nel server anche con i DM chiusi.'),member),
         view=RolePanel(bot,selected=selected),allowed_mentions=discord.AllowedMentions.none())
     bind_private_panel(bot,message,member,'roles')
 
@@ -257,7 +257,7 @@ async def complete_acceptance(bot,i,verified=False):
     try:
         await send_preferences(bot,member)
     except discord.HTTPException:
-        await reply(i,'Il ruolo Member è attivo. Per ricevere il menu interessi abilita i DM dal server e usa /inizia.')
+        await reply(i,'Il ruolo Member è attivo. Usa /preferenze nel server per scegliere gli interessi anche con i DM chiusi.')
         await bot.log('server_log',f'Menu ruoli privato non consegnato a <@{member.id}>.')
 
 
@@ -269,8 +269,9 @@ class RolePanel(LocalView):
         for option in self.select.options:
             option.default=option.value in selected
 
-    @discord.ui.select(placeholder='Scegli interessi e notifiche',min_values=0,max_values=4,custom_id='lumia:roles:select',options=[
+    @discord.ui.select(placeholder='Scegli interessi e notifiche',min_values=0,max_values=5,custom_id='lumia:roles:select',options=[
         discord.SelectOption(label='FiveM',value='fivem'),discord.SelectOption(label='Minecraft',value='minecraft'),
+        discord.SelectOption(label='Discord & Web',value='web'),
         discord.SelectOption(label='Novità',value='news'),discord.SelectOption(label='Release',value='release')])
     async def select(self,i,select):
         await i.response.defer(ephemeral=i.guild_id is not None,thinking=True)
@@ -279,11 +280,14 @@ class RolePanel(LocalView):
             return
         if self.bot.cfg['roles']['member'] not in {r.id for r in member.roles}:
             return await reply(i,'Accetta prima il regolamento.')
-        keys=('fivem','minecraft','news','release')
+        keys=('fivem','minecraft','web','news','release')
         selected=set(select.values)
         if not selected.issubset(keys):
             return await reply(i,'Preferenze non valide. Riapri il menu con /inizia.')
-        roles={key:member.guild.get_role(self.bot.cfg['roles'].get(key,0)) for key in keys}
+        if any(not self.bot.cfg['roles'].get(key,0) for key in selected):
+            return await reply(i,'Un interesse non è ancora configurato. Lo staff deve aggiornare /server allestimento.')
+        roles={key:member.guild.get_role(self.bot.cfg['roles'].get(key,0)) for key in keys
+               if self.bot.cfg['roles'].get(key,0)}
         if any(not assignable(member.guild,r) for r in roles.values()):
             return await reply(i,'Uno dei ruoli selezionabili non è configurato correttamente.')
         current={r.id for r in member.roles}
@@ -293,7 +297,30 @@ class RolePanel(LocalView):
             await member.remove_roles(*remove,reason='Preferenze Lumia')
         if add:
             await member.add_roles(*add,reason='Preferenze Lumia')
-        await reply(i,'Preferenze aggiornate. Puoi modificarle quando vuoi con questo menu o /inizia nel server.')
+        await reply(i,'Preferenze aggiornate. Puoi modificarle con questo menu o /preferenze nel server.')
+
+
+async def open_preferences(bot,i):
+    if i.guild_id!=bot.cfg['guild_id']:
+        return await reply(i,'Usa /preferenze nel server Lumia.')
+    await i.response.defer(ephemeral=True,thinking=True)
+    member=await RolePanel(bot).member(i)
+    if member is None:
+        return
+    if bot.cfg['roles']['member'] not in {r.id for r in member.roles}:
+        return await reply(i,'Completa prima la verifica per ricevere Member.')
+    selected={key for key in ('fivem','minecraft','web','news','release')
+              if bot.cfg['roles'].get(key,0) in {r.id for r in member.roles}}
+    await reply(i,None,embed=embed('I tuoi interessi e le notifiche',
+        'Scegli solo ciò che ti interessa. Puoi deselezionare tutte le voci. Le risposte sono private e non richiedono DM.'),
+        view=RolePanel(bot,selected=selected))
+
+
+class PreferencesPanel(LocalView):
+    @discord.ui.button(label='Scegli interessi e notifiche',style=discord.ButtonStyle.primary,
+                       custom_id='lumia:preferences:open:v1')
+    async def preferences(self,i,button):
+        await open_preferences(self.bot,i)
 
 
 class PrivateStartPanel(LocalView):
@@ -331,6 +358,12 @@ class Onboarding(commands.Cog):
         bot.add_view(RolePanel(bot))
         bot.add_view(PrivateStartPanel(bot))
         bot.add_view(VerificationPanel(bot))
+        bot.add_view(PreferencesPanel(bot))
+
+    @app_commands.command(name='preferenze',description='Scegli interessi e notifiche, anche con i DM chiusi')
+    @app_commands.guild_only()
+    async def preferences(self,i:discord.Interaction):
+        await open_preferences(self.bot,i)
 
     @app_commands.command(name='inizia',description='Ricevi in privato benvenuto, regolamento e menu dei ruoli')
     @app_commands.guild_only()
@@ -344,7 +377,7 @@ class Onboarding(commands.Cog):
         for key,view,title,text in (
             ('verification',VerificationPanel(self.bot),'🔓  Verifica il tuo accesso','Appena entri ricevi Da verificare. Premi «Inizia la verifica», leggi e accetta le regole e rispondi al breve controllo. Il bot assegna Member e rimuove Da verificare.\n\nLa verifica è privata e funziona anche con i DM chiusi. Non servono password o pagamenti.'),
             ('rules',VerificationPanel(self.bot),'📜  Regole e accesso','Leggi e accetta il regolamento dal pulsante qui sotto. Dopo la verifica ricevi Member. Le risposte sono visibili soltanto a te. Puoi anche usare i pulsanti ricevuti in privato.'),
-            ('role_panel',PrivateStartPanel(self.bot),'🔔  Il tuo spazio, le tue preferenze','Interessi e notifiche si scelgono in privato. Premi qui sotto o usa /inizia per ricevere il menu FiveM, Minecraft, Novità e Release.')):
+            ('role_panel',PreferencesPanel(self.bot),'🔔  Il tuo spazio, le tue preferenze','Premi qui sotto o usa /preferenze: scegli FiveM, Minecraft, Discord & Web, Novità e Release. La risposta è privata e funziona anche con i DM chiusi.')):
             channel=i.guild.get_channel(self.bot.cfg['channels'][key])
             if not isinstance(channel,discord.TextChannel):
                 return await respond(i,f'Configura prima il canale {key} con /server allestimento.')

@@ -1,3 +1,7 @@
+AGGIORNAMENTO BOT DISCORD — 25 ottobre 2026
+Leggi AGGIORNAMENTO-DISCORD.md per aggiornare pannelli, coda staff, preferenze, archivi e notifiche.
+La cancellazione dei ticket chiusi e archiviati non richiede più sette giorni di attesa.
+
 AGGIORNAMENTO SITO, TUTORIAL E VERIFICA DISCORD — 19 ottobre 2026
 Leggi AGGIORNAMENTO-PAYPAL.md per dashboard, ordini, PayPal e Discord dedicato all’assistenza.
 Include tutorial clienti, accesso agli ordini dalla homepage, ruolo Da verificare e pannello di verifica senza obbligo di DM.
