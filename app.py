@@ -13,10 +13,11 @@ import os
 
 from fastapi.responses import RedirectResponse
 
-# Vercel exposes the project's public domain; locally it falls back to the preview port.
+# LUMIA_DEMO_URL wins (e.g. a custom domain); otherwise Vercel's production domain,
+# and locally the preview port.
 _host = os.getenv('VERCEL_PROJECT_PRODUCTION_URL') or os.getenv('VERCEL_URL')
-ORIGIN = f'https://{_host}' if _host else 'http://127.0.0.1:8080'
-os.environ.setdefault('LUMIA_DEMO_URL', ORIGIN)
+ORIGIN = (os.getenv('LUMIA_DEMO_URL') or (f'https://{_host}' if _host else 'http://127.0.0.1:8080')).rstrip('/')
+os.environ['LUMIA_DEMO_URL'] = ORIGIN
 
 from lumia.site import create_site_app  # noqa: E402  (needs the env above)
 from lumia.web import create_demo_app  # noqa: E402
